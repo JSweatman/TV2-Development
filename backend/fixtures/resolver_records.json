@@ -1,0 +1,154 @@
+[
+  {
+    "country_code": "1",
+    "list_number": "529",
+    "tldx": null,
+    "display_name": "TV2 Fixture Alpha",
+    "entity_type": "person",
+    "template_key": "basic",
+    "resources": [
+      {
+        "key": "web",
+        "type": "web",
+        "uri": "https://example.com/alpha",
+        "metadata": {}
+      },
+      {
+        "key": "call",
+        "type": "call",
+        "uri": null,
+        "metadata": {}
+      },
+      {
+        "key": "video_call",
+        "type": "video_call",
+        "uri": null,
+        "metadata": {}
+      },
+      {
+        "key": "text",
+        "type": "text",
+        "uri": null,
+        "metadata": {}
+      }
+    ],
+    "buttons": [
+      {
+        "slot": 1,
+        "label": "CALL",
+        "resource_key": "call"
+      },
+      {
+        "slot": 2,
+        "label": "TEXT",
+        "resource_key": "text"
+      },
+      {
+        "slot": 3,
+        "label": "VIDEO",
+        "resource_key": "video_call"
+      },
+      {
+        "slot": 4,
+        "label": "WEB",
+        "resource_key": "web"
+      }
+    ]
+  },
+  {
+    "country_code": "1",
+    "list_number": "5291",
+    "tldx": null,
+    "display_name": "TV2 Fixture Alpha Branch",
+    "entity_type": "business",
+    "template_key": "basic",
+    "resources": [
+      {
+        "key": "web",
+        "type": "web",
+        "uri": "https://example.com/alpha-branch",
+        "metadata": {}
+      }
+    ],
+    "buttons": [
+      {
+        "slot": 1,
+        "label": "WEB",
+        "resource_key": "web"
+      }
+    ]
+  },
+  {
+    "country_code": "1",
+    "list_number": "529",
+    "tldx": "411",
+    "display_name": "TV2 Fixture Alpha Catalogue",
+    "entity_type": "organization",
+    "template_key": "basic",
+    "resources": [
+      {
+        "key": "web",
+        "type": "web",
+        "uri": "https://example.com/alpha/catalogue",
+        "metadata": {}
+      }
+    ],
+    "buttons": [
+      {
+        "slot": 1,
+        "label": "OPEN",
+        "resource_key": "web"
+      }
+    ]
+  },
+  {
+    "country_code": "91",
+    "list_number": "529",
+    "tldx": null,
+    "display_name": "TV2 Fixture India Namespace",
+    "entity_type": "business",
+    "template_key": "basic",
+    "resources": [
+      {
+        "key": "video",
+        "type": "video",
+        "uri": "https://example.com/media/video.mp4",
+        "metadata": {}
+      }
+    ],
+    "buttons": [
+      {
+        "slot": 1,
+        "label": "VIDEO",
+        "resource_key": "video"
+      }
+    ]
+  },
+  {
+    "country_code": null,
+    "list_number": "529",
+    "tldx": null,
+    "display_name": "TV2 Global Fixture",
+    "entity_type": "organization",
+    "template_key": "basic",
+    "resources": [],
+    "buttons": []
+  },
+  {
+    "country_code": "1",
+    "list_number": "700@12",
+    "tldx": null,
+    "display_name": "TV2 Symbol Fixture",
+    "entity_type": "business",
+    "template_key": "basic",
+    "resources": [
+      {
+        "key": "image",
+        "type": "image",
+        "uri": "https://example.com/media/image.jpg",
+        "metadata": {}
+      }
+    ],
+    "buttons": []
+  }
+]
