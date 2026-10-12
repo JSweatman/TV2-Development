@@ -7,8 +7,10 @@ from identity_rules import parse_identity, parse_prefix, InvalidIdentity
 
 
 class IdentityRulesTests(unittest.TestCase):
-    def test_default_country_matches_explicit_country(self):
-        self.assertEqual(parse_identity("529"), parse_identity("1*529"))
+    def test_non_global_requires_country_context(self):
+        with self.assertRaises(InvalidIdentity):
+            parse_identity("529")
+        self.assertEqual(parse_identity("529", "1"), parse_identity("1*529"))
 
     def test_explicit_country(self):
         self.assertEqual(parse_identity("91*529").country_code, "91")
@@ -19,12 +21,12 @@ class IdentityRulesTests(unittest.TestCase):
         self.assertTrue(result.is_global)
 
     def test_tldx_is_separate_from_base(self):
-        result = parse_identity("529.411")
+        result = parse_identity("529.411", "1")
         self.assertEqual(result.base, "529")
         self.assertEqual(result.tldx, "411")
 
     def test_permitted_base_symbols(self):
-        self.assertEqual(parse_identity("12@34/56-78#90").base, "12@34/56-78#90")
+        self.assertEqual(parse_identity("12@34/56-78#90", "1").base, "12@34/56-78#90")
 
     def test_base_only_length_limit(self):
         base = "123456789012345"
@@ -32,7 +34,7 @@ class IdentityRulesTests(unittest.TestCase):
         result = parse_identity(f"999*{base}.123456789012345")
         self.assertEqual(len(result.base), 15)
         with self.assertRaises(InvalidIdentity):
-            parse_identity("1234567890123456")
+            parse_identity("1234567890123456", "1")
 
     def test_strict_parser_rejects_incomplete_or_invalid_values(self):
         for value in (
@@ -40,11 +42,11 @@ class IdentityRulesTests(unittest.TestCase):
             "1**529", "abc*529", "529@", "12.-3",
         ):
             with self.subTest(value=value), self.assertRaises(InvalidIdentity):
-                parse_identity(value)
+                parse_identity(value, "1")
 
     def test_prefix_parser_accepts_transitional_trailing_symbol(self):
-        self.assertEqual(parse_prefix("700@").base, "700@")
-        p = parse_prefix("529.")
+        self.assertEqual(parse_prefix("700@", "1").base, "700@")
+        p = parse_prefix("529.", "1")
         self.assertEqual(p.base, "529")
         self.assertEqual(p.tldx, "")
 
