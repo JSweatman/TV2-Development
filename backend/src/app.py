@@ -5,7 +5,6 @@ public capabilities. It never reads protected CDD, consent records, credentials,
 or private communications routing data.
 """
 from __future__ import annotations
-import os
 from typing import Any
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -13,8 +12,7 @@ from pydantic import BaseModel, Field
 from identity_rules import InvalidIdentity, parse_identity, parse_prefix
 from repository import ListingRecord, ResolverRepository, build_repository
 
-app = FastAPI(title="List Number TV2 Resolver", version="0.3.0")
-DEFAULT_COUNTRY_CODE = os.getenv("DEFAULT_COUNTRY_CODE", "1")
+app = FastAPI(title="List Number TV2 Resolver", version="0.4.0")
 MAX_PREFIX_RESULTS = 20
 repository: ResolverRepository = build_repository()
 
@@ -70,14 +68,14 @@ class PrefixResponse(BaseModel):
 
 def _strict_identity(raw: str, country: str | None):
     try:
-        return parse_identity(raw, country if country is not None else DEFAULT_COUNTRY_CODE)
+        return parse_identity(raw, country)
     except InvalidIdentity as exc:
         raise HTTPException(400, str(exc)) from exc
 
 
 def _prefix_identity(raw: str, country: str | None):
     try:
-        return parse_prefix(raw, country if country is not None else DEFAULT_COUNTRY_CODE)
+        return parse_prefix(raw, country)
     except InvalidIdentity as exc:
         raise HTTPException(400, str(exc)) from exc
 

@@ -14,11 +14,11 @@ client = TestClient(service.app)
 
 def test_invalid_identity_rejected():
     for value in ["123**45", "12A45", "123.", "123@#45"]:
-        assert client.get("/v1/resolve", params={"input": value}).status_code == 400
+        assert client.get("/v1/resolve", params={"input": value, "country": "1"}).status_code == 400
 
 
 def test_exact_namespace_and_global_resolution():
-    local = client.get("/v1/resolve", params={"input": "529"}).json()
+    local = client.get("/v1/resolve", params={"input": "529", "country": "1"}).json()
     india = client.get("/v1/resolve", params={"input": "91*529"}).json()
     global_ = client.get("/v1/resolve", params={"input": "*529"}).json()
     assert local["listing"]["display_name"] == "TV2 Fixture Alpha"
@@ -28,12 +28,12 @@ def test_exact_namespace_and_global_resolution():
 
 
 def test_missing_returns_not_found_without_fabrication():
-    body = client.get("/v1/resolve", params={"input": "999"}).json()
+    body = client.get("/v1/resolve", params={"input": "999", "country": "1"}).json()
     assert body == {"status": "not_found", "country_context": "1", "input": "999", "listing": None}
 
 
 def test_exact_response_exposes_configured_public_capabilities_only():
-    body = client.get("/v1/resolve", params={"input": "529"}).json()["listing"]
+    body = client.get("/v1/resolve", params={"input": "529", "country": "1"}).json()["listing"]
     keys = {r["key"] for r in body["resources"]}
     assert keys == {"web", "call", "text", "video_call"}
     encoded = str(body).lower()
@@ -43,17 +43,17 @@ def test_exact_response_exposes_configured_public_capabilities_only():
 
 
 def test_prefix_exact_and_limit():
-    response = client.get("/v1/prefix", params={"input": "529", "limit": 2})
+    response = client.get("/v1/prefix", params={"input": "529", "country": "1", "limit": 2})
     assert response.status_code == 200
     body = response.json()
     assert body["matches"][0]["exact"] is True
     assert len(body["matches"]) == 2
     assert body["has_more"] is True
-    assert client.get("/v1/prefix", params={"input": "529", "limit": 21}).status_code == 422
+    assert client.get("/v1/prefix", params={"input": "529", "country": "1", "limit": 21}).status_code == 422
 
 
 def test_prefix_accepts_tldx_transitional_input():
-    response = client.get("/v1/prefix", params={"input": "529."})
+    response = client.get("/v1/prefix", params={"input": "529.", "country": "1"})
     assert response.status_code == 200
     matches = response.json()["matches"]
     assert [(m["list_number"], m["tldx"]) for m in matches] == [("529", "411")]
@@ -73,3 +73,16 @@ def test_health_and_readiness():
 def test_openapi_does_not_publish_protected_cdd_model():
     schemas = client.get("/openapi.json").json()["components"]["schemas"]
     assert all("cdd" not in name.lower() for name in schemas)
+
+
+def test_non_global_input_requires_country_context():
+    response = client.get("/v1/resolve", params={"input": "529"})
+    assert response.status_code == 400
+    assert "Country context is required" in response.json()["detail"]
+
+
+def test_client_selected_country_changes_namespace():
+    us = client.get("/v1/resolve", params={"input": "529", "country": "1"}).json()
+    india = client.get("/v1/resolve", params={"input": "529", "country": "91"}).json()
+    assert us["listing"]["display_name"] == "TV2 Fixture Alpha"
+    assert india["listing"]["display_name"] == "TV2 Fixture India Namespace"
