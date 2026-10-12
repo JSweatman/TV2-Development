@@ -11,6 +11,8 @@ import os
 from pathlib import Path
 from typing import Any, Protocol
 
+import httpx
+
 try:
     import psycopg
 except ImportError:  # local fixture/API tests do not require PostgreSQL
@@ -92,7 +94,7 @@ class FixtureRepository:
 
     def prefix(self, country_code: str | None, base: str, tldx_prefix: str | None, limit: int) -> list[PrefixRecord]:
         if not base:
-            return []  # never enumerate an entire country/global namespace
+            return []
         rows: list[ListingRecord] = []
         for item in self._listings:
             if item.country_code != country_code or not item.list_number.startswith(base):
@@ -113,8 +115,107 @@ class FixtureRepository:
         return True
 
 
+class SupabaseResolverRepository:
+    """Public resolver read path through narrow Supabase RPC functions.
+
+    This intentionally uses only a publishable key. The RPC functions expose
+    resolver-safe public metadata and do not permit arbitrary table access.
+    """
+
+    def __init__(self, base_url: str, publishable_key: str, timeout: float = 5.0):
+        self.base_url = base_url.rstrip("/")
+        self.publishable_key = publishable_key
+        self.timeout = timeout
+
+    @property
+    def _headers(self) -> dict[str, str]:
+        return {
+            "apikey": self.publishable_key,
+            "Authorization": f"Bearer {self.publishable_key}",
+            "Content-Type": "application/json",
+        }
+
+    def _rpc(self, name: str, payload: dict[str, Any]) -> Any:
+        response = httpx.post(
+            f"{self.base_url}/rest/v1/rpc/{name}",
+            headers=self._headers,
+            json=payload,
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def get_listing(self, country_code: str | None, base: str, tldx: str | None) -> ListingRecord | None:
+        item = self._rpc("resolver_get_listing", {
+            "p_country_code": country_code,
+            "p_base": base,
+            "p_tldx": tldx,
+        })
+        if item is None:
+            return None
+        resources = tuple(
+            ResourceRecord(
+                key=r["key"],
+                type=r["type"],
+                uri=r.get("uri"),
+                metadata=r.get("metadata") or {},
+            )
+            for r in item.get("resources", [])
+        )
+        buttons = tuple(
+            ButtonRecord(
+                slot=b["slot"],
+                label=b.get("label"),
+                resource_key=b["resource_key"],
+            )
+            for b in item.get("buttons", [])
+        )
+        return ListingRecord(
+            country_code=item.get("country_code"),
+            list_number=item["list_number"],
+            tldx=item.get("tldx"),
+            display_name=item["display_name"],
+            entity_type=item["entity_type"],
+            template_key=item.get("template_key", "basic"),
+            resources=resources,
+            buttons=buttons,
+        )
+
+    def prefix(self, country_code: str | None, base: str, tldx_prefix: str | None, limit: int) -> list[PrefixRecord]:
+        if not base:
+            return []
+        rows = self._rpc("resolver_prefix", {
+            "p_country_code": country_code,
+            "p_base": base,
+            "p_tldx_prefix": tldx_prefix,
+            "p_limit": limit,
+        })
+        return [
+            PrefixRecord(
+                country_code=r.get("country_code"),
+                list_number=r["list_number"],
+                tldx=r.get("tldx"),
+                display_name=r["display_name"],
+                entity_type=r["entity_type"],
+            )
+            for r in (rows or [])
+        ]
+
+    def health(self) -> bool:
+        try:
+            response = httpx.get(
+                f"{self.base_url}/rest/v1/country_namespaces",
+                headers=self._headers,
+                params={"select": "iso2", "limit": "1"},
+                timeout=self.timeout,
+            )
+            return response.status_code == 200
+        except Exception:
+            return False
+
+
 class PostgresResolverRepository:
-    """PostgreSQL implementation for the public resolver read path."""
+    """PostgreSQL implementation retained for portability and local use."""
 
     def __init__(self, database_url: str):
         self.database_url = database_url
@@ -205,12 +306,20 @@ def _escape_like(value: str) -> str:
 
 
 def build_repository() -> ResolverRepository:
-    mode = os.getenv("TV2_REPOSITORY", "postgres").strip().lower()
+    mode = os.getenv("TV2_REPOSITORY", "fixture").strip().lower()
     if mode == "fixture":
         default = Path(__file__).resolve().parents[1] / "fixtures" / "resolver_records.json"
         path = os.getenv("TV2_FIXTURE_FILE", str(default))
         return FixtureRepository.from_json_file(path)
-    if mode != "postgres":
-        raise RuntimeError(f"Unsupported TV2_REPOSITORY mode: {mode}")
-    database_url = os.getenv("DATABASE_URL", "postgresql://tv2:tv2@localhost:5432/tv2")
-    return PostgresResolverRepository(database_url)
+    if mode == "supabase":
+        base_url = os.getenv("SUPABASE_URL", "").strip()
+        publishable_key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
+        if not base_url or not publishable_key:
+            raise RuntimeError("SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required in supabase mode")
+        return SupabaseResolverRepository(base_url, publishable_key)
+    if mode == "postgres":
+        database_url = os.getenv("DATABASE_URL", "").strip()
+        if not database_url:
+            raise RuntimeError("DATABASE_URL is required in postgres mode")
+        return PostgresResolverRepository(database_url)
+    raise RuntimeError(f"Unsupported TV2_REPOSITORY mode: {mode}")
