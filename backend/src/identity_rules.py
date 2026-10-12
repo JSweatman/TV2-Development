@@ -76,7 +76,7 @@ def _validate_body(value: str) -> tuple[str, str | None]:
     return base, tldx
 
 
-def parse_identity(raw: str, requested_country: str | None = "1") -> ParsedIdentity:
+def parse_identity(raw: str, requested_country: str | None = None) -> ParsedIdentity:
     """Parse a user-entered List Number into namespace + base + optional TLDx.
 
     Rules intentionally *do not* decide whether the identifier can be enrolled.
@@ -111,7 +111,7 @@ def parse_identity(raw: str, requested_country: str | None = "1") -> ParsedIdent
     return ParsedIdentity(country_code=country, base=base, tldx=tldx, is_global=is_global)
 
 
-def parse_prefix(raw: str, requested_country: str | None = "1") -> ParsedIdentity:
+def parse_prefix(raw: str, requested_country: str | None = None) -> ParsedIdentity:
     """Parse progressive input without treating a temporary trailing symbol as final.
 
     This is intentionally more permissive than :func:`parse_identity` because a
