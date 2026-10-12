@@ -10,8 +10,8 @@ services:
     healthCheckPath: /health
     envVars:
       - key: TV2_REPOSITORY
-        value: postgres
-      - key: DEFAULT_COUNTRY_CODE
-        value: "1"
-      - key: DATABASE_URL
+        value: supabase
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
         sync: false
