@@ -68,6 +68,13 @@ class PrefixResponse(BaseModel):
     has_more: bool
 
 
+class CountryNamespace(BaseModel):
+    iso2: str
+    country_name: str
+    nid: str
+    default_language_tag: str | None = None
+
+
 def _strict_identity(raw: str, country: str | None):
     try:
         return parse_identity(raw, country)
@@ -121,6 +128,19 @@ def root():
         "status": "online",
         "country_context": "client-selected",
     }
+
+
+@app.get("/v1/countries", response_model=list[CountryNamespace])
+def countries():
+    return [
+        {
+            "iso2": row.iso2,
+            "country_name": row.country_name,
+            "nid": row.nid,
+            "default_language_tag": row.default_language_tag,
+        }
+        for row in repository.countries()
+    ]
 
 
 @app.get("/health")
