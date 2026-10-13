@@ -1,0 +1,36 @@
+name: restore-flutter-client
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/restore-flutter-client.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore Flutter source from archived handoff
+        run: |
+          rm -rf TV2_flutter
+          unzip -q TV2-Development-Repo-Ready.zip 'TV2_flutter/*'
+          test -f TV2_flutter/lib/main.dart
+          test -f TV2_flutter/lib/home_screen.dart
+      - name: Commit restored Flutter client
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add TV2_flutter
+          if git diff --cached --quiet; then
+            echo "Flutter client already restored."
+            exit 0
+          fi
+          git commit -m "Restore Flutter client source from archived handoff"
+          git push
