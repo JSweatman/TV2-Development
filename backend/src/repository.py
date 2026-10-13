@@ -55,9 +55,18 @@ class PrefixRecord:
     entity_type: str
 
 
+@dataclass(frozen=True)
+class CountryNamespaceRecord:
+    iso2: str
+    country_name: str
+    nid: str
+    default_language_tag: str | None = None
+
+
 class ResolverRepository(Protocol):
     def get_listing(self, country_code: str | None, base: str, tldx: str | None) -> ListingRecord | None: ...
     def prefix(self, country_code: str | None, base: str, tldx_prefix: str | None, limit: int) -> list[PrefixRecord]: ...
+    def countries(self) -> list[CountryNamespaceRecord]: ...
     def health(self) -> bool: ...
 
 
@@ -110,6 +119,15 @@ class FixtureRepository:
             len(item.list_number), item.list_number, item.tldx or "", item.display_name,
         ))
         return [PrefixRecord(r.country_code, r.list_number, r.tldx, r.display_name, r.entity_type) for r in rows[: limit + 1]]
+
+    def countries(self) -> list[CountryNamespaceRecord]:
+        return [
+            CountryNamespaceRecord("US", "United States", "1", "en-US"),
+            CountryNamespaceRecord("CA", "Canada", "1", "en-CA"),
+            CountryNamespaceRecord("FR", "France", "33", "fr-FR"),
+            CountryNamespaceRecord("JP", "Japan", "81", "ja-JP"),
+            CountryNamespaceRecord("IN", "India", "91", "en-IN"),
+        ]
 
     def health(self) -> bool:
         return True
@@ -199,6 +217,28 @@ class SupabaseResolverRepository:
                 entity_type=r["entity_type"],
             )
             for r in (rows or [])
+        ]
+
+    def countries(self) -> list[CountryNamespaceRecord]:
+        response = httpx.get(
+            f"{self.base_url}/rest/v1/country_namespaces",
+            headers=self._headers,
+            params={
+                "select": "iso2,country_name,nid,default_language_tag",
+                "active": "eq.true",
+                "order": "country_name.asc",
+            },
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+        return [
+            CountryNamespaceRecord(
+                iso2=row["iso2"],
+                country_name=row["country_name"],
+                nid=row["nid"],
+                default_language_tag=row.get("default_language_tag"),
+            )
+            for row in response.json()
         ]
 
     def health(self) -> bool:
@@ -291,6 +331,16 @@ class PostgresResolverRepository:
                     (country_code, base, escaped_tldx, tldx_prefix, limit + 1),
                 )
             return [PrefixRecord(*r) for r in cur.fetchall()]
+
+    def countries(self) -> list[CountryNamespaceRecord]:
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                """SELECT iso2,country_name,nid,default_language_tag
+                   FROM country_namespaces
+                   WHERE active=TRUE
+                   ORDER BY country_name"""
+            )
+            return [CountryNamespaceRecord(*row) for row in cur.fetchall()]
 
     def health(self) -> bool:
         try:
