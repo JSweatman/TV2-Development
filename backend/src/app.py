@@ -5,6 +5,7 @@ public capabilities. It never reads protected CDD, consent records, credentials,
 or private communications routing data.
 """
 from __future__ import annotations
+import logging
 from typing import Any
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -12,7 +13,8 @@ from pydantic import BaseModel, Field
 from identity_rules import InvalidIdentity, parse_identity, parse_prefix
 from repository import ListingRecord, ResolverRepository, build_repository
 
-app = FastAPI(title="List Number TV2 Resolver", version="0.4.0")
+logger = logging.getLogger("tv2-resolver")
+app = FastAPI(title="List Number TV2 Resolver", version="0.4.1")
 MAX_PREFIX_RESULTS = 20
 repository: ResolverRepository = build_repository()
 
@@ -96,6 +98,28 @@ def _listing_payload(record: ListingRecord) -> dict[str, Any]:
             {"slot": b.slot, "label": b.label, "resource_key": b.resource_key}
             for b in record.buttons
         ],
+    }
+
+
+@app.on_event("startup")
+def startup_repository_check():
+    """Emit a deployment-visible repository connectivity check."""
+    try:
+        if repository.health():
+            logger.info("TV2 repository connectivity check: READY")
+        else:
+            logger.error("TV2 repository connectivity check: FAILED")
+    except Exception:
+        logger.exception("TV2 repository connectivity check: ERROR")
+
+
+@app.get("/")
+def root():
+    return {
+        "service": "tv2-resolver",
+        "version": "0.4.1",
+        "status": "online",
+        "country_context": "client-selected",
     }
 
 
