@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'input_rules.dart';
 import 'models.dart';
@@ -10,11 +11,11 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.api,
-    required this.initialCountry,
+    this.initialCountry,
   });
 
   final ResolverApi api;
-  final String initialCountry;
+  final String? initialCountry;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -23,7 +24,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const _debounceDuration = Duration(milliseconds: 250);
 
-  late String countryCode;
+  String? countryCode;
+  CountryNamespace? selectedCountry;
+  List<CountryNamespace> countryOptions = const [];
+  bool countryLoading = true;
   String input = '';
   List<MatchRecord> matches = const [];
   Listing? exactListing;
@@ -36,7 +40,54 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    countryCode = widget.initialCountry;
+    _initializeCountryContext();
+  }
+
+  Future<void> _initializeCountryContext() async {
+    try {
+      final countries = await widget.api.countries();
+      String? savedNid = widget.initialCountry;
+      if (savedNid == null) {
+        final prefs = await SharedPreferences.getInstance();
+        savedNid = prefs.getString('tv2_selected_nid');
+      }
+
+      CountryNamespace? selected;
+      if (savedNid != null) {
+        for (final item in countries) {
+          if (item.nid == savedNid) {
+            selected = item;
+            break;
+          }
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        countryOptions = countries;
+        selectedCountry = selected;
+        countryCode = selected?.nid;
+        countryLoading = false;
+      });
+
+      if (selected == null && widget.initialCountry == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _editCountry(requireSelection: true);
+        });
+      }
+    } on ResolverApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        countryLoading = false;
+        errorMessage = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        countryLoading = false;
+        errorMessage = 'Unable to load country settings.';
+      });
+    }
   }
 
   @override
@@ -97,9 +148,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
+      final activeCountry = countryCode;
+      if (activeCountry == null) {
+        throw const ResolverApiException(
+          'Select a country before resolving a local List Number.',
+        );
+      }
       final prefix = await widget.api.prefix(
         input: input,
-        country: countryCode,
+        country: activeCountry,
         limit: 10,
       );
       if (!mounted || generation != _requestGeneration) return;
@@ -108,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (prefix.matches.any((item) => item.exact)) {
         final resolved = await widget.api.resolve(
           input: input,
-          country: countryCode,
+          country: activeCountry,
         );
         if (!mounted || generation != _requestGeneration) return;
         listing = resolved.listing;
@@ -141,39 +198,74 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _editCountry() async {
-    final controller = TextEditingController(text: countryCode);
-    final selected = await showDialog<String>(
+  Future<void> _editCountry({bool requireSelection = false}) async {
+    if (countryOptions.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Country settings are unavailable.')),
+      );
+      return;
+    }
+
+    final selected = await showModalBottomSheet<CountryNamespace>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Country context'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Country Code',
-            helperText: 'Temporary TV2 test setting',
+      isScrollControlled: true,
+      isDismissible: !requireSelection,
+      enableDrag: !requireSelection,
+      builder: (context) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.72,
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 18, 20, 10),
+                child: Text(
+                  'Select Country / Namespace',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'This selection becomes your default List Number namespace until you change it.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: countryOptions.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final item = countryOptions[index];
+                    return ListTile(
+                      leading: const Icon(Icons.public),
+                      title: Text(item.countryName),
+                      subtitle: Text(item.iso2),
+                      trailing: Text('+${item.nid}'),
+                      selected: selectedCountry?.iso2 == item.iso2,
+                      onTap: () => Navigator.pop(context, item),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (RegExp(r'^\d+$').hasMatch(value)) Navigator.pop(context, value);
-            },
-            child: const Text('APPLY'),
-          ),
-        ],
       ),
     );
-    controller.dispose();
-    if (selected == null || selected == countryCode) return;
-    setState(() => countryCode = selected);
+
+    if (selected == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('tv2_selected_nid', selected.nid);
+    await prefs.setString('tv2_selected_country_iso2', selected.iso2);
+
+    if (!mounted) return;
+    setState(() {
+      selectedCountry = selected;
+      countryCode = selected.nid;
+      errorMessage = null;
+    });
     if (input.isNotEmpty) _scheduleLookup();
   }
 
@@ -220,9 +312,15 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 children: [
                   TextButton.icon(
-                    onPressed: _editCountry,
+                    onPressed: countryLoading ? null : () => _editCountry(),
                     icon: const Icon(Icons.public),
-                    label: Text('+$countryCode'),
+                    label: Text(
+                      countryLoading
+                          ? 'Loading…'
+                          : selectedCountry == null
+                              ? 'Select Country'
+                              : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
+                    ),
                   ),
                   const Spacer(),
                   IconButton(

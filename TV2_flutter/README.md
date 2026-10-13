@@ -1,28 +1,27 @@
-# List Number TV2 Flutter client — connected-client checkpoint
+# List Number TV2 Flutter Client
 
-The mobile scaffold no longer contains a production-path hardcoded identity resolver. It calls the TV2 resolver API for progressive matches and exact listings.
+TV2's mobile client consumes the public resolver API hosted on Render.
 
-## Configuration
-The API URL is supplied at build/run time:
+## Country / NID behavior
 
-```bash
-flutter run --dart-define=TV2_API_BASE_URL=http://10.0.2.2:8000 --dart-define=TV2_DEFAULT_COUNTRY=1
-```
+TV2 intentionally has **no hard-coded default country code**. On first launch the
+client requests `/v1/countries` from the resolver and requires the user to choose
+a country/namespace. The selected NID is stored locally and reused until the user
+changes it.
 
-`10.0.2.2` is the common Android-emulator route to the host computer. A different address is normally required for an iOS simulator or a physical device.
+An explicitly entered namespace such as `91*529` or a Global Code such as `*529`
+continues to override the selected local context according to the resolver grammar.
 
-## Implemented in source
-- Frozen 16-key keypad layout.
-- Country-context test control.
-- 250 ms progressive-resolution debounce.
-- Stale-response suppression using a request generation number.
-- Exact versus prefix results.
-- Backend-driven listing and resource model.
-- Generic template/resource display; no fixture-specific UI logic.
-- CALL failure wording when no call capability exists.
-- Loading, timeout, unavailable-server, invalid-response, and backend-error states.
+## Development API
 
-## Not yet verified here
-No Flutter or Dart SDK is installed in the current execution environment, so the client source and tests have **not** been compiled or run at this checkpoint. That remains a quality gate before handoff.
+The default API base is `https://tv2-development.onrender.com`.
 
-External URL launching and real CALL/VIDEO/TEXT session adapters are deliberately separate from resolution and are not live in this checkpoint.
+It can be overridden at build time with:
+
+`--dart-define=TV2_API_BASE_URL=https://example.test`
+
+## Scope
+
+The client is a TV2 test bed. Landing-page presentation, WebRTC provider
+integration, CDD, permissions, and enrollment flows are separate layers and are
+not fabricated in this checkpoint.

@@ -1,3 +1,24 @@
+class CountryNamespace {
+  const CountryNamespace({
+    required this.iso2,
+    required this.countryName,
+    required this.nid,
+    required this.defaultLanguageTag,
+  });
+
+  final String iso2;
+  final String countryName;
+  final String nid;
+  final String? defaultLanguageTag;
+
+  factory CountryNamespace.fromJson(Map<String, dynamic> json) => CountryNamespace(
+        iso2: json['iso2'] as String,
+        countryName: json['country_name'] as String,
+        nid: json['nid'] as String,
+        defaultLanguageTag: json['default_language_tag'] as String?,
+      );
+}
+
 class ResourceRecord {
   const ResourceRecord({
     required this.key,

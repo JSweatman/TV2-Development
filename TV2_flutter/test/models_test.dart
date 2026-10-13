@@ -2,6 +2,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tv2/models.dart';
 
 void main() {
+  test('country namespace model parses server-driven settings', () {
+    final country = CountryNamespace.fromJson({
+      'iso2': 'JP',
+      'country_name': 'Japan',
+      'nid': '81',
+      'default_language_tag': 'ja-JP',
+    });
+    expect(country.countryName, 'Japan');
+    expect(country.nid, '81');
+  });
+
   test('listing model parses generic configured resources', () {
     final listing = Listing.fromJson({
       'country_code': '1',
