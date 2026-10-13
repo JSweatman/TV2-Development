@@ -86,3 +86,14 @@ def test_client_selected_country_changes_namespace():
     india = client.get("/v1/resolve", params={"input": "529", "country": "91"}).json()
     assert us["listing"]["display_name"] == "TV2 Fixture Alpha"
     assert india["listing"]["display_name"] == "TV2 Fixture India Namespace"
+
+
+def test_country_namespace_endpoint_supports_client_settings():
+    response = client.get("/v1/countries")
+    assert response.status_code == 200
+    rows = response.json()
+    by_iso2 = {row["iso2"]: row for row in rows}
+    assert by_iso2["US"]["nid"] == "1"
+    assert by_iso2["JP"]["nid"] == "81"
+    assert by_iso2["FR"]["nid"] == "33"
+    assert by_iso2["IN"]["nid"] == "91"
