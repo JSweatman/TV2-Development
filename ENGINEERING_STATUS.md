@@ -88,3 +88,14 @@ Astra should independently reproduce every claimed pass. Any item above labeled 
 - Render workspace `List Number TV2` is connected and currently has no services.
 - `render.yaml` and `RENDER_DEPLOYMENT.md` are included. Render deployment is blocked only by the absence of a Git repository/source URL, not by AWS.
 - A Neon-managed `tv2_resolver` role was created while testing least-privilege runtime access; Neon automatically grants it `neon_superuser`, so it is NOT accepted as a production least-privilege solution. A separate raw PostgreSQL `tv2_runtime` role was created with SELECT-only grants and read-only defaults, but its password cannot be safely provisioned through the current connector. This remains a deployment-security gate.
+
+
+## Deferred HOME / Settings interaction — 2026-10-13
+This interaction is intentionally documented but **not implemented yet** while the resolver/client integration work continues.
+
+- A normal HOME press retains the ordinary HOME behavior.
+- Press-and-hold HOME for approximately **2 seconds** opens the user Settings surface.
+- As an alternate shortcut, **two HOME presses within 2 seconds** also open Settings.
+- Settings is the intended home for persistent user preferences such as the selected country/NID and future user-configurable options.
+- When implemented, gesture handling must prevent a long-press or recognized double-press from accidentally also executing the single-press HOME action.
+- Accessibility must include a discoverable non-gesture route to Settings; the hidden gestures are shortcuts, not the only way to reach Settings.
