@@ -26,6 +26,21 @@ void main() {
     expect(safePublicResourceUri('https://foo..org'), isNull);
   });
 
+  test('rejects invalid DNS labels and misleading hosts', () {
+    for (final url in [
+      'https://foo..org',
+      'https://-bad.example.org',
+      'https://bad-.example.org',
+      'https://foo_bar.example.org',
+      'https://example.123',
+      'https://example.org.evil.local',
+      'https://user:pass@example.org',
+      'https://[::1]',
+    ]) {
+      expect(safePublicResourceUri(url), isNull, reason: url);
+    }
+  });
+
   test('launcher refuses rejected URLs without invoking platform', () async {
     var calls = 0;
     final launcher = PublicResourceLauncher(open: (uri) async {
