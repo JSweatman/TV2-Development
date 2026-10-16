@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -26,8 +27,25 @@ def get(path: str, **query):
         return json.load(response)
 
 
+def warm_root():
+    """Allow a sleeping Render instance to start without masking API failures."""
+    for attempt in range(1, 5):
+        try:
+            return get("/")
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (502, 503, 504) or attempt == 4:
+                raise
+            print(f"Resolver warm-up attempt {attempt}/4: HTTP {exc.code}", file=sys.stderr)
+        except (urllib.error.URLError, TimeoutError) as exc:
+            if attempt == 4:
+                raise
+            print(f"Resolver warm-up attempt {attempt}/4: {exc}", file=sys.stderr)
+        time.sleep(5)
+    raise RuntimeError("Resolver failed to warm up")
+
+
 def main() -> int:
-    root = get("/")
+    root = warm_root()
     assert root["status"] == "online"
     assert root["country_context"] == "client-selected"
 
