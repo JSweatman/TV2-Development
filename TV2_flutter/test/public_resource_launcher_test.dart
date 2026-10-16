@@ -53,6 +53,16 @@ void main() {
     expect(calls, 1);
   });
 
+  test('launcher reports a platform refusal without crashing', () async {
+    final launcher = PublicResourceLauncher(open: (uri) async => false);
+    expect(await launcher.open('https://example.org'), isFalse);
+  });
+
+  test('trims surrounding whitespace before validating HTTPS URLs', () {
+    final uri = safePublicResourceUri('  https://example.org/path  ');
+    expect(uri?.toString(), 'https://example.org/path');
+  });
+
   test('launcher handles platform failure without crashing', () async {
     final launcher = PublicResourceLauncher(open: (uri) async {
       throw StateError('unavailable');
