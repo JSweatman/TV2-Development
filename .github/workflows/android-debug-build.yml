@@ -1,0 +1,41 @@
+name: android-debug-build
+
+on:
+  pull_request:
+    paths:
+      - 'TV2_flutter/**'
+      - '.github/workflows/android-debug-build.yml'
+  workflow_dispatch:
+
+jobs:
+  debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: TV2_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      # The restored source archive did not include Android platform files.
+      # Generate a TEMPORARY testing shell; do not treat its ID/signing as final.
+      - name: Generate temporary Android test scaffold
+        run: flutter create --platforms=android --project-name tv2 --org com.example .
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+      - name: Compile Android debug APK
+        run: flutter build apk --debug
+      - name: Upload unsigned-for-release test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv2-android-debug-test-build
+          path: TV2_flutter/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
