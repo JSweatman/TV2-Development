@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'input_rules.dart';
 import 'models.dart';
 import 'resolver_api.dart';
+import 'public_resource_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -521,7 +522,7 @@ class Keypad extends StatelessWidget {
 }
 
 class TemplateScreen extends StatelessWidget {
-  const TemplateScreen({super.key, required this.listing});
+  TemplateScreen({super.key, required this.listing});
   final Listing listing;
 
   @override
@@ -561,7 +562,17 @@ class TemplateScreen extends StatelessWidget {
     );
   }
 
-  void _resourceAction(BuildContext context, ResourceRecord resource) {
+  Future<void> _resourceAction(BuildContext context, ResourceRecord resource) async {
+    if (resource.uri != null) {
+      final opened = await PublicResourceLauncher().open(resource.uri);
+      if (!context.mounted) return;
+      if (!opened) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open public resource securely.')),
+        );
+      }
+      return;
+    }
     // Deliberately provider-independent. External URL launching and the
     // communications session service are separate adapters in the next stage.
     final message = resource.uri != null
