@@ -6,6 +6,11 @@ void main() {
     expect(safePublicResourceUri('https://example.org')?.host, 'example.org');
     expect(safePublicResourceUri('https://www.example.org/page?q=1')?.scheme, 'https');
     expect(safePublicResourceUri('https://example.org:443/page'), isNotNull);
+    // Internationalized domains use ASCII punycode in their DNS names.
+    expect(
+      safePublicResourceUri('https://xn--e1afmkfd.xn--p1ai/page')?.host,
+      'xn--e1afmkfd.xn--p1ai',
+    );
   });
 
   test('rejects unsupported protocols and invalid URLs', () {
