@@ -41,54 +41,8 @@ Uri? safePublicResourceUri(String? raw) {
   // Internationalized TLDs are represented by ASCII punycode (xn--...).
   // Keep the ASCII DNS-label restriction while supporting those identities.
   final tld = labels.last;
-  final normalTld = RegExp(r'^[a-z]{2,63}  return uri;
-}
-
-class PublicResourceLauncher {
-  PublicResourceLauncher({Future<bool> Function(Uri)? open})
-      : _open = open ?? _launch;
-
-  final Future<bool> Function(Uri) _open;
-
-  static Future<bool> _launch(Uri uri) =>
-      launchUrl(uri, mode: LaunchMode.externalApplication);
-
-  /// Returns false when URI is rejected or the platform cannot open it.
-  Future<bool> open(String? raw) async {
-    final uri = safePublicResourceUri(raw);
-    if (uri == null) return false;
-    try {
-      return await _open(uri);
-    } catch (_) {
-      return false;
-    }
-  }
-}
-);
-  final internationalTld = RegExp(r'^xn--[a-z0-9-]{1,59}  return uri;
-}
-
-class PublicResourceLauncher {
-  PublicResourceLauncher({Future<bool> Function(Uri)? open})
-      : _open = open ?? _launch;
-
-  final Future<bool> Function(Uri) _open;
-
-  static Future<bool> _launch(Uri uri) =>
-      launchUrl(uri, mode: LaunchMode.externalApplication);
-
-  /// Returns false when URI is rejected or the platform cannot open it.
-  Future<bool> open(String? raw) async {
-    final uri = safePublicResourceUri(raw);
-    if (uri == null) return false;
-    try {
-      return await _open(uri);
-    } catch (_) {
-      return false;
-    }
-  }
-}
-);
+  final normalTld = RegExp(r'^[a-z]{2,63}$');
+  final internationalTld = RegExp(r'^xn--[a-z0-9-]{1,59}$');
   if (!normalTld.hasMatch(tld) && !internationalTld.hasMatch(tld)) {
     return null;
   }
