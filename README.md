@@ -17,7 +17,7 @@ TV2 is a Flutter mobile client connected to the FastAPI List Number resolver on 
 - Country/NID selector with persistent local setting and no implicit `1` fallback.
 - Server-driven listings, resources, and template screen.
 - CALL currently reports a configured capability but does **not** connect a communications provider.
-- HTTPS external-resource launcher is developed in [PR #5](https://github.com/JSweatman/TV2-Development/pull/5), with allow/reject tests. It checks hostname syntax; it cannot establish DNS trust or eliminate all malicious websites.
+- HTTPS external-resource launcher was merged in [PR #5](https://github.com/JSweatman/TV2-Development/pull/5), with allow/reject tests. It checks hostname syntax; it cannot establish DNS trust or eliminate all malicious websites.
 - Live resolver smoke test includes retry handling for Render wake-up delays.
 
 ## Automated quality gates
@@ -25,7 +25,7 @@ TV2 is a Flutter mobile client connected to the FastAPI List Number resolver on 
 - `backend-tests`: backend unit/integration checks.
 - `flutter-tests`: Flutter logic/widget tests, not a native installation test.
 - `live-smoke-tests`: live Render/Supabase response and fixture checks.
-- `android-debug-build` (proposed in [PR #7](https://github.com/JSweatman/TV2-Development/pull/7)): generate a **temporary** Android scaffold and compile an APK in CI; retain it briefly as an internal test artifact. This does not establish release signing or Play Store readiness.
+- `android-debug-build` (merged in [PR #7](https://github.com/JSweatman/TV2-Development/pull/7)): generate a **temporary** Android scaffold and compile an APK in CI after Flutter changes; retain it briefly as an internal test artifact. This does not establish release signing or Play Store readiness.
 
 The restored Flutter archive lacks checked-in `android/` and `ios/` native runners. They must be generated, configured with final application identifiers and platform permissions, reviewed, and version-controlled before release. An APK produced by the temporary scaffold is for engineering testing only.
 
