@@ -1,6 +1,12 @@
 name: android-debug-build
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'TV2_flutter/**'
+      - '.github/workflows/android-debug-build.yml'
   pull_request:
     paths:
       - 'TV2_flutter/**'
