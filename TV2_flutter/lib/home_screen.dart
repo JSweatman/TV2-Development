@@ -45,8 +45,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeCountryContext() async {
+    // A failed initial fetch must be retryable without reinstalling the app.
+    if (!countryLoading) {
+      setState(() {
+        countryLoading = true;
+        errorMessage = null;
+      });
+    }
     try {
       final countries = await widget.api.countries();
+      if (countries.isEmpty) {
+        throw const ResolverApiException('No countries are available yet.');
+      }
       String? savedNid = widget.initialCountry;
       if (savedNid == null) {
         final prefs = await SharedPreferences.getInstance();
@@ -80,13 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() {
         countryLoading = false;
-        errorMessage = error.message;
+        errorMessage = '${error.message} Tap Retry Country to try again.';
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         countryLoading = false;
-        errorMessage = 'Unable to load country settings.';
+        errorMessage = 'Unable to load country settings. Tap Retry Country to try again.';
       });
     }
   }
@@ -313,12 +323,22 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 children: [
                   TextButton.icon(
-                    onPressed: countryLoading ? null : () => _editCountry(),
+                    onPressed: countryLoading
+                        ? null
+                        : () {
+                            if (countryOptions.isEmpty) {
+                              _initializeCountryContext();
+                            } else {
+                              _editCountry();
+                            }
+                          },
                     icon: const Icon(Icons.public),
                     label: Text(
                       countryLoading
-                          ? 'Loading…'
-                          : selectedCountry == null
+                          ? 'Loading countries…'
+                          : countryOptions.isEmpty
+                              ? 'Retry Country'
+                              : selectedCountry == null
                               ? 'Select Country'
                               : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
                     ),
