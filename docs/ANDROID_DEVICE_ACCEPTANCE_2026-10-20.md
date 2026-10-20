@@ -20,12 +20,14 @@ Source: user-conducted TV2 testing on a personal Android phone, with screenshots
 | Persist selected country across app restart | **PASS** | User closed/reopened app; screenshot showed retained `IN +91` and cleared input |
 | Global `*529` under India `+91` | **PASS** | Screenshot showed `TV2 Global Fixture`, EXACT |
 | Global `*529` under United States `+1` | **PASS** | After switching country without changing Global Code, screenshot again showed **TV2 Global Fixture**, EXACT. Confirms expected namespace-independent Global Code behavior for this test fixture |
+| Offline lookup in Airplane mode, Wi-Fi off | **PASS — error visible** | Screenshot at 14:42 shows `529` and red `Resolver request timed out.` message; app stays open without a successful result. This confirms handled failure, but does not confirm immediate socket-error detection or helpful offline wording. |
+| Lookup recovery after reconnecting | **PASS** | Screenshot at 14:44 shows `529` resolved again as TV2 Fixture Alpha and prefix listings under US +1. It proves recovery with renewed input; does not prove auto-retry without user action. |
 
 ## Still NOT TESTED / NOT YET VERIFIED
 
 - Full country directory beyond currently provisioned testing namespaces.
 - Clean-install first-run selection with no automatic NID across multiple devices.
-- Offline and reconnection handling, timeout/error UI across devices, invalid/malicious URL refusal, launcher failure, and returning to TV2 after browsing.
+- Offline timeout and manual reconnection recovery passed on one Android device; additional device/network permutations, automatic retry, invalid/malicious URL refusal, launcher failure, and returning to TV2 after browsing are not yet verified.
 - Touch/accessibility/rotation on different screen sizes and Android versions.
 - Dedicated France/Japan scoped `101` fixtures and translation prompt behavior for true foreign-language landing pages.
 - Real CALL/TEXT/VIDEO integration, consent, protected-number enrollment/verification, CDD, restriction and privacy policy behavior.
@@ -33,9 +35,9 @@ Source: user-conducted TV2 testing on a personal Android phone, with screenshots
 
 ## Engineering follow-up
 
-1. Review, test and, when appropriate, integrate [PR #10](https://github.com/JSweatman/TV2-Development/pull/10) for retrying first country-list fetches. Verify the correction with a fresh APK before calling the timeout fixed.
+1. [PR #10](https://github.com/JSweatman/TV2-Development/pull/10) merged on 2026-10-20, with automated checks previously passing. Verify first-run selection and Retry Country UI with a newly built APK before calling the timeout fixed.
 2. Retest first-run and retry UI under delayed/failed requests; distinguish transient free-tier cold starts from client defects.
-3. Run offline/reconnect and allowed/disallowed external-resource tests on the device.
+3. Improve user-facing offline wording (currently `Resolver request timed out.`); run remaining allowed/disallowed external-resource and return-navigation tests on device.
 4. Record device model, Android version, tested APK provenance/hash, and test cases in the final acceptance matrix once available.
 5. Refresh [Astra Read Me First](ASTRA_READ_ME_FIRST.md) with these **partial** physical-device results; do not mark handoff ready solely on these screenshots.
 
