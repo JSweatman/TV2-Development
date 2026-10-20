@@ -84,7 +84,40 @@ class FakeApi implements ResolverApi {
       );
 }
 
+class FlakyCountryApi extends FakeApi {
+  int countryFetches = 0;
+
+  @override
+  Future<List<CountryNamespace>> countries() async {
+    countryFetches++;
+    if (countryFetches == 1) {
+      throw const ResolverApiException('Resolver request timed out.');
+    }
+    return super.countries();
+  }
+}
+
 void main() {
+  testWidgets('failed country load offers a working retry', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final api = FlakyCountryApi();
+    await tester.pumpWidget(TV2App(api: api));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Retry Country'), findsOneWidget);
+    expect(find.textContaining('Resolver request timed out.'), findsOneWidget);
+
+    await tester.tap(find.text('Retry Country'));
+    await tester.pumpAndSettle();
+
+    expect(api.countryFetches, 2);
+    expect(find.text('Select Country / Namespace'), findsOneWidget);
+    await tester.tap(find.text('India'));
+    await tester.pumpAndSettle();
+    expect(find.text('IN  +91'), findsOneWidget);
+  });
+
+
   testWidgets('progressive input reaches an exact backend-driven identity', (tester) async {
     await tester.pumpWidget(TV2App(api: FakeApi(), initialCountry: '1'));
     await tester.pumpAndSettle();

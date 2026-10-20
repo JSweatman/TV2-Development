@@ -46,13 +46,15 @@ class HttpResolverApi implements ResolverApi {
 
   Future<dynamic> _getJson(
     String path,
-    Map<String, String> query,
-  ) async {
+    Map<String, String> query, {
+    Duration? requestTimeout,
+  }) async {
+    final effectiveTimeout = requestTimeout ?? timeout;
     try {
-      final request = await _client.getUrl(_uri(path, query)).timeout(timeout);
+      final request = await _client.getUrl(_uri(path, query)).timeout(effectiveTimeout);
       request.headers.set(HttpHeaders.acceptHeader, 'application/json');
-      final response = await request.close().timeout(timeout);
-      final raw = await utf8.decoder.bind(response).join().timeout(timeout);
+      final response = await request.close().timeout(effectiveTimeout);
+      final raw = await utf8.decoder.bind(response).join().timeout(effectiveTimeout);
       final decoded = raw.isEmpty ? null : jsonDecode(raw);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final detail = decoded is Map<String, dynamic> ? decoded['detail'] : null;
@@ -86,7 +88,13 @@ class HttpResolverApi implements ResolverApi {
 
   @override
   Future<List<CountryNamespace>> countries() async {
-    final decoded = await _getJson('/v1/countries', const {});
+    // Render's free-tier instance may need longer than the normal lookup
+    // timeout to wake from inactivity on the first country-list request.
+    final decoded = await _getJson(
+      '/v1/countries',
+      const {},
+      requestTimeout: const Duration(seconds: 40),
+    );
     if (decoded is! List<dynamic>) {
       throw const ResolverApiException('Resolver returned an invalid country list.');
     }
