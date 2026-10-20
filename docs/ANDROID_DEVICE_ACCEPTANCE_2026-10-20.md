@@ -22,12 +22,13 @@ Source: user-conducted TV2 testing on a personal Android phone, with screenshots
 | Global `*529` under United States `+1` | **PASS** | After switching country without changing Global Code, screenshot again showed **TV2 Global Fixture**, EXACT. Confirms expected namespace-independent Global Code behavior for this test fixture |
 | Offline lookup in Airplane mode, Wi-Fi off | **PASS — error visible** | Screenshot at 14:42 shows `529` and red `Resolver request timed out.` message; app stays open without a successful result. This confirms handled failure, but does not confirm immediate socket-error detection or helpful offline wording. |
 | Lookup recovery after reconnecting | **PASS** | Screenshot at 14:44 shows `529` resolved again as TV2 Fixture Alpha and prefix listings under US +1. It proves recovery with renewed input; does not prove auto-retry without user action. |
+| Android Recent Apps task switching | **PASS — user-reported** | User reports repeatedly switching between ChatGPT and TV2 using Android Recent Apps; TV2 resumes with previous functions available. The user has not separately documented browser-specific back-stack behavior or process-death restoration. |
 
 ## Still NOT TESTED / NOT YET VERIFIED
 
 - Full country directory beyond currently provisioned testing namespaces.
 - Clean-install first-run selection with no automatic NID across multiple devices.
-- Offline timeout and manual reconnection recovery passed on one Android device; additional device/network permutations, automatic retry, invalid/malicious URL refusal, launcher failure, and returning to TV2 after browsing are not yet verified.
+- Offline timeout and manual reconnection recovery, plus Android Recent Apps switching between ChatGPT and TV2, passed on one Android device. Additional network permutations, automatic retry, invalid/malicious URL refusal, launcher failure, and browser-specific back-stack behavior are not yet verified.
 - Touch/accessibility/rotation on different screen sizes and Android versions.
 - Dedicated France/Japan scoped `101` fixtures and translation prompt behavior for true foreign-language landing pages.
 - Real CALL/TEXT/VIDEO integration, consent, protected-number enrollment/verification, CDD, restriction and privacy policy behavior.
