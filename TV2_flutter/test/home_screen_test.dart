@@ -84,6 +84,80 @@ class FakeApi implements ResolverApi {
       );
 }
 
+// Simulates the FastAPI rule: an explicit NID in the input takes precedence
+// over the selected default country. Tests the Flutter request/state boundary.
+class NamespaceAwareApi extends FakeApi {
+  String? lastPrefixInput;
+  String? lastPrefixCountry;
+
+  ({String bare, String effectiveCountry}) parseForTest(
+    String input,
+    String country,
+  ) {
+    final separator = input.indexOf('*');
+    if (separator > 0) {
+      return (
+        bare: input.substring(separator + 1),
+        effectiveCountry: input.substring(0, separator),
+      );
+    }
+    return (bare: input, effectiveCountry: country);
+  }
+
+  @override
+  Future<PrefixResponse> prefix({
+    required String input,
+    required String country,
+    int limit = 10,
+  }) async {
+    lastPrefixInput = input;
+    lastPrefixCountry = country;
+    final parsed = parseForTest(input, country);
+    final result = await super.prefix(
+      input: parsed.bare,
+      country: parsed.effectiveCountry,
+      limit: limit,
+    );
+    return PrefixResponse(
+      countryContext: country,
+      input: input,
+      matches: result.matches,
+      hasMore: result.hasMore,
+    );
+  }
+
+  @override
+  Future<ResolveResponse> resolve({
+    required String input,
+    required String country,
+  }) async {
+    final parsed = parseForTest(input, country);
+    final result = await super.resolve(
+      input: parsed.bare,
+      country: parsed.effectiveCountry,
+    );
+    return ResolveResponse(
+      status: result.status,
+      countryContext: country,
+      input: input,
+      listing: result.listing,
+    );
+  }
+}
+
+class SharedCallingCodeApi extends FakeApi {
+  @override
+  Future<List<CountryNamespace>> countries() async => [
+        ...await super.countries(),
+        const CountryNamespace(
+          iso2: 'CA',
+          countryName: 'Canada',
+          nid: '1',
+          defaultLanguageTag: 'en-CA',
+        ),
+      ];
+}
+
 class FlakyCountryApi extends FakeApi {
   int countryFetches = 0;
 
@@ -111,6 +185,77 @@ class OfflineResolverApi extends FakeApi {
 }
 
 void main() {
+  testWidgets('unqualified 529 follows selected country without changing input', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final api = NamespaceAwareApi();
+    await tester.pumpWidget(TV2App(api: api, initialCountry: '1'));
+    await tester.pumpAndSettle();
+
+    for (final key in ['5', '2', '9']) {
+      await tester.tap(find.text(key));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(find.text('529'), findsOneWidget);
+    expect(find.text('Fixture Alpha'), findsWidgets);
+
+    await tester.tap(find.text('US  +1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('India'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('IN  +91'), findsOneWidget);
+    expect(find.text('529'), findsOneWidget);
+    expect(find.text('Fixture India'), findsWidgets);
+    expect(api.lastPrefixInput, '529');
+    expect(api.lastPrefixCountry, '91');
+  });
+
+  testWidgets('explicit 1*529 remains US-scoped after switching to India', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final api = NamespaceAwareApi();
+    await tester.pumpWidget(TV2App(api: api, initialCountry: '1'));
+    await tester.pumpAndSettle();
+
+    for (final key in ['1', '*', '5', '2', '9']) {
+      await tester.tap(find.text(key));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(find.text('Fixture Alpha'), findsWidgets);
+
+    await tester.tap(find.text('US  +1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('India'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('IN  +91'), findsOneWidget);
+    expect(find.text('1*529'), findsWidgets);
+    expect(find.text('Fixture Alpha'), findsWidgets);
+    expect(find.text('Fixture India'), findsNothing);
+    expect(api.lastPrefixInput, '1*529');
+    expect(api.lastPrefixCountry, '91');
+  });
+
+  testWidgets('saved country ISO2 survives restart when US and Canada both use +1', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(TV2App(api: SharedCallingCodeApi()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Canada'));
+    await tester.pumpAndSettle();
+    expect(find.text('CA  +1'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(TV2App(api: SharedCallingCodeApi()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('CA  +1'), findsOneWidget);
+    expect(find.text('US  +1'), findsNothing);
+    expect(find.text('Select Country / Namespace'), findsNothing);
+  });
+
   testWidgets('offline resolver timeout gives actionable guidance', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(TV2App(api: OfflineResolverApi(), initialCountry: '1'));
