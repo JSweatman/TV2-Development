@@ -97,7 +97,34 @@ class FlakyCountryApi extends FakeApi {
   }
 }
 
+class OfflineResolverApi extends FakeApi {
+  @override
+  Future<PrefixResponse> prefix({
+    required String input,
+    required String country,
+    int limit = 10,
+  }) async {
+    throw const ResolverApiException(
+      'Resolver request timed out. Check your internet connection and try again.',
+    );
+  }
+}
+
 void main() {
+  testWidgets('offline resolver timeout gives actionable guidance', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(TV2App(api: OfflineResolverApi(), initialCountry: '1'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('5'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Check your internet connection'), findsOneWidget);
+    expect(find.textContaining('try again.'), findsOneWidget);
+    expect(find.text('Fixture Alpha'), findsNothing);
+  });
+
   testWidgets('failed country load offers a working retry', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final api = FlakyCountryApi();
