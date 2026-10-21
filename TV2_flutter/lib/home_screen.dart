@@ -58,15 +58,22 @@ class _HomeScreenState extends State<HomeScreen> {
         throw const ResolverApiException('No countries are available yet.');
       }
       String? savedNid = widget.initialCountry;
+      String? savedIso2;
       if (savedNid == null) {
         final prefs = await SharedPreferences.getInstance();
         savedNid = prefs.getString('tv2_selected_nid');
+        savedIso2 = prefs.getString('tv2_selected_country_iso2');
       }
 
       CountryNamespace? selected;
       if (savedNid != null) {
         for (final item in countries) {
-          if (item.nid == savedNid) {
+          // Multiple countries can share a calling code (for example, US
+          // and Canada both use +1). Restore the exact selected country,
+          // not just the first entry with the same numeric NID.
+          // Older installations that only saved the NID still work.
+          if (item.nid == savedNid &&
+              (savedIso2 == null || item.iso2 == savedIso2)) {
             selected = item;
             break;
           }
