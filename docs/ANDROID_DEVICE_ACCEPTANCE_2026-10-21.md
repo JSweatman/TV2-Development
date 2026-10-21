@@ -14,12 +14,12 @@
 | Explicitly select IN +91 | **PASS** | Screenshot 14:43 shows main Flutter screen with `IN +91`, empty input |
 | Persist selected NID across close and reopen | **PASS** | User explicitly reports country persisted. Follow-up screenshot 14:46 shows `IN +91` after reopening |
 | Resolve local 529 with selected India NID | **PASS** | Follow-up screenshot 14:46 shows exact `91*529` → `TV2 Fixture India Namespace` |
-| Enhanced timeout/offline message | **NOT YET VERIFIED ON DEVICE** | PR #11 automated checks passed, but repeat Airplane-mode test is still pending |
+| Enhanced timeout/offline message | **PASS** | User screenshot at 14:49 with Airplane mode ON, Wi-Fi unavailable, IN +91 selected and `529` input shows red text: `Resolver request timed out. Check your internet connection and try again.` App screen stayed visible; this confirms improved failure guidance on device, but not immediate offline detection or auto-recovery. |
 | Clear NID after uninstall / first-run with no default 1 | **LIKELY / INCOMPLETE** | Country selector appeared after reopening; user chose India explicitly. Record more precise first-frame behavior before marking clean-install no-default check fully passed |
 
 ## Next engineering actions
 
-1. Device-test Airplane-mode timeout wording and recovery on this new build; distinguish server timeout from actual offline state.
+1. Airplane-mode timeout wording passed on this new build at 14:49; next verify recovery after re-enabling networking and reentering 529 without restarting app. Continue to distinguish server timeout from actual offline state.
 2. Investigate slow first-launch country list. A 40-second timeout plus Retry Country may be insufficient UX if the UI seems unresponsive during Render cold start. Consider loading-state feedback and retry timing tests without silently defaulting NID to 1.
 3. Establish repeatable debug build signing for internal update tests (securely protected fixed debug keystore or other approved stable signing path), instead of ephemeral CI signatures. Do not put private signing keys or secrets in the repository.
 4. Continue Android smoke and track iOS separately. Retain build/run and device evidence without any sensitive personal information.
