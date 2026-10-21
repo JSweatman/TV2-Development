@@ -67,9 +67,9 @@ class HttpResolverApi implements ResolverApi {
     } on ResolverApiException {
       rethrow;
     } on TimeoutException {
-      throw const ResolverApiException('Resolver request timed out.');
+      throw const ResolverApiException('Resolver request timed out. Check your internet connection and try again.');
     } on SocketException {
-      throw const ResolverApiException('Resolver is unavailable.');
+      throw const ResolverApiException('Unable to reach resolver. Check your internet connection and try again.');
     } on FormatException {
       throw const ResolverApiException('Resolver returned an invalid response.');
     }
