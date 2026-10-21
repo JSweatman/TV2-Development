@@ -17,6 +17,7 @@
 | Enhanced timeout/offline message | **PASS** | User screenshot at 14:49 with Airplane mode ON, Wi-Fi unavailable, IN +91 selected and `529` input shows red text: `Resolver request timed out. Check your internet connection and try again.` App screen stayed visible; this confirms improved failure guidance on device, but not immediate offline detection or auto-recovery. |
 | Network reconnection recovery (updated APK) | **PASS — user reported** | After restoring network access, user cleared/re-entered `529` while keeping IN +91 selected; lookup resolved properly without issues or app restart. No follow-up screenshot was provided for this step. This verifies manual retry after reconnect, not automatic retry. |
 | Trash-can clear control — user feedback | **POSITIVE** | User expressly liked the trash-can action, which was used to clear input as part of network recovery. Preserve simple, obvious clear affordance. |
+| Switch selected namespace with entry on screen (India → US) | **PASS — automatic re-resolution observed** | User said lookup began automatically after selecting US +1; screenshot 14:53 shows exact `1*529` → **TV2 Fixture Alpha**, plus Alpha Catalogue and Alpha Branch prefix results. The input display reads qualified `1*529`, not the earlier unqualified `529`; exact moment and mechanism of qualification were not captured, so confirm input-preservation separately. |
 | Clear NID after uninstall / first-run with no default 1 | **LIKELY / INCOMPLETE** | Country selector appeared after reopening; user chose India explicitly. Record more precise first-frame behavior before marking clean-install no-default check fully passed |
 
 ## Next engineering actions
@@ -24,6 +25,7 @@
 1. Airplane-mode timeout wording and manual recovery after reconnect now both passed on this new build. Future checks: auto-retry behavior (not yet implemented/verified), different network conditions, and distinguishing offline failures from slow servers.
 2. Investigate slow first-launch country list. A 40-second timeout plus Retry Country may be insufficient UX if the UI seems unresponsive during Render cold start. Consider loading-state feedback and retry timing tests without silently defaulting NID to 1.
 3. Establish repeatable debug build signing for internal update tests (securely protected fixed debug keystore or other approved stable signing path), instead of ephemeral CI signatures. Do not put private signing keys or secrets in the repository.
-4. Continue Android smoke and track iOS separately. Retain build/run and device evidence without any sensitive personal information.
+4. Perform a controlled repeat of India↔US namespace switching with unqualified `529` visible, without tapping any search suggestion, to confirm the UI retains unqualified input while context switches; document whether the app applies qualified notation only after selecting a match.
+5. Continue Android smoke and track iOS separately. Retain build/run and device evidence without any sensitive personal information.
 
 This is an evidence archive, not a claim of complete production readiness.
