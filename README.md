@@ -50,8 +50,15 @@ For iOS: establish a macOS/Xcode build environment, generate and configure the i
 
 - HOME double-press / two-second-hold shortcuts are documented but not implemented.
 - Real calling, video, text, and CDD service integrations are not yet complete.
-- iOS simulator, physical Android, and physical iPhone acceptance remain unverified.
-- Translation prompt behavior is a required device acceptance test, not a confirmed TV2 feature.
+- A first **physical Android** acceptance session on 2026-10-20 confirmed namespace resolution, global identities, local NID persistence, landing-page browser launching, offline timeout handling/reconnect, and Recent Apps switching. **Partial evidence only**; many cases remain untested. iOS simulator and physical iPhone acceptance remain unverified.
+- A browser translation prompt was **observed** on the multilingual `example.com` placeholder; country-specific translation behavior remains an unverified TV2 requirement.
 - Production signing, stable application IDs, launch policies, and final release packages remain outstanding.
+
+## Astra handoff and evidence
+
+- [Read Me First — Astra technical handoff starter](docs/ASTRA_READ_ME_FIRST.md) (**draft**, not ready for final transfer)
+- [Android physical-device acceptance, 2026-10-20](docs/ANDROID_DEVICE_ACCEPTANCE_2026-10-20.md) (verified and unverified results)
+- [Supabase October 30 Data API grants/security review](docs/SUPABASE_OCT30_GRANTS_REVIEW.md) (read-only audit; no grant changes)
+- First-launch country-list timeout and retry correction merged in [PR #10](https://github.com/JSweatman/TV2-Development/pull/10). The corrected mobile package is still awaiting device confirmation.
 
 **Astra handoff gate:** Do not describe the project as handoff-ready until merged CI checks, platform builds, device acceptance evidence, security limitations, and a current architecture/operations inventory are documented.
