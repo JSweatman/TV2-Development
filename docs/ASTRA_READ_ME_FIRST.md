@@ -98,6 +98,10 @@ For each platform independently (Android / iOS): record **PASS, FAIL, NOT TESTED
 8. HOME double-press/two-second-hold behavior only when implemented; otherwise mark DEFERRED and explain.
 9. CALL/VIDEO/TEXT and CDD only when those integrations exist; never confuse a configured capability indicator with a working provider session.
 
+## October 30 Supabase migration safety note
+
+Read the [October 30 Data API grants and security audit](SUPABASE_OCT30_GRANTS_REVIEW.md) before creating or resetting database schemas. Existing TV2 tables retain their grants, but new `public` tables need explicit role grants and deliberate RLS in their migrations. The audit also identifies broad legacy privileges that should be reviewed in a separate tested change, not revoked as an unverified hotfix.
+
 ## 7. Blockers / follow-on engineering
 
 - Check CI/merge status for PR #8; if necessary, correct failed workflow and retest before merging.
