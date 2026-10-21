@@ -1,7 +1,7 @@
 # TV2 / List Number — Read Me First (Astra technical handoff starter)
 
 **Status:** DRAFT, not an authorization to launch or evidence of completed physical-device acceptance.  
-**Snapshot date:** 2026-10-19. Reconfirm branch heads, deployments, CI, and external account configuration when the handoff actually happens.  
+**Snapshot date:** 2026-10-21. Reconfirm branch heads, deployments, CI, and external account configuration when the handoff actually happens.  
 **Owner:** Sundara Technologies LLC; project: List Number TV2.
 
 ## 0. What Astra should do first
@@ -28,7 +28,9 @@ Key historical PRs (check their current state):
 - #5 Guarded HTTPS resource navigation: https://github.com/JSweatman/TV2-Development/pull/5
 - #6 Retry live smoke checks during Render cold starts: https://github.com/JSweatman/TV2-Development/pull/6
 - #7 Android debug build CI + acceptance checklist: https://github.com/JSweatman/TV2-Development/pull/7
-- #8 Android build on main and README updates: https://github.com/JSweatman/TV2-Development/pull/8
+- #8 Android build on main and README updates (merged 2026-10-21): https://github.com/JSweatman/TV2-Development/pull/8
+- #9 Astra technical Read Me First and Android acceptance archive (documentation PR): https://github.com/JSweatman/TV2-Development/pull/9
+- #10 Android country-picker failure retry (merged 2026-10-20): https://github.com/JSweatman/TV2-Development/pull/10
 
 ## 2. Architecture — what exists
 
@@ -51,11 +53,13 @@ Key historical PRs (check their current state):
 
 ## 4. State of validation at drafting
 
-The most recently confirmed runs on PR #7's development head `5d09671...` passed **backend**, **Flutter**, **live-smoke**, and **Android debug APK** workflows. An Android debug artifact of approximately 73 MB was uploaded; CI artifacts are temporary and expire. PR #7 was merged as `c1ee2c5...` on 2026-10-19. PR #8 was open/pending verification at the time this document was prepared; confirm current state.
+**Confirmed tests before this snapshot:** PR #10's change `f592d4d...` passed backend, Flutter, live-smoke, and Android debug APK workflows. PR #10 merged on 2026-10-20 as `ac1af9df...`. The superseded first-release APK was tested in person on an Android phone on October 20. See [Android acceptance observations](ANDROID_DEVICE_ACCEPTANCE_2026-10-20.md) for actual evidence, limitations and initial timeout details. **The PR #10 corrected APK has not yet been retested on the physical device.** The Android debug test APK artifact from PR #10 was uploaded on 2026-10-20, expiring 2026-10-27, from GitHub Actions run `39473449088`. Always install or distribute verified artifacts from their matching commit, not a similarly named older ZIP.
 
-The running Render service deployed `c1ee2c5...` successfully on 2026-10-19. Recheck the deployed commit before claiming a later deployment.
+**Live deployment:** Render deployed PR #10 merge `ac1af9df...` successfully on 2026-10-20. GitHub PR #8 (Android CI-on-main/docs) merged on 2026-10-21 as `a131dea...`; it changes CI/docs, not backend endpoint functionality. Verify latest deployment and `main` commit at transfer time.
 
-**NOT YET VERIFIED:** physical Android installation/use, iOS simulator compile, physical iPhone/TestFlight use, production signing, translation prompt, complete CDD/consent workflows, CALL/VIDEO/TEXT provider sessions, production mobile release package.
+**Android device evidence:** PASS for app install/launch, US/India namespace-specific `529` resolution, global `*529` from both namespace selections, remembered country after relaunch, exact/prefix match listing, resource detail, HTTPS external launch to a documentation placeholder, graceful offline timeout, recovery after reconnection, and Recent Apps switching. A browser translation prompt was observed on a multilingual placeholder page but does not prove country-language policy. **Initial country list load intermittently failed, prompting PR #10.** Device screenshots were shared in the conversation but have not been copied into GitHub.
+
+**NOT YET VERIFIED:** PR #10 mobile fix on a freshly installed/updated phone; iOS simulator compile, physical iPhone/TestFlight use, production signing, fully specified country-specific translation, complete CDD/consent workflows, CALL/VIDEO/TEXT provider sessions, production mobile release package.
 
 ## 5. Runbooks for safe verification
 
@@ -104,9 +108,10 @@ Read the [October 30 Data API grants and security audit](SUPABASE_OCT30_GRANTS_R
 
 ## 7. Blockers / follow-on engineering
 
-- Check CI/merge status for PR #8; if necessary, correct failed workflow and retest before merging.
+- PR #8 is merged; verify the `android-debug-build` workflow now runs on relevant `main` pushes and retains the debug APK artifact for device testing.
+- Install the corrected PR #10 Android debug APK on the test phone and verify first-run country selection, retry messages, and preservation of saved NID; preserve evidence.
 - Establish **checked-in**, reviewed Android and iOS native runners with stable identifiers, platform permissions, proper app links, and signing strategy.
-- Produce reproducible Android test packages, then collect real-device evidence. Arrange hosted macOS/Xcode and iPhone testing later.
+- Continue Android device acceptance beyond the [first successful session](ANDROID_DEVICE_ACCEPTANCE_2026-10-20.md), retaining build SHA, device version and PASS/FAIL records. Arrange macOS/Xcode and iPhone testing later.
 - Build out complete permissions/consent/CDD boundary and provider integrations without placing protected data on the public resolver.
 - Define content classification (personal/business, adult/restricted/NSFW), partner-hosted landing-page flows, and access decisions at enrollment/routing layer.
 - Confirm HOME gesture specification and translation behavior with user/device testing.
