@@ -13,7 +13,7 @@ A `42501 permission denied for table` API error may include the missing grant in
 
 ## TV2 read-only observations on 2026-10-20
 
-The project is `ACTIVE_HEALTHY`, PostgreSQL 17. Eleven? **No: exactly six** base tables currently exist in `public`, and **all six have RLS enabled**:
+The project is `ACTIVE_HEALTHY`, PostgreSQL 17. **Exactly six** base tables currently exist in `public`, and **all six have RLS enabled**:
 
 | Table | Anonymous SELECT privilege | RLS | Intended direct exposure / notes |
 | --- | --- | --- | --- |
