@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -158,6 +160,13 @@ class SharedCallingCodeApi extends FakeApi {
       ];
 }
 
+class SlowCountryApi extends FakeApi {
+  final countryResponse = Completer<List<CountryNamespace>>();
+
+  @override
+  Future<List<CountryNamespace>> countries() => countryResponse.future;
+}
+
 class FlakyCountryApi extends FakeApi {
   int countryFetches = 0;
 
@@ -185,6 +194,28 @@ class OfflineResolverApi extends FakeApi {
 }
 
 void main() {
+  testWidgets('country directory shows connecting progress during a slow startup', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final api = SlowCountryApi();
+    await tester.pumpWidget(TV2App(api: api));
+    await tester.pump();
+
+    expect(find.text('Loading countries…'), findsOneWidget);
+    expect(find.textContaining('The test server may take longer'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Select Country / Namespace'), findsNothing);
+    expect(find.text('US  +1'), findsNothing);
+
+    api.countryResponse.complete(await FakeApi().countries());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select Country / Namespace'), findsOneWidget);
+    await tester.tap(find.text('India'));
+    await tester.pumpAndSettle();
+    expect(find.text('IN  +91'), findsOneWidget);
+    expect(find.textContaining('The test server may take longer'), findsNothing);
+  });
+
   testWidgets('unqualified 529 follows selected country without changing input', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final api = NamespaceAwareApi();
