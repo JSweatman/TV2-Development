@@ -358,6 +358,27 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+              if (countryLoading)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Connecting to country directory… '
+                          'The test server may take longer to start after inactivity.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 4),
               const Text('ENTER LIST NUMBER', style: TextStyle(letterSpacing: 2)),
               const SizedBox(height: 10),
