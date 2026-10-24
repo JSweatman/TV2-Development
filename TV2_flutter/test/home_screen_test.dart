@@ -194,6 +194,49 @@ class OfflineResolverApi extends FakeApi {
 }
 
 void main() {
+  testWidgets('SAVE from native listing creates folder and opens saved canonical listing', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
+    await tester.pumpAndSettle();
+
+    for (final key in ['5', '2', '9']) {
+      await tester.tap(find.text(key));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('ENTER'));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Save listing'), findsOneWidget);
+    await tester.tap(find.byTooltip('Save listing'));
+    await tester.pumpAndSettle();
+    expect(find.text('Save listing'), findsOneWidget);
+    expect(find.textContaining('Update alerts and landing-page sync are not yet available'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).at(0), 'My Alpha Contact');
+    await tester.enterText(find.byType(TextField).at(1), 'Family');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Listing saved to your device.'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Saved folders'));
+    await tester.pumpAndSettle();
+    expect(find.text('Family'), findsOneWidget);
+
+    await tester.tap(find.text('Family'));
+    await tester.pumpAndSettle();
+    expect(find.text('My Alpha Contact'), findsOneWidget);
+    expect(find.text('1*529'), findsOneWidget);
+
+    await tester.tap(find.text('My Alpha Contact'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(find.text('1*529'), findsWidgets);
+    expect(find.text('Fixture Alpha'), findsWidgets);
+  });
+
   testWidgets('country directory shows connecting progress during a slow startup', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final api = SlowCountryApi();

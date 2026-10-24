@@ -7,6 +7,7 @@ import 'input_rules.dart';
 import 'models.dart';
 import 'resolver_api.dart';
 import 'public_resource_launcher.dart';
+import 'saved_listing_ui.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -304,6 +305,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openSavedFolders() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SavedFoldersScreen(
+          onOpen: (saved) {
+            Navigator.of(context).pop();
+            // The canonical qualified identity survives changes to the
+            // currently selected default country. Normal resolver rules
+            // decide whether this listing is still available.
+            _setInput(saved.qualifiedIdentity);
+          },
+        ),
+      ),
+    );
+  }
+
   void _call() {
     final listing = exactListing;
     final canRequestCall = listing?.hasType('call') ?? false;
@@ -351,6 +368,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const Spacer(),
+                  IconButton(
+                    tooltip: 'Saved folders',
+                    onPressed: _openSavedFolders,
+                    icon: const Icon(Icons.bookmarks_outlined),
+                  ),
                   IconButton(
                     tooltip: 'Clear',
                     onPressed: _clear,
@@ -577,7 +599,10 @@ class TemplateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final resources = {for (final item in listing.resources) item.key: item};
     return Scaffold(
-      appBar: AppBar(title: Text(listing.displayName)),
+      appBar: AppBar(
+        title: Text(listing.displayName),
+        actions: [SaveListingAction(listing: listing)],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(18),
         children: [
