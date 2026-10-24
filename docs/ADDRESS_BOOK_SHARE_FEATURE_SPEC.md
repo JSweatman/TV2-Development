@@ -158,3 +158,15 @@ Stages A and B can be implemented **without materially altering the resolver gra
 - Avoid creating a large Sundara-hosted social system. Keep identities and orchestration minimal, partner for communication delivery.
 
 **Conclusion:** Add a local Address Book and link-based sharing to TV2, as a scoped extension of SAVE; reserve actual Address-Book-to-Address-Book push delivery and publisher updates for the authenticated communications layer. This staged approach remains compatible with a January 2027 **planning target**, but does not establish final release readiness or a delivery commitment.
+
+## 9. Founder architecture principle — connections without attention capture (2026-10-24)
+
+List Number should offer familiar social-media **utilities**—saving, contact organization, chosen source updates, private sharing and direct communication—without creating a Sundara-operated social network or designing algorithms to maximize users' session duration. Specifically:
+
+- No mandatory infinite scroll, attention-ranking recommender feed, reward loops or invasive engagement optimization in the List Number core.
+- No broad public social-graph database inferred from private Address Book membership, and no behavioral advertising derived from contact collections or messages.
+- User-initiated discovery and opted-in source notifications should serve **clear user goals**; users can mute, unsubscribe and choose not to participate.
+- Third-party listing owners may independently build social-media-style or community experiences on their own landing pages, under applicable law, platform permission/routing requirements and their own responsibility. That is **their application**, not a mandate to Sundara to replicate, endorse, or host it.
+- Sundara remains a lean identity, resolution, permission, private collection/navigation and lightweight communications-orchestration layer; design freedom and presentation belong to listing owners/partners.
+
+**Design test:** Does a new TV2 feature help someone find, keep, share or communicate with the person or source they chose? If its real goal is to make users stay longer, it is outside the core platform's purpose.

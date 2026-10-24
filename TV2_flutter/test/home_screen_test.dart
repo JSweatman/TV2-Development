@@ -194,6 +194,51 @@ class OfflineResolverApi extends FakeApi {
 }
 
 void main() {
+  testWidgets('Address Book contact save and reopen are separate from Bookmarks', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
+    await tester.pumpAndSettle();
+
+    for (final key in ['5', '2', '9']) {
+      await tester.tap(find.text(key));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('ENTER'));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Save listing'), findsOneWidget);
+    expect(find.byTooltip('Add to Address Book'), findsOneWidget);
+    await tester.tap(find.byTooltip('Add to Address Book'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add to Address Book'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).at(0), 'My sister');
+    await tester.enterText(find.byType(TextField).at(1), 'Family');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Contact saved to your Address Book.'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Address Book'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Family'));
+    await tester.pumpAndSettle();
+    expect(find.text('My sister'), findsOneWidget);
+    expect(find.text('1*529'), findsOneWidget);
+
+    await tester.tap(find.text('My sister'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(find.text('1*529'), findsWidgets);
+    expect(find.text('Fixture Alpha'), findsWidgets);
+
+    await tester.tap(find.byTooltip('Saved folders'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('No saved folders yet'), findsOneWidget);
+  });
+
   testWidgets('SAVE from native listing creates folder and opens saved canonical listing', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));

@@ -6,17 +6,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// A future storage adapter can replace SharedPreferences without changing the
 /// resolver or the external landing-page provider.
 class SavedFolder {
-  const SavedFolder({required this.id, required this.label});
+  const SavedFolder({required this.id, required this.label, this.kind = SavedCollections.bookmarksKind});
 
   final String id;
   final String label;
+  final String kind;
 
   factory SavedFolder.fromJson(Map<String, dynamic> json) => SavedFolder(
         id: json['id'] as String,
         label: json['label'] as String,
+        kind: json['kind'] as String? ?? SavedCollections.bookmarksKind,
       );
 
-  Map<String, dynamic> toJson() => {'id': id, 'label': label};
+  Map<String, dynamic> toJson() => {'id': id, 'label': label, 'kind': kind};
 }
 
 class SavedBookmark {
@@ -25,8 +27,10 @@ class SavedBookmark {
     required this.qualifiedIdentity,
     required this.ownerTitle,
     this.alias,
+    this.kind = SavedCollections.bookmarksKind,
   });
 
+  final String kind;
   final String folderId;
   final String qualifiedIdentity;
   final String ownerTitle;
@@ -39,10 +43,12 @@ class SavedBookmark {
         qualifiedIdentity: json['qualified_identity'] as String,
         ownerTitle: json['owner_title'] as String,
         alias: json['alias'] as String?,
+        kind: json['kind'] as String? ?? SavedCollections.bookmarksKind,
       );
 
   Map<String, dynamic> toJson() => {
         'folder_id': folderId,
+        'kind': kind,
         'qualified_identity': qualifiedIdentity,
         'owner_title': ownerTitle,
         'alias': alias,
@@ -51,6 +57,17 @@ class SavedBookmark {
 
 class SavedCollections {
   SavedCollections._(this._prefs);
+
+  /// Legacy folder/bookmark records without a kind remain Bookmarks.
+  /// A contact can also be a bookmark, without exposing a social graph.
+  static const bookmarksKind = 'bookmarks';
+  static const addressBookKind = 'address_book';
+
+  static void _checkKind(String kind) {
+    if (kind != bookmarksKind && kind != addressBookKind) {
+      throw ArgumentError('Unknown collection type.');
+    }
+  }
 
   static const _key = 'tv2_saved_collections_v1';
   final SharedPreferences _prefs;
@@ -74,16 +91,24 @@ class SavedCollections {
     return decoded;
   }
 
-  List<SavedFolder> folders() => [
-        for (final item in _read()['folders'] as List<dynamic>)
+  List<SavedFolder> folders({String? kind}) {
+    if (kind != null) _checkKind(kind);
+    return [
+      for (final item in _read()['folders'] as List<dynamic>)
+        if (kind == null || (item['kind'] ?? bookmarksKind) == kind)
           SavedFolder.fromJson(Map<String, dynamic>.from(item as Map)),
-      ];
+    ];
+  }
 
-  List<SavedBookmark> bookmarks({String? folderId}) => [
-        for (final item in _read()['bookmarks'] as List<dynamic>)
-          if (folderId == null || item['folder_id'] == folderId)
-            SavedBookmark.fromJson(Map<String, dynamic>.from(item as Map)),
-      ];
+  List<SavedBookmark> bookmarks({String? folderId, String? kind}) {
+    if (kind != null) _checkKind(kind);
+    return [
+      for (final item in _read()['bookmarks'] as List<dynamic>)
+        if ((folderId == null || item['folder_id'] == folderId) &&
+            (kind == null || (item['kind'] ?? bookmarksKind) == kind))
+          SavedBookmark.fromJson(Map<String, dynamic>.from(item as Map)),
+    ];
+  }
 
   /// Exactly one of [folderId] and [newFolderName] must be provided.
   /// Re-saving an existing identity in a folder updates its alias/title,
@@ -94,7 +119,9 @@ class SavedCollections {
     required String qualifiedIdentity,
     required String ownerTitle,
     String? alias,
+    String kind = bookmarksKind,
   }) async {
+    _checkKind(kind);
     final creating = newFolderName != null;
     if ((folderId == null) == !creating) {
       throw ArgumentError('Choose an existing folder or provide a new folder name.');
@@ -115,17 +142,17 @@ class SavedCollections {
         throw ArgumentError('Folder names must contain 1 to 80 characters.');
       }
       final existing = folders.where(
-        (item) => item.label.toLowerCase() == trimmed.toLowerCase(),
+        (item) => item.kind == kind && item.label.toLowerCase() == trimmed.toLowerCase(),
       );
       if (existing.isNotEmpty) {
         targetId = existing.first.id;
       } else {
         targetId = 'folder_${DateTime.now().microsecondsSinceEpoch}_${folders.length}';
-        folders.add(SavedFolder(id: targetId, label: trimmed));
+        folders.add(SavedFolder(id: targetId, label: trimmed, kind: kind));
       }
     } else {
       targetId = folderId!;
-      if (!folders.any((item) => item.id == targetId)) {
+      if (!folders.any((item) => item.id == targetId && item.kind == kind)) {
         throw ArgumentError('The selected folder no longer exists.');
       }
     }
@@ -141,6 +168,7 @@ class SavedCollections {
     records.add(SavedBookmark(
       folderId: targetId,
       qualifiedIdentity: qualifiedIdentity,
+      kind: kind,
       ownerTitle: ownerTitle,
       alias: cleanedAlias?.isEmpty == true ? null : cleanedAlias,
     ));

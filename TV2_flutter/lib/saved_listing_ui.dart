@@ -6,9 +6,14 @@ import 'saved_collections.dart';
 /// This SAVE action belongs to the native TV2 listing preview. External
 /// partner-hosted pages will need a separate trusted app link / embed later.
 class SaveListingAction extends StatelessWidget {
-  const SaveListingAction({super.key, required this.listing});
+  const SaveListingAction({
+    super.key,
+    required this.listing,
+    this.kind = SavedCollections.bookmarksKind,
+  });
 
   final Listing listing;
+  final String kind;
 
   Future<void> _save(BuildContext context) async {
     try {
@@ -16,11 +21,15 @@ class SaveListingAction extends StatelessWidget {
       if (!context.mounted) return;
       final saved = await showDialog<bool>(
         context: context,
-        builder: (_) => _SaveListingDialog(store: store, listing: listing),
+        builder: (_) => _SaveListingDialog(store: store, listing: listing, kind: kind),
       );
       if (saved == true && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Listing saved to your device.')),
+          SnackBar(content: Text(
+            kind == SavedCollections.addressBookKind
+                ? 'Contact saved to your Address Book.'
+                : 'Listing saved to your device.',
+          )),
         );
       }
     } catch (_) {
@@ -33,17 +42,22 @@ class SaveListingAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        tooltip: 'Save listing',
-        icon: const Icon(Icons.bookmark_add_outlined),
+        tooltip: kind == SavedCollections.addressBookKind
+            ? 'Add to Address Book'
+            : 'Save listing',
+        icon: Icon(kind == SavedCollections.addressBookKind
+            ? Icons.person_add_alt_1_outlined
+            : Icons.bookmark_add_outlined),
         onPressed: () => _save(context),
       );
 }
 
 class _SaveListingDialog extends StatefulWidget {
-  const _SaveListingDialog({required this.store, required this.listing});
+  const _SaveListingDialog({required this.store, required this.listing, required this.kind});
 
   final SavedCollections store;
   final Listing listing;
+  final String kind;
 
   @override
   State<_SaveListingDialog> createState() => _SaveListingDialogState();
@@ -61,7 +75,7 @@ class _SaveListingDialogState extends State<_SaveListingDialog> {
   @override
   void initState() {
     super.initState();
-    existingFolders = widget.store.folders();
+    existingFolders = widget.store.folders(kind: widget.kind);
     creatingFolder = existingFolders.isEmpty;
     selectedFolderId = existingFolders.isEmpty ? null : existingFolders.first.id;
   }
@@ -90,6 +104,7 @@ class _SaveListingDialogState extends State<_SaveListingDialog> {
         qualifiedIdentity: widget.listing.qualifiedIdentity,
         ownerTitle: widget.listing.displayName,
         alias: aliasController.text,
+        kind: widget.kind,
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -104,7 +119,9 @@ class _SaveListingDialogState extends State<_SaveListingDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Save listing'),
+        title: Text(widget.kind == SavedCollections.addressBookKind
+            ? 'Add to Address Book'
+            : 'Save listing'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -153,7 +170,9 @@ class _SaveListingDialogState extends State<_SaveListingDialog> {
                 ),
               const SizedBox(height: 8),
               Text(
-                'Stored on this device. Update alerts and landing-page sync are not yet available.',
+                widget.kind == SavedCollections.addressBookKind
+                    ? 'Private to this device. Direct shares, notifications and sync are not yet available.'
+                    : 'Stored on this device. Update alerts and landing-page sync are not yet available.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               if (error != null)
@@ -180,9 +199,14 @@ class _SaveListingDialogState extends State<_SaveListingDialog> {
 /// First-phase native folders viewer. Final HOME/personal landing-page
 /// integration is deferred until authenticated personal pages are available.
 class SavedFoldersScreen extends StatefulWidget {
-  const SavedFoldersScreen({super.key, required this.onOpen});
+  const SavedFoldersScreen({
+    super.key,
+    required this.onOpen,
+    this.kind = SavedCollections.bookmarksKind,
+  });
 
   final ValueChanged<SavedBookmark> onOpen;
+  final String kind;
 
   @override
   State<SavedFoldersScreen> createState() => _SavedFoldersScreenState();
@@ -203,8 +227,8 @@ class _SavedFoldersScreenState extends State<SavedFoldersScreen> {
   Future<void> _refresh() async {
     try {
       final next = await SavedCollections.open();
-      final nextFolders = next.folders();
-      final nextBookmarks = next.bookmarks();
+      final nextFolders = next.folders(kind: widget.kind);
+      final nextBookmarks = next.bookmarks(kind: widget.kind);
       if (!mounted) return;
       setState(() {
         store = next;
@@ -235,13 +259,17 @@ class _SavedFoldersScreenState extends State<SavedFoldersScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Saved folders')),
+        appBar: AppBar(title: Text(widget.kind == SavedCollections.addressBookKind
+            ? 'Address Book'
+            : 'Saved folders')),
         body: error != null
             ? Center(child: Text(error!))
             : store == null
                 ? const Center(child: CircularProgressIndicator())
                 : folders.isEmpty
-                    ? const Center(child: Text('No saved folders yet. Open a listing and tap Save listing.'))
+                    ? Center(child: Text(widget.kind == SavedCollections.addressBookKind
+                        ? 'Your Address Book is empty. Open a listing and tap Add to Address Book.'
+                        : 'No saved folders yet. Open a listing and tap Save listing.'))
                     : ListView(
                         children: [
                           for (final folder in folders)
@@ -260,7 +288,9 @@ class _SavedFoldersScreenState extends State<SavedFoldersScreen> {
                                     subtitle: Text(item.qualifiedIdentity),
                                     onTap: () => widget.onOpen(item),
                                     trailing: IconButton(
-                                      tooltip: 'Remove bookmark',
+                                      tooltip: widget.kind == SavedCollections.addressBookKind
+                                          ? 'Remove contact'
+                                          : 'Remove bookmark',
                                       onPressed: () => _remove(item),
                                       icon: const Icon(Icons.bookmark_remove_outlined),
                                     ),
