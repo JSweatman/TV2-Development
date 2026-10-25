@@ -38,10 +38,47 @@ jobs:
         run: flutter pub get
       - name: Compile Android debug APK
         run: flutter build apk --debug
+      - name: Verify APK certificate and capture build provenance
+        shell: bash
+        env:
+          TV2_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-debug.apk"
+          manifest="build/app/outputs/flutter-apk/BUILD_PROVENANCE.txt"
+          test -s "$apk"
+          {
+            printf 'Source commit: %s\n' "$TV2_SOURCE_SHA"
+            printf 'GitHub workflow run: %s\n' "$GITHUB_RUN_ID"
+            printf 'Package type: temporary Flutter Android DEBUG test build\n'
+            printf 'Signing: generated in an ephemeral runner; update compatibility NOT guaranteed\n'
+            printf 'APK SHA-256: '
+            sha256sum "$apk" | awk '{print $1}'
+          } | tee "$manifest"
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          apksigner=""
+          if [[ -n "$sdk_root" && -d "$sdk_root/build-tools" ]]; then
+            apksigner="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          fi
+          if [[ -n "$apksigner" ]]; then
+            "$apksigner" verify --print-certs "$apk" | tee -a "$manifest"
+          else
+            echo "::warning::Android apksigner unavailable; APK signing certificate fingerprint not recorded."
+            printf 'Signing certificate: not checked (apksigner unavailable)\n' | tee -a "$manifest"
+          fi
+          {
+            echo '### Android debug APK provenance'
+            echo 'This APK uses runner-generated debug signing. It may NOT install as an update over a previous APK.'
+            echo '\`\`\`text'
+            cat "$manifest"
+            echo '\`\`\`'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload unsigned-for-release test build
         uses: actions/upload-artifact@v4
         with:
           name: tv2-android-debug-test-build
-          path: TV2_flutter/build/app/outputs/flutter-apk/app-debug.apk
+          path: |
+            TV2_flutter/build/app/outputs/flutter-apk/app-debug.apk
+            TV2_flutter/build/app/outputs/flutter-apk/BUILD_PROVENANCE.txt
           if-no-files-found: error
           retention-days: 7
