@@ -8,6 +8,7 @@ import 'models.dart';
 import 'resolver_api.dart';
 import 'public_resource_launcher.dart';
 import 'saved_listing_ui.dart';
+import 'saved_collections.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -305,10 +306,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openSavedFolders() {
+  void _openSavedFolders({String kind = SavedCollections.bookmarksKind}) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SavedFoldersScreen(
+          kind: kind,
           onOpen: (saved) {
             Navigator.of(context).pop();
             // The canonical qualified identity survives changes to the
@@ -372,6 +374,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     tooltip: 'Saved folders',
                     onPressed: _openSavedFolders,
                     icon: const Icon(Icons.bookmarks_outlined),
+                  ),
+                  IconButton(
+                    tooltip: 'Address Book',
+                    onPressed: () => _openSavedFolders(kind: SavedCollections.addressBookKind),
+                    icon: const Icon(Icons.contact_page_outlined),
                   ),
                   IconButton(
                     tooltip: 'Clear',
@@ -601,7 +608,10 @@ class TemplateScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(listing.displayName),
-        actions: [SaveListingAction(listing: listing)],
+        actions: [
+          SaveListingAction(listing: listing),
+          SaveListingAction(listing: listing, kind: SavedCollections.addressBookKind),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
