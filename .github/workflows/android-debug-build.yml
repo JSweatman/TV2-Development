@@ -69,9 +69,9 @@ jobs:
           {
             echo '### Android debug APK provenance'
             echo 'This APK uses runner-generated debug signing. It may NOT install as an update over a previous APK.'
-            echo '\`\`\`text'
+            printf '%s\n' '```text'
             cat "$manifest"
-            echo '\`\`\`'
+            printf '%s\n' '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload unsigned-for-release test build
         uses: actions/upload-artifact@v4
