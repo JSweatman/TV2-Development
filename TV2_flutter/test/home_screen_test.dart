@@ -194,6 +194,37 @@ class OfflineResolverApi extends FakeApi {
 }
 
 void main() {
+  testWidgets('video teaser is presentational on keypad and listing without affecting controls', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('tv2-video-placeholder')), findsOneWidget);
+    expect(find.text('VIDEO PREVIEW'), findsOneWidget);
+    expect(find.text('COMING SOON'), findsOneWidget);
+    expect(find.byTooltip('ENTER'), findsOneWidget);
+    expect(find.byTooltip('Play video'), findsNothing);
+
+    for (final key in ['5', '2', '9']) {
+      await tester.tap(find.text(key));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(find.text('Fixture Alpha'), findsWidgets);
+
+    await tester.tap(find.byTooltip('ENTER'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('tv2-video-placeholder')), findsOneWidget);
+    expect(find.text('COMING SOON'), findsOneWidget);
+    expect(find.byTooltip('Save listing'), findsOneWidget);
+    expect(find.byTooltip('Add to Address Book'), findsOneWidget);
+    expect(find.byTooltip('Play video'), findsNothing);
+  });
+
   testWidgets('Address Book contact save and reopen are separate from Bookmarks', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
