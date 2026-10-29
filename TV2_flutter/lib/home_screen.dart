@@ -9,6 +9,7 @@ import 'resolver_api.dart';
 import 'public_resource_launcher.dart';
 import 'saved_listing_ui.dart';
 import 'saved_collections.dart';
+import 'video_preview_placeholder.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -348,7 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  TextButton.icon(
+                  Expanded(
+                    child: TextButton.icon(
                     onPressed: countryLoading
                         ? null
                         : () {
@@ -367,9 +369,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               : selectedCountry == null
                               ? 'Select Country'
                               : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
+                  ),
                   IconButton(
                     tooltip: 'Saved folders',
                     onPressed: _openSavedFolders,
@@ -419,10 +423,33 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: _MatchPanel(
-                  matches: matches,
-                  hasMore: hasMore,
-                  onSelect: _selectMatch,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Keep a readable match list and full keypad on small
+                    // devices. The media panel is strictly presentational.
+                    final previewVisible = constraints.maxHeight >= 160;
+                    final previewHeight =
+                        (constraints.maxHeight * 0.56).clamp(92.0, 160.0);
+                    return Column(
+                      children: [
+                        if (previewVisible)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: SizedBox(
+                              height: previewHeight,
+                              child: const VideoPreviewPlaceholder(compact: true),
+                            ),
+                          ),
+                        Expanded(
+                          child: _MatchPanel(
+                            matches: matches,
+                            hasMore: hasMore,
+                            onSelect: _selectMatch,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
               Keypad(
@@ -619,7 +646,12 @@ class TemplateScreen extends StatelessWidget {
           Text(listing.qualifiedIdentity, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 4),
           Text('${listing.entityType} • template: ${listing.templateKey}'),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          const AspectRatio(
+            aspectRatio: 16 / 9,
+            child: VideoPreviewPlaceholder(),
+          ),
+          const SizedBox(height: 16),
           if (listing.resources.isEmpty)
             const Text('This identity has no configured public resources.'),
           for (final button in listing.buttons)
