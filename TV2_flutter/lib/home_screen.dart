@@ -349,7 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  TextButton.icon(
+                  Expanded(
+                    child: TextButton.icon(
                     onPressed: countryLoading
                         ? null
                         : () {
@@ -368,9 +369,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               : selectedCountry == null
                               ? 'Select Country'
                               : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
+                  ),
                   IconButton(
                     tooltip: 'Saved folders',
                     onPressed: _openSavedFolders,
