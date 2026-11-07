@@ -174,6 +174,20 @@ class CanadaFirstCallingCodeApi extends FakeApi {
       ];
 }
 
+// Three countries share the same +1 resolver namespace.
+class MultiplePlusOneApi extends CanadaFirstCallingCodeApi {
+  @override
+  Future<List<CountryNamespace>> countries() async => [
+        ...await super.countries(),
+        const CountryNamespace(
+          iso2: 'JM',
+          countryName: 'Jamaica',
+          nid: '1',
+          defaultLanguageTag: 'en-JM',
+        ),
+      ];
+}
+
 class SlowCountryApi extends FakeApi {
   final countryResponse = Completer<List<CountryNamespace>>();
 
@@ -337,7 +351,7 @@ void main() {
     expect(find.textContaining('The test server may take longer'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.text('Select Country / Namespace'), findsNothing);
-    expect(find.text('US  +1'), findsNothing);
+    expect(find.text('+1'), findsNothing);
 
     api.countryResponse.complete(await FakeApi().countries());
     await tester.pumpAndSettle();
@@ -363,7 +377,7 @@ void main() {
     expect(find.text('529'), findsOneWidget);
     expect(find.text('Fixture Alpha'), findsWidgets);
 
-    await tester.tap(find.text('US  +1'));
+    await tester.tap(find.text('+1'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('India'));
     await tester.pumpAndSettle();
@@ -375,7 +389,7 @@ void main() {
     expect(api.lastPrefixCountry, '91');
   });
 
-  testWidgets('explicit 1*529 remains US-scoped after switching to India', (tester) async {
+  testWidgets('explicit 1*529 remains +1-scoped after switching to India', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final api = NamespaceAwareApi();
     await tester.pumpWidget(TV2App(api: api, initialCountry: '1'));
@@ -388,7 +402,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Fixture Alpha'), findsWidgets);
 
-    await tester.tap(find.text('US  +1'));
+    await tester.tap(find.text('+1'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('India'));
     await tester.pumpAndSettle();
@@ -401,62 +415,68 @@ void main() {
     expect(api.lastPrefixCountry, '91');
   });
 
-  testWidgets('saved country ISO2 survives restart when US and Canada both use +1', (tester) async {
+  testWidgets('shared +1 appears once without country labels and persists', (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(TV2App(api: SharedCallingCodeApi()));
+    await tester.pumpWidget(TV2App(api: MultiplePlusOneApi()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Canada'));
-    await tester.pumpAndSettle();
-    expect(find.text('CA  +1'), findsOneWidget);
+    // Canada is first in the source data, but the user sees only +1.
+    expect(find.text('+1'), findsOneWidget);
+    expect(find.text('United States'), findsNothing);
+    expect(find.text('Canada'), findsNothing);
+    expect(find.text('Jamaica'), findsNothing);
+    expect(find.text('US'), findsNothing);
+    expect(find.text('CA'), findsNothing);
+    expect(find.text('JM'), findsNothing);
 
-    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.tap(find.text('+1'));
     await tester.pumpAndSettle();
-    await tester.pumpWidget(TV2App(api: SharedCallingCodeApi()));
-    await tester.pumpAndSettle();
-
-    expect(find.text('CA  +1'), findsOneWidget);
+    expect(find.text('+1'), findsOneWidget);
     expect(find.text('US  +1'), findsNothing);
-    expect(find.text('Select Country / Namespace'), findsNothing);
-  });
-
-  testWidgets('US +1 persists on restart even when Canada appears first', (tester) async {
-    SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(TV2App(api: CanadaFirstCallingCodeApi()));
-    await tester.pumpAndSettle();
-
-    // Choose the US explicitly even though Canada is the first +1 country.
-    await tester.tap(find.text('United States'));
-    await tester.pumpAndSettle();
-    expect(find.text('US  +1'), findsOneWidget);
+    expect(find.text('CA  +1'), findsNothing);
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('tv2_selected_nid'), '1');
-    expect(prefs.getString('tv2_selected_country_iso2'), 'US');
+    expect(prefs.getString('tv2_selected_country_iso2'), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
+    await tester.pumpWidget(TV2App(api: MultiplePlusOneApi()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('+1'), findsOneWidget);
+    expect(find.text('Select Country / Namespace'), findsNothing);
+
+    // Other namespaces, including their existing region labels, still work.
+    await tester.tap(find.text('+1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('India'));
+    await tester.pumpAndSettle();
+    expect(find.text('IN  +91'), findsOneWidget);
+    expect(prefs.getString('tv2_selected_nid'), '91');
+    expect(prefs.getString('tv2_selected_country_iso2'), 'IN');
+  });
+
+  testWidgets('legacy +1 selection never appears as US or CA in dialer', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'tv2_selected_nid': '1',
+      'tv2_selected_country_iso2': 'US',
+    });
     await tester.pumpWidget(TV2App(api: CanadaFirstCallingCodeApi()));
     await tester.pumpAndSettle();
 
-    expect(find.text('US  +1'), findsOneWidget);
+    expect(find.text('+1'), findsOneWidget);
+    expect(find.text('US  +1'), findsNothing);
     expect(find.text('CA  +1'), findsNothing);
 
-    // Switch to Canada, and verify that the same numeric NID does not
-    // accidentally retain the previously selected country.
-    await tester.tap(find.text('US  +1'));
+    await tester.tap(find.text('+1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Canada'));
+    await tester.tap(find.text('+1').last);
     await tester.pumpAndSettle();
-    expect(find.text('CA  +1'), findsOneWidget);
-    expect(prefs.getString('tv2_selected_country_iso2'), 'CA');
 
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-    await tester.pumpWidget(TV2App(api: CanadaFirstCallingCodeApi()));
-    await tester.pumpAndSettle();
-    expect(find.text('CA  +1'), findsOneWidget);
-    expect(find.text('US  +1'), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('tv2_selected_nid'), '1');
+    expect(prefs.getString('tv2_selected_country_iso2'), isNull);
   });
 
   testWidgets('offline resolver timeout gives actionable guidance', (tester) async {
@@ -513,7 +533,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Select Country / Namespace'), findsOneWidget);
-    expect(find.text('United States'), findsOneWidget);
+    expect(find.text('+1'), findsOneWidget);
     expect(find.text('India'), findsOneWidget);
 
     await tester.tap(find.text('India'));
