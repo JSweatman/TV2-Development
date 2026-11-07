@@ -71,12 +71,13 @@ class _HomeScreenState extends State<HomeScreen> {
       CountryNamespace? selected;
       if (savedNid != null) {
         for (final item in countries) {
-          // Multiple countries can share a calling code (for example, US
-          // and Canada both use +1). Restore the exact selected country,
-          // not just the first entry with the same numeric NID.
-          // Older installations that only saved the NID still work.
+          // +1 is one public dialing namespace, not a country label.
+          // A legacy US/CA/JM selection must not affect +1 restoration.
+          // Other codes retain their existing country-specific selection.
           if (item.nid == savedNid &&
-              (savedIso2 == null || item.iso2 == savedIso2)) {
+              (savedNid == '1' ||
+                  savedIso2 == null ||
+                  item.iso2 == savedIso2)) {
             selected = item;
             break;
           }
@@ -219,6 +220,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Shared +1 has one visible dialing choice, regardless of how many
+  // countries the API returns with that same numeric calling code.
+  List<CountryNamespace> get _visibleNamespaceOptions {
+    final visible = <CountryNamespace>[];
+    var hasPlusOne = false;
+    for (final country in countryOptions) {
+      if (country.nid == '1') {
+        if (hasPlusOne) continue;
+        hasPlusOne = true;
+      }
+      visible.add(country);
+    }
+    return visible;
+  }
+
   Future<void> _editCountry({bool requireSelection = false}) async {
     if (countryOptions.isEmpty) {
       if (!mounted) return;
@@ -228,6 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+    final visibleOptions = _visibleNamespaceOptions;
     final selected = await showModalBottomSheet<CountryNamespace>(
       context: context,
       isScrollControlled: true,
@@ -255,16 +272,21 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8),
               Expanded(
                 child: ListView.separated(
-                  itemCount: countryOptions.length,
+                  itemCount: visibleOptions.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
-                    final item = countryOptions[index];
+                    final item = visibleOptions[index];
+                    final isPlusOne = item.nid == '1';
                     return ListTile(
                       leading: const Icon(Icons.public),
-                      title: Text(item.countryName),
-                      subtitle: Text(item.iso2),
-                      trailing: Text('+${item.nid}'),
-                      selected: selectedCountry?.iso2 == item.iso2,
+                      title: Text(isPlusOne ? '+1' : item.countryName),
+                      subtitle: isPlusOne
+                          ? const Text('Shared calling-code namespace')
+                          : Text(item.iso2),
+                      trailing: isPlusOne ? null : Text('+${item.nid}'),
+                      selected: isPlusOne
+                          ? selectedCountry?.nid == '1'
+                          : selectedCountry?.iso2 == item.iso2,
                       onTap: () => Navigator.pop(context, item),
                     );
                   },
@@ -279,7 +301,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (selected == null) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tv2_selected_nid', selected.nid);
-    await prefs.setString('tv2_selected_country_iso2', selected.iso2);
+    if (selected.nid == '1') {
+      // Do not persist an arbitrary country identity for shared +1.
+      await prefs.remove('tv2_selected_country_iso2');
+    } else {
+      await prefs.setString('tv2_selected_country_iso2', selected.iso2);
+    }
 
     if (!mounted) return;
     setState(() {
@@ -368,7 +395,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? 'Retry Country'
                               : selectedCountry == null
                               ? 'Select Country'
-                              : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
+                              : selectedCountry!.nid == '1'
+                                  ? '+1'
+                                  : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
