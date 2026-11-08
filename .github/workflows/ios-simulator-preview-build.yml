@@ -38,6 +38,11 @@ jobs:
       - name: Generate isolated iOS Preview runner
         shell: bash
         run: bash ../scripts/prepare_ios_simulator_preview.sh
+      - name: Archive generated iOS runner for native project review
+        shell: bash
+        run: |
+          mkdir -p build/ios_preview
+          ditto -c -k --sequesterRsrc --keepParent ios build/ios_preview/TV2-iOS-Native-Runner-Scaffold.zip
       - name: Resolve Flutter dependencies
         run: flutter pub get
       - name: Execute platform-shared Flutter tests
@@ -101,6 +106,7 @@ jobs:
           name: tv2-ios-simulator-preview
           path: |
             TV2_flutter/build/ios_preview/TV2-Preview-iOS-Simulator.zip
+            TV2_flutter/build/ios_preview/TV2-iOS-Native-Runner-Scaffold.zip
             TV2_flutter/build/ios_preview/IOS_SIMULATOR_PROVENANCE.txt
           if-no-files-found: error
           retention-days: 7
