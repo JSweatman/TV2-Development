@@ -87,9 +87,9 @@ jobs:
             printf 'Source commit: %s\n' "$TV2_SOURCE_SHA"
             printf 'Workflow run: %s\n' "$GITHUB_RUN_ID"
             printf 'Xcode: '
-            xcodebuild -version | head -n 1
+            xcodebuild -version | sed -n '1p'
             printf 'Flutter: '
-            flutter --version | head -n 1
+            flutter --version | sed -n '1p'
             printf 'Simulator archive SHA-256: '
             shasum -a 256 "$zip_path" | awk '{print $1}'
           } | tee "$provenance"
