@@ -1,7 +1,7 @@
 # TV2 isolated Android preview — safe installation path
 
-**Prepared:** October 30, 2026  
-**Status:** New workflow proposed for CI validation; **not yet installed or physically verified**.
+**Prepared:** October 30, 2026; updated November 7, 2026  
+**Status:** Isolated preview workflow has passed automated checks; the shared +1 numeric-only change requires a fresh merged-main artifact and new on-device verification.
 
 ## Why this exists
 
@@ -21,7 +21,7 @@ This should allow the preview to **coexist** with the existing older TV2 app. It
 4. Open the preview APK on Android. Expected: a separate app named **TV2 Preview** installs, rather than an update prompt for existing TV2.
 5. **If an Update prompt for the original TV2 appears, cancel immediately.** Do not proceed, and report the actual Android dialog and APK filename.
 6. After installation, confirm two apps coexist and independently launch. Leave the original app unchanged.
-7. Select US +1 in TV2 Preview, close/remove preview from recent apps, reopen twice, confirm **US +1** stays selected. Repeat for Canada +1 and India +91. Verify canonical `529` and explicit `1*529` resolution.
+7. On first launch, confirm there is one **+1** namespace option (not separate US +1, CA +1 or JM +1 choices). Select **+1**, close/remove only TV2 Preview from recent apps, and reopen twice. Confirm the dialer still shows **+1** alone. Also check any prior +1 country preference is not surfaced as a US/CA/JM dialer label. Select India +91, confirm it persists when reopening and that changing the namespace preserves the entered List Number. Verify canonical `529` and explicit `1*529` resolution still use numeric NIDs.
 8. Verify media-preview placeholder is labeled **COMING SOON** (no actual camera/video access), native listing SAVE folders, and Address Book separation.
 9. Record actual results and screenshots before closing #23.
 
@@ -39,4 +39,4 @@ This should allow the preview to **coexist** with the existing older TV2 app. It
 ## Follow-up
 
 - [#20](https://github.com/JSweatman/TV2-Development/issues/20): permanent package configuration and stable protected signing; reproduce data-preserving in-place update.
-- [#23](https://github.com/JSweatman/TV2-Development/issues/23): country-ISO2 physical-device regression; automated protection merged via #24.
+- [#23](https://github.com/JSweatman/TV2-Development/issues/23): original US/CA country-label regression; approved new dialing design is **+1 only** in TV2/V1. Automated checks must pass and the new behavior must be verified on-device before closing the issue. See `docs/SHARED_PLUS_ONE_NUMERIC_DIALER_TV2_V1.md`.
