@@ -16,7 +16,21 @@ if ! command -v xcodebuild >/dev/null 2>&1; then
 fi
 
 # Preview-only identity. Do not infer the production App Store bundle ID.
+# Flutter may create its stock MyApp widget test when adding a platform to an
+# existing source-only project. Preserve any pre-existing test, but remove the
+# newly generated incompatible template test before running our real suite.
+had_widget_test=false
+[[ -e test/widget_test.dart ]] && had_widget_test=true
 flutter create --platforms=ios --project-name tv2 --org com.sundara.preview .
+if [[ "$had_widget_test" == false && -f test/widget_test.dart ]]; then
+  if grep -Fq 'pumpWidget(const MyApp())' test/widget_test.dart; then
+    rm test/widget_test.dart
+    echo 'Removed Flutter-generated MyApp sample test; TV2 tests are preserved.'
+  else
+    echo "::error::Unexpected new widget_test.dart; review rather than delete it."
+    exit 1
+  fi
+fi
 
 plist="ios/Runner/Info.plist"
 project="ios/Runner.xcodeproj/project.pbxproj"
