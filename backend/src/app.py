@@ -42,6 +42,7 @@ def approved_web_origins(value: str) -> list[str]:
             or parsed.fragment
             or parsed.username
             or parsed.password
+            or "*" in origin
             or origin != f"{parsed.scheme}://{parsed.netloc}"
             or (parsed.scheme == "http" and parsed.hostname not in ("localhost", "127.0.0.1"))
         ):
