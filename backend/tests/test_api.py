@@ -97,3 +97,23 @@ def test_country_namespace_endpoint_supports_client_settings():
     assert by_iso2["JP"]["nid"] == "81"
     assert by_iso2["FR"]["nid"] == "33"
     assert by_iso2["IN"]["nid"] == "91"
+
+
+def test_browser_preview_cors_origins_are_explicit_and_secure():
+    assert service.approved_web_origins("") == []
+    assert service.approved_web_origins(
+        "https://preview.sundara.example, http://localhost:8080, https://preview.sundara.example"
+    ) == ["https://preview.sundara.example", "http://localhost:8080"]
+
+    import pytest
+
+    for origin in (
+        "*",
+        "https://*.example.com",
+        "http://nonlocal.example.com",
+        "https://example.com/path",
+        "https://name:password@example.com",
+        "file:///tmp/tv2",
+    ):
+        with pytest.raises(ValueError):
+            service.approved_web_origins(origin)
