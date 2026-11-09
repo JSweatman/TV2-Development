@@ -6,8 +6,11 @@ or private communications routing data.
 """
 from __future__ import annotations
 import logging
+import os
 from typing import Any
+from urllib.parse import urlsplit
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from identity_rules import InvalidIdentity, parse_identity, parse_prefix
@@ -17,6 +20,49 @@ logger = logging.getLogger("tv2-resolver")
 app = FastAPI(title="List Number TV2 Resolver", version="0.4.1")
 MAX_PREFIX_RESULTS = 20
 repository: ResolverRepository = build_repository()
+
+def approved_web_origins(value: str) -> list[str]:
+    """An explicit list of preview origins; do not open CORS globally.
+
+    Localhost HTTP is allowed for development. Deployed preview origins must
+    be HTTPS. Browser origins must not contain paths, credentials, or wildcards.
+    """
+    origins: list[str] = []
+    for candidate in value.split(","):
+        origin = candidate.strip()
+        if not origin:
+            continue
+        parsed = urlsplit(origin)
+        if (
+            parsed.scheme not in ("http", "https")
+            or not parsed.netloc
+            or not parsed.hostname
+            or parsed.path
+            or parsed.query
+            or parsed.fragment
+            or parsed.username
+            or parsed.password
+            or "*" in origin
+            or origin != f"{parsed.scheme}://{parsed.netloc}"
+            or (parsed.scheme == "http" and parsed.hostname not in ("localhost", "127.0.0.1"))
+        ):
+            raise ValueError(f"Invalid TV2_CORS_ALLOWED_ORIGINS entry: {origin!r}")
+        if origin not in origins:
+            origins.append(origin)
+    return origins
+
+
+# CORS is intentionally disabled unless the exact PWA origin is configured.
+# The Android/iOS clients do not require browser CORS permissions.
+_web_origins = approved_web_origins(os.getenv("TV2_CORS_ALLOWED_ORIGINS", ""))
+if _web_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_web_origins,
+        allow_credentials=False,
+        allow_methods=["GET"],
+        allow_headers=["Accept"],
+    )
 
 
 class Resource(BaseModel):
