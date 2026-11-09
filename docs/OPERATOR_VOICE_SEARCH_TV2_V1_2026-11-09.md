@@ -1,39 +1,44 @@
-# TV2 / V1 — OPERATOR voice search development contract
-Date: 2026-11-09
+# TV2 / V1 OPERATOR — English existing-listing lookup only
 
-## Approved keypad legend (implemented in this change)
+Approved 2026-11-09. This contract supersedes earlier OPERATOR concepts that included immediate category or location searches.
 
-- Fourth keypad row remains `* 0 # .`.
-- Display `OPER` directly below the numeric `0` key, evoking legacy telephone OPERATOR.
-- Do not display a `+` legend beneath zero. The selected country/NID is separate from the List Number input grammar.
-- A normal zero-key tap still inputs the literal digit `0`, preserving the existing List Number parser, numeric display, and resolver behavior.
-- This patch **only implements the visual label and the unchanged tap**. No microphone activation, long-press gesture, AI search, sound, or permission request is implemented.
+## ZERO-key visual change (PR #30)
 
-## Intended future OPERATOR interaction
+- Keep four-column keypad order `* 0 # .`.
+- Show numeral `0` with smaller `OPER` directly beneath it; no `+` legend.
+- Ordinary tap inserts the exact digit `0` and preserves current resolver input rules.
+- PR #30 changes the legend and adds a regression test. It does **not** enable microphone/AI/long press.
 
-1. On a keypad screen, a deliberate press-and-hold exceeding **1.5 seconds** on zero invokes OPERATOR and **does not input a digit**. An ordinary press/release continues to input zero. Implement a custom hold timer and gesture cancellation, not Flutter's default shorter long-press threshold.
-2. Provide an accessible alternative (an explicit OPERATOR action and keyboard/screen-reader invocation) so the gesture is not the sole way to activate this capability, especially for desktop PWA.
-3. Open an OPERATOR screen and request microphone access *only after explicit user action*. Play an unobtrusive affirmation tone and show a clear recording indicator after successful permission/recognizer initialization; do not imply listening if unavailable or denied.
-4. Show partial live transcript while speaking. After a short configurable pause/final result, preserve an editable transcript and display the recognized request for confirmation or correction. Provide Cancel / Stop / Retry and a typed query fallback.
-5. For the initial English preview, choose supported speech locale `en-US` (with ability to change), and interpret constrained intentions:
-   - Find a **specific public discoverable** company, person, or List Number.
-   - Search a **category** and **area**, such as `Italian restaurant`.
-   - Respect explicit requests for 5 or 10 results, or radius such as 5 or 10 miles.
-6. Require opt-in foreground location permission when `near me` is requested. Do not infer precise desktop position from IP address; web may provide approximate location or none. Allow manual city/ZIP/postal location and an option to search without precise location. Do not persist GPS/audio by default.
-7. Rank **authorized public discoverable listings** by geographic proximity when reliable coordinates exist, then relevance / name, with transparent distance labels. Never return protected CDD records, private/unverified identities, or internal contact routes. A claimed search should never fabricate directory entries.
-8. Tap a result to pass its canonical qualified List Number to the existing deterministic resolver. Do not auto-dial, join video, or open third-party apps on interpreting the phrase `connect me`.
-9. Preserve strict country-code/namespace rules; OPERATOR's language and location context are separate from the identity-resolution namespace.
+## English OPERATOR MVP — desired user experience
 
-## Engineering dependencies and release gates
+1. A deliberate ZERO hold **longer than 1.5 seconds** opens an OPERATOR screen, with no digit inserted. Quick taps remain ordinary digit entry. Provide a visible and keyboard/screen-reader accessible alternate invocation.
+2. On user request, ask for microphone permission, then signal ready-to-listen with an accessible indicator and affirmation tone **only after** recognition is actually ready.
+3. Display spoken words as live partial transcript, then an editable final transcript after Stop or a short pause. Offer typed request, Retry, Cancel, and an intelligible unavailable/denied-permission state.
+4. Recognize **English** requests for one of two existing public listing forms:
+   - Exact base or qualified List Number, scoped by the saved country/NID or explicit country/global code; e.g. 'find five two four seven'.
+   - Existing public listing *display name*; e.g. 'find [known company/person]'.
+5. Show only real, currently active/discoverable database matches. A single match opens as a user-selectable listing; ambiguous names produce a bounded choice of verified listings. Tap uses existing deterministic resolver; speech never automatically initiates a call or navigation to an outside destination.
+6. When no match exists, clearly state that no listing was found. Do not generate names, identities, or unverified links.
 
-- TV2's current resolver implements `/v1/countries`, `/v1/prefix` and `/v1/resolve` only. It has no authorized full-text/category/geo search endpoint or complete searchable directory location/category fields yet.
-- Build a limited public-listing discovery API with authorized searchable flags, normalized entity/category keywords and geolocation fields, spatial index, bounded results, abuse controls, access tests, and explicit provenance. A development fixture may prove the English preview without implying broad directory coverage.
-- Use a cross-platform speech recognizer adapter (Flutter `speech_to_text` is a candidate, subject to Android/iOS/PWA compatibility testing and browser limitations). Support partial transcripts, availability checks, microphone permission, short utterances and cancel/final timeout.
-- Keep intent parsing/AI as a separate service or deterministic parser that emits a validated structured query (entity name, list number, category, latitude/longitude if permitted, radius, limit, locale). Never use generated text as an unchecked resolver identity or claim returned results unsupported by the database.
-- Add privacy controls, retention policy, abuse/cost quotas and audited consent. Never include provider secrets in the browser/PWA client. Text search works when speech recognition or permission is unavailable.
-- Phase 1: English speech-to-text + exact List Number/name lookup against test fixtures; visible verified results.
-- Phase 2: bounded category search and distance ranking with supported public directory data.
-- Phase 3: multilingual recognition and intent normalization via explicitly selected locale or user preference; fall back to typed translation review if uncertain. The selected country/NID may suggest the initial language but must not override user language preference.
-- Test separately on actual Android hardware, iPhone, desktop/mobile browser; a successful widget test, simulator, or web build is **not** physical-device acceptance.
-- Keep OPERATOR feature behind an explicit release flag until real end-to-end behavior, permissions, language handling, and accessibility are verified.
-- Keep existing Android TV2 installed. Isolated preview must retain package ID `com.sundara.preview.tv2` and never replace the old app.
+## Current backend limits and minimal viable integration
+
+Current backend implements `GET /v1/countries`, `GET /v1/prefix` (numeric/identity prefix) and `GET /v1/resolve` (exact identity). `ListingRecord` already includes `display_name` and a public `list_number`; it does **not** expose a name-search endpoint.
+
+- Spoken numeric identities can be parsed and sent through the current exact resolver after explicit transcript confirmation.
+- A **public-name search endpoint/repository adapter** is required for arbitrary name lookup. Investigate querying existing `display_name` with an authorized bounded server-side method; avoid a new table/column or migration if existing policies and performance allow.
+- If a safe live name search cannot operate without additional SQL/RPC/index work, use an explicitly labeled development fixture for named-listing demonstration until the backend is ready; do not silently scan all listings client-side or claim live name discovery.
+- Enforce approved discovery visibility and return only safe public listing information; never expose CDD, internal communications endpoints, unauthorized personal records, or subscriber information.
+
+## Explicitly deferred to later phases
+
+**Do not implement as part of the English OPERATOR MVP:** ISIC classification, business categories, address fields, GPS/location permission, radius settings, distance ranking, 'restaurants near me' searches, broad natural language discovery, or multilingual recognition. These belong to separate future database/design phases, after relevant fields and governance are agreed.
+
+Keep future speech engines replaceable via a platform adapter for Android, iOS and PWA. `speech_to_text` is a candidate, subject to real platform availability, microphone permission, and language behavior testing; locale for this preview is English. The AI component may be small or deterministic for these two constrained intents; do not assume that an LLM or paid AI API is required for basic speech transcription and exact lookup.
+
+## Acceptance, privacy and safety
+
+- Tests for short tap vs over-1.5-second hold, hold cancellation, accessibility alternate, permission denied, unavailable speech recognition, transcript corrections, silence timeout, numeric/name intent parsing, no match, multiple genuine matches, bounded outputs, and error recovery.
+- Never record in the background or request microphone access except after an explicit OPERATOR action; do not retain audio by default.
+- Do not introduce location permission at this stage.
+- Test actual microphone/transcript/lookup separately on Android devices, iPhones and mobile/desktop PWA. CI/simulator compilation does not count as physical-device acceptance.
+- Keep OPERATOR gated until actual behavior and permissions are verified. Maintain the original Android TV2 installation; isolated Android preview must remain `com.sundara.preview.tv2` and must never update/replace it.
