@@ -616,8 +616,32 @@ class Keypad extends StatelessWidget {
                         child: SizedBox(
                           height: 48,
                           child: FilledButton.tonal(
+                            key: value == '0'
+                                ? const Key('tv2-zero-operator-key')
+                                : null,
                             onPressed: () => onKey(value),
-                            child: Text(value, style: const TextStyle(fontSize: 22)),
+                            // OPER is a key legend, not part of the numeric
+                            // identity input. A short press still enters 0.
+                            // Voice recognition/long-press is a separate
+                            // feature gate and is not enabled here.
+                            child: value == '0'
+                                ? const Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('0',
+                                          style: TextStyle(
+                                              fontSize: 22, height: 1.0)),
+                                      Text('OPER',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              height: 1.1,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5)),
+                                    ],
+                                  )
+                                : Text(value,
+                                    style: const TextStyle(fontSize: 22)),
                           ),
                         ),
                       ),
