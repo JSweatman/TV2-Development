@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'package:universal_io/universal_io.dart';
 
 import 'models.dart';
 
@@ -33,7 +33,7 @@ class HttpResolverApi implements ResolverApi {
     required this.baseUri,
     HttpClient? client,
     this.timeout = const Duration(seconds: 8),
-  }) : _client = client ?? HttpClient();
+  }) : _client = client ?? newUniversalHttpClient();
 
   final Uri baseUri;
   final HttpClient _client;
