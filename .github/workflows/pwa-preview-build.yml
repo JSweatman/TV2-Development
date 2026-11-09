@@ -30,12 +30,12 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Generate web runner without modifying native application IDs
-        run: flutter create . --platforms web --project-name tv2
       - name: Resolve shared Flutter dependencies
         run: flutter pub get
       - name: Run shared widget and unit tests
         run: flutter test
+      - name: Generate web runner without modifying native application IDs
+        run: flutter create . --platforms web --project-name tv2
       - name: Build Flutter web preview
         run: flutter build web --release
       - name: Verify web bundle and record provenance
