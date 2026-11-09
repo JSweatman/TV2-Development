@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:universal_io/universal_io.dart';
+import 'package:http/http.dart' as http;
 
 import 'models.dart';
 
@@ -31,12 +31,12 @@ abstract class ResolverApi {
 class HttpResolverApi implements ResolverApi {
   HttpResolverApi({
     required this.baseUri,
-    HttpClient? client,
+    http.Client? client,
     this.timeout = const Duration(seconds: 8),
-  }) : _client = client ?? newUniversalHttpClient();
+  }) : _client = client ?? http.Client();
 
   final Uri baseUri;
-  final HttpClient _client;
+  final http.Client _client;
   final Duration timeout;
 
   Uri _uri(String path, Map<String, String> query) => baseUri.replace(
@@ -51,10 +51,11 @@ class HttpResolverApi implements ResolverApi {
   }) async {
     final effectiveTimeout = requestTimeout ?? timeout;
     try {
-      final request = await _client.getUrl(_uri(path, query)).timeout(effectiveTimeout);
-      request.headers.set(HttpHeaders.acceptHeader, 'application/json');
-      final response = await request.close().timeout(effectiveTimeout);
-      final raw = await utf8.decoder.bind(response).join().timeout(effectiveTimeout);
+      final response = await _client.get(
+        _uri(path, query),
+        headers: const {'Accept': 'application/json'},
+      ).timeout(effectiveTimeout);
+      final raw = utf8.decode(response.bodyBytes);
       final decoded = raw.isEmpty ? null : jsonDecode(raw);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final detail = decoded is Map<String, dynamic> ? decoded['detail'] : null;
@@ -68,7 +69,7 @@ class HttpResolverApi implements ResolverApi {
       rethrow;
     } on TimeoutException {
       throw const ResolverApiException('Resolver request timed out. Check your internet connection and try again.');
-    } on SocketException {
+    } on http.ClientException {
       throw const ResolverApiException('Unable to reach resolver. Check your internet connection and try again.');
     } on FormatException {
       throw const ResolverApiException('Resolver returned an invalid response.');
