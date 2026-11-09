@@ -1,0 +1,64 @@
+name: pwa-preview-build
+
+# Browser compilation is independent of native Android and iOS preview releases.
+# This job publishes a static web artifact; it does not deploy a public site.
+on:
+  pull_request:
+    paths:
+      - 'TV2_flutter/**'
+      - '.github/workflows/pwa-preview-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'TV2_flutter/**'
+      - '.github/workflows/pwa-preview-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: TV2_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate web runner without modifying native application IDs
+        run: flutter create . --platforms web --project-name tv2
+      - name: Resolve shared Flutter dependencies
+        run: flutter pub get
+      - name: Run shared widget and unit tests
+        run: flutter test
+      - name: Build Flutter web preview
+        run: flutter build web --release
+      - name: Verify web bundle and record provenance
+        shell: bash
+        env:
+          TV2_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test -s build/web/index.html
+          test -s build/web/manifest.json
+          test -d build/web/assets
+          {
+            echo 'TV2 WEB PREVIEW -- DEVELOPMENT ONLY'
+            printf 'Source commit: %s\n' "$TV2_SOURCE_SHA"
+            printf 'Workflow run: %s\n' "$GITHUB_RUN_ID"
+            echo 'This is a web build artifact, NOT a deployed or browser-tested PWA.'
+            echo 'Browser resolver requests require an explicitly approved CORS origin.'
+            echo 'No live calls, text sessions, video sessions or cross-device data sync are asserted.'
+          } | tee build/web/PREVIEW_PROVENANCE.txt
+      - name: Upload Flutter web preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv2-pwa-preview-dist
+          path: TV2_flutter/build/web/
+          if-no-files-found: error
+          retention-days: 7
