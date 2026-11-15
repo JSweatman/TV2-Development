@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tv2/home_screen.dart';
 
 void main() {
-  testWidgets('TV2 keypad actions follow CALL HOME ENTER BACK order',
+  testWidgets('TV2 keypad actions follow CALL HOME BACK ENTER order',
       (tester) async {
     final actions = <String>[];
 
@@ -26,8 +26,8 @@ void main() {
     final buttons = [
       find.byTooltip('CALL'),
       find.byTooltip('HOME'),
-      find.byTooltip('ENTER'),
       find.byTooltip('BACK'),
+      find.byTooltip('ENTER'),
     ];
 
     for (final button in buttons) {
@@ -41,10 +41,10 @@ void main() {
       );
     }
 
-    await tester.tap(find.byTooltip('ENTER'));
-    await tester.pump();
     await tester.tap(find.byTooltip('BACK'));
     await tester.pump();
-    expect(actions, ['ENTER', 'BACK']);
+    await tester.tap(find.byTooltip('ENTER'));
+    await tester.pump();
+    expect(actions, ['BACK', 'ENTER']);
   });
 }
