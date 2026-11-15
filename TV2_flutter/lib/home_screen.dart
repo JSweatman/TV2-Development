@@ -662,16 +662,17 @@ class Keypad extends StatelessWidget {
                 onPressed: onHome,
                 icon: const Icon(Icons.home_outlined),
               ),
-              // Approved TV2 default keypad order: CALL, HOME, ENTER, BACK.
-              IconButton(
-                tooltip: 'ENTER',
-                onPressed: enterEnabled ? onEnter : null,
-                icon: const Icon(Icons.keyboard_return),
-              ),
+              // Founder UX directive: ENTER is the far-right action for easy
+              // right-handed thumb access. Keep CALL / HOME / BACK / ENTER.
               IconButton(
                 tooltip: 'BACK',
                 onPressed: onBack,
                 icon: const Icon(Icons.arrow_back),
+              ),
+              IconButton(
+                tooltip: 'ENTER',
+                onPressed: enterEnabled ? onEnter : null,
+                icon: const Icon(Icons.keyboard_return),
               ),
             ],
           ),
