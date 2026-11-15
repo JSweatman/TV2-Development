@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "note": "Narration drafts only. APPROVED must be recorded after founder review. HOLD cannot generate audio.",
+  "videos": [
+    {
+      "id": 1,
+      "title": "How to use TV2",
+      "status": "DRAFT",
+      "narration": "Meet TV2, the test version of List Number. Start by choosing your country or numeric dialing namespace. TV2 remembers your selection until you change it. Enter a List Number using the keypad. As you type, TV2 looks for matching public listings. Select the correct match, then choose ENTER to view its listing. When the owner has provided an available web destination, tap it to open the page. You can also save a listing in Bookmarks, while the Address Book remains separate. If your connection drops, reconnect and try again. That's the TV2 experience: a simple number that helps you reach the right destination."
+    },
+    {
+      "id": 2,
+      "title": "Free access and appearance customization",
+      "status": "HOLD",
+      "narration": "TV2 is designed to be useful without requiring an account just to enter a List Number. When personal account features are available, you'll be able to customize your own experience, including the background and appearance of the keypad. Preview how an image is positioned, confirm the crop, and save your design. Your preferences are meant to stay with you when you close and reopen the app. Personal appearance customization will remain free for every account tier. Until those controls are released and tested, you can continue using the core TV2 number-entry and resolver experience without signing up."
+    },
+    {
+      "id": 3,
+      "title": "Introducing List Number V1",
+      "status": "DRAFT",
+      "narration": "List Number begins with one simple idea: a number can be an easier way to reach a person, business, or organization online. Sundara Technologies is building a portable identity and access platform that routes a List Number to its owner's approved digital destination. TV2 lets us demonstrate the foundation today. The full V1 vision goes further, with more ways to personalize a landing page and connect through services offered by participating providers. Some of those capabilities are still being developed. We'll show you what works now and introduce new features only after they're ready. One number. More possibilities."
+    }
+  ]
+}
