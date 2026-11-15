@@ -662,15 +662,16 @@ class Keypad extends StatelessWidget {
                 onPressed: onHome,
                 icon: const Icon(Icons.home_outlined),
               ),
-              IconButton(
-                tooltip: 'BACK',
-                onPressed: onBack,
-                icon: const Icon(Icons.arrow_back),
-              ),
+              // Approved TV2 default keypad order: CALL, HOME, ENTER, BACK.
               IconButton(
                 tooltip: 'ENTER',
                 onPressed: enterEnabled ? onEnter : null,
                 icon: const Icon(Icons.keyboard_return),
+              ),
+              IconButton(
+                tooltip: 'BACK',
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back),
               ),
             ],
           ),
