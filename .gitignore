@@ -3,3 +3,8 @@
 __pycache__/
 .pytest_cache/
 *.pyc
+# Never commit ElevenLabs keys or generated media
+.env.local
+**/.env.local
+**/node_modules/
+**/tv2-voiceover-output/
