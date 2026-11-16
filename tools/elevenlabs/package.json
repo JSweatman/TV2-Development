@@ -1,0 +1,16 @@
+{
+  "name": "tv2-elevenlabs-narration",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Developer-only narration generator; NOT a Flutter/mobile runtime dependency",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "plan": "node generate-voiceovers.mjs --plan"
+  },
+  "dependencies": {
+    "@elevenlabs/elevenlabs-js": "2.78.0"
+  }
+}

@@ -1,0 +1,38 @@
+name: elevenlabs-narration-offline-validation
+
+# Deliberately NO API keys and NO installs or speech synthesis.
+on:
+  pull_request:
+    paths:
+      - 'tools/elevenlabs/**'
+      - '.github/workflows/elevenlabs-narration-offline-validation.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tools/elevenlabs/**'
+      - '.github/workflows/elevenlabs-narration-offline-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-scripts-no-credits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check (no dependencies)
+        run: node --check tools/elevenlabs/generate-voiceovers.mjs
+      - name: Safe offline tests (no network calls, no API key)
+        run: node --test tools/elevenlabs/test/narration.test.mjs
+      - name: Install pinned official ElevenLabs SDK (no key, no API call)
+        working-directory: tools/elevenlabs
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Confirm SDK import without authorization or charges
+        working-directory: tools/elevenlabs
+        run: node --input-type=module -e "import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js'; if (typeof ElevenLabsClient !== 'function') process.exit(1)"
