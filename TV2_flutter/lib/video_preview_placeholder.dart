@@ -12,7 +12,8 @@ class VideoPreviewPlaceholder extends StatelessWidget {
     final accent = Theme.of(context).colorScheme.primaryContainer;
     return Semantics(
       container: true,
-      label: 'Video preview placeholder. Playback is not available in this TV2 test build.',
+      label:
+          'Video preview placeholder. Playback is not available in this TV2 test build.',
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
         child: Container(
@@ -34,7 +35,8 @@ class VideoPreviewPlaceholder extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.videocam_outlined, size: compact ? 15 : 18, color: accent),
+                    Icon(Icons.videocam_outlined,
+                        size: compact ? 15 : 18, color: accent),
                     const SizedBox(width: 7),
                     Text(
                       'TV2  /  MEDIA',
@@ -55,7 +57,8 @@ class VideoPreviewPlaceholder extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white.withValues(alpha: 0.08),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.5)),
                   ),
                   child: Icon(
                     Icons.play_arrow_rounded,
@@ -81,12 +84,14 @@ class VideoPreviewPlaceholder extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
-                      'COMING SOON',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.72),
-                        fontWeight: FontWeight.w500,
-                        fontSize: compact ? 9 : 11,
+                    Flexible(
+                      child: Text(
+                        'COMING SOON',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.72),
+                          fontWeight: FontWeight.w500,
+                          fontSize: compact ? 9 : 11,
+                        ),
                       ),
                     ),
                   ],

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'input_rules.dart';
+import 'keypad_surface.dart';
 import 'models.dart';
 import 'resolver_api.dart';
 import 'public_resource_launcher.dart';
@@ -12,11 +13,7 @@ import 'saved_collections.dart';
 import 'video_preview_placeholder.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({
-    super.key,
-    required this.api,
-    this.initialCountry,
-  });
+  const HomeScreen({super.key, required this.api, this.initialCountry});
 
   final ResolverApi api;
   final String? initialCountry;
@@ -107,7 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() {
         countryLoading = false;
-        errorMessage = 'Unable to load country settings. Tap Retry Country to try again.';
+        errorMessage =
+            'Unable to load country settings. Tap Retry Country to try again.';
       });
     }
   }
@@ -329,9 +327,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing)),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing)));
   }
 
   void _openSavedFolders({String kind = SavedCollections.bookmarksKind}) {
@@ -372,125 +370,137 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: Column(
-            children: [
-              Row(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              // Content grows naturally for large text and long errors.
+              child: Column(
                 children: [
-                  Expanded(
-                    child: TextButton.icon(
-                    onPressed: countryLoading
-                        ? null
-                        : () {
-                            if (countryOptions.isEmpty) {
-                              _initializeCountryContext();
-                            } else {
-                              _editCountry();
-                            }
-                          },
-                    icon: const Icon(Icons.public),
-                    label: Text(
-                      countryLoading
-                          ? 'Loading countries…'
-                          : countryOptions.isEmpty
-                              ? 'Retry Country'
-                              : selectedCountry == null
-                              ? 'Select Country'
-                              : selectedCountry!.nid == '1'
-                                  ? '+1'
-                                  : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  ),
-                  IconButton(
-                    tooltip: 'Saved folders',
-                    onPressed: _openSavedFolders,
-                    icon: const Icon(Icons.bookmarks_outlined),
-                  ),
-                  IconButton(
-                    tooltip: 'Address Book',
-                    onPressed: () => _openSavedFolders(kind: SavedCollections.addressBookKind),
-                    icon: const Icon(Icons.contact_page_outlined),
-                  ),
-                  IconButton(
-                    tooltip: 'Clear',
-                    onPressed: _clear,
-                    icon: const Icon(Icons.delete_outline),
-                  ),
-                ],
-              ),
-              if (countryLoading)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-                  child: Row(
+                  Row(
                     children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          'Connecting to country directory… '
-                          'The test server may take longer to start after inactivity.',
-                          style: Theme.of(context).textTheme.bodySmall,
+                        child: TextButton.icon(
+                          onPressed: countryLoading
+                              ? null
+                              : () {
+                                  if (countryOptions.isEmpty) {
+                                    _initializeCountryContext();
+                                  } else {
+                                    _editCountry();
+                                  }
+                                },
+                          icon: const Icon(Icons.public),
+                          label: Text(
+                            countryLoading
+                                ? 'Loading countries…'
+                                : countryOptions.isEmpty
+                                    ? 'Retry Country'
+                                    : selectedCountry == null
+                                        ? 'Select Country'
+                                        : selectedCountry!.nid == '1'
+                                            ? '+1'
+                                            : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                      ),
+                      IconButton(
+                        tooltip: 'Saved folders',
+                        onPressed: _openSavedFolders,
+                        icon: const Icon(Icons.bookmarks_outlined),
+                      ),
+                      IconButton(
+                        tooltip: 'Address Book',
+                        onPressed: () => _openSavedFolders(
+                          kind: SavedCollections.addressBookKind,
+                        ),
+                        icon: const Icon(Icons.contact_page_outlined),
+                      ),
+                      IconButton(
+                        tooltip: 'Clear',
+                        onPressed: _clear,
+                        icon: const Icon(Icons.delete_outline),
                       ),
                     ],
                   ),
-                ),
-              const SizedBox(height: 4),
-              const Text('ENTER LIST NUMBER', style: TextStyle(letterSpacing: 2)),
-              const SizedBox(height: 10),
-              _IdentityDisplay(
-                input: input,
-                listing: listing,
-                loading: loading,
-                errorMessage: errorMessage,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Keep a readable match list and full keypad on small
-                    // devices. The media panel is strictly presentational.
-                    final previewVisible = constraints.maxHeight >= 160;
-                    final previewHeight =
-                        (constraints.maxHeight * 0.56).clamp(92.0, 160.0);
-                    return Column(
-                      children: [
-                        if (previewVisible)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: SizedBox(
-                              height: previewHeight,
-                              child: const VideoPreviewPlaceholder(compact: true),
+                  if (countryLoading)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Connecting to country directory… '
+                              'The test server may take longer to start after inactivity.',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
-                        Expanded(
-                          child: _MatchPanel(
-                            matches: matches,
-                            hasMore: hasMore,
-                            onSelect: _selectMatch,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 4),
+                  _IdentityDisplay(
+                    input: input,
+                    listing: listing,
+                    loading: loading,
+                    errorMessage: errorMessage,
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: (constraints.maxHeight -
+                            280 -
+                            4 * keypadTileHeight(context) -
+                            MediaQuery.textScalerOf(context).scale(14) * 3)
+                        .clamp(72.0, double.infinity),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Keep a readable match list and full keypad on small
+                        // devices. The media panel is strictly presentational.
+                        final previewVisible = constraints.maxHeight >= 160;
+                        final previewHeight =
+                            (constraints.maxHeight * 0.56).clamp(92.0, 160.0);
+                        return Column(
+                          children: [
+                            if (previewVisible)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: SizedBox(
+                                  height: previewHeight,
+                                  child: const VideoPreviewPlaceholder(
+                                    compact: true,
+                                  ),
+                                ),
+                              ),
+                            Expanded(
+                              child: _MatchPanel(
+                                matches: matches,
+                                hasMore: hasMore,
+                                onSelect: _selectMatch,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  Keypad(
+                    onKey: _key,
+                    onCall: _call,
+                    onHome: _clear,
+                    onBack: _backspace,
+                    onEnter: _enter,
+                    callEnabled: listing?.hasType('call') ?? false,
+                    enterEnabled: listing != null,
+                  ),
+                ],
               ),
-              Keypad(
-                onKey: _key,
-                onCall: _call,
-                onHome: _clear,
-                onBack: _backspace,
-                onEnter: _enter,
-                callEnabled: listing?.hasType('call') ?? false,
-                enterEnabled: listing != null,
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -517,23 +527,44 @@ class _IdentityDisplay extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Theme.of(context).dividerColor),
+          color: const Color(0xE6202333),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0x667F89AA)),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(input, style: const TextStyle(fontSize: 30, letterSpacing: 3)),
-            if (loading) const LinearProgressIndicator(),
-            if (listing != null)
-              Text(listing!.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
-            if (errorMessage != null)
-              Text(
-                errorMessage!,
+        child: DefaultTextStyle.merge(
+          style: const TextStyle(color: Colors.white),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'ENTER LIST NUMBER',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                style: TextStyle(fontSize: 14, letterSpacing: 2),
               ),
-          ],
+              const SizedBox(height: 8),
+              Semantics(
+                liveRegion: true,
+                label: 'List Number',
+                child: Text(
+                  input,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 30, letterSpacing: 3),
+                ),
+              ),
+              if (loading) const LinearProgressIndicator(),
+              if (listing != null)
+                Text(
+                  listing!.displayName,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              if (errorMessage != null)
+                Text(
+                  errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Color(0xFFFFB4AB)),
+                ),
+            ],
+          ),
         ),
       );
 }
@@ -558,7 +589,9 @@ class _MatchPanel extends StatelessWidget {
         if (index == matches.length) {
           return const Padding(
             padding: EdgeInsets.all(8),
-            child: Text('More matching identities exist. Continue entering the List Number.'),
+            child: Text(
+              'More matching identities exist. Continue entering the List Number.',
+            ),
           );
         }
         final match = matches[index];
@@ -602,85 +635,94 @@ class Keypad extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          for (final row in layout)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  for (final value in row)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: SizedBox(
-                          height: 48,
-                          child: FilledButton.tonal(
-                            key: value == '0'
-                                ? const Key('tv2-zero-operator-key')
-                                : null,
-                            onPressed: () => onKey(value),
-                            // OPER is a visual legend only. Tapping this
-                            // button still sends numeric zero.
-                            child: value == '0'
-                                ? const FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '0',
-                                          style: TextStyle(fontSize: 22, height: 1),
-                                        ),
-                                        Text(
-                                          'OPER',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            height: 1.1,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.5,
+  Widget build(BuildContext context) => KeypadSurface(
+        child: Column(
+          children: [
+            for (final row in layout)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    for (final value in row)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: KeypadTile(
+                            value: value,
+                            child: FilledButton.tonal(
+                              key: value == '0'
+                                  ? const Key('tv2-zero-operator-key')
+                                  : null,
+                              onPressed: () => onKey(value),
+                              // OPER is a visual legend only. Tapping this
+                              // button still sends numeric zero.
+                              child: value == '0'
+                                  ? const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '0',
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              height: 1,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                          Text(
+                                            'OPER',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              height: 1.1,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Text(
+                                      value,
+                                      style: const TextStyle(fontSize: 22),
                                     ),
-                                  )
-                                : Text(
-                                    value,
-                                    style: const TextStyle(fontSize: 22),
-                                  ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  tooltip: 'CALL',
+                  style: IconButton.styleFrom(
+                    foregroundColor: const Color(0xFF216C2E),
+                    backgroundColor: const Color(0xFFE1F3E3),
+                  ),
+                  onPressed: callEnabled ? onCall : null,
+                  icon: const Icon(Icons.call),
+                ),
+                IconButton(
+                  tooltip: 'HOME',
+                  onPressed: onHome,
+                  icon: const Icon(Icons.home_outlined),
+                ),
+                IconButton(
+                  tooltip: 'BACK',
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back),
+                ),
+                IconButton(
+                  tooltip: 'ENTER',
+                  onPressed: enterEnabled ? onEnter : null,
+                  icon: const Icon(Icons.keyboard_return),
+                ),
+              ],
             ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                tooltip: 'CALL',
-                onPressed: callEnabled ? onCall : null,
-                icon: const Icon(Icons.call),
-              ),
-              IconButton(
-                tooltip: 'HOME',
-                onPressed: onHome,
-                icon: const Icon(Icons.home_outlined),
-              ),
-              IconButton(
-                tooltip: 'BACK',
-                onPressed: onBack,
-                icon: const Icon(Icons.arrow_back),
-              ),
-              IconButton(
-                tooltip: 'ENTER',
-                onPressed: enterEnabled ? onEnter : null,
-                icon: const Icon(Icons.keyboard_return),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       );
 }
 
@@ -696,13 +738,19 @@ class TemplateScreen extends StatelessWidget {
         title: Text(listing.displayName),
         actions: [
           SaveListingAction(listing: listing),
-          SaveListingAction(listing: listing, kind: SavedCollections.addressBookKind),
+          SaveListingAction(
+            listing: listing,
+            kind: SavedCollections.addressBookKind,
+          ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
         children: [
-          Text(listing.qualifiedIdentity, style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            listing.qualifiedIdentity,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 4),
           Text('${listing.entityType} • template: ${listing.templateKey}'),
           const SizedBox(height: 16),
@@ -718,7 +766,10 @@ class TemplateScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: FilledButton.tonal(
                 onPressed: resources.containsKey(button.resourceKey)
-                    ? () => _resourceAction(context, resources[button.resourceKey]!)
+                    ? () => _resourceAction(
+                          context,
+                          resources[button.resourceKey]!,
+                        )
                     : null,
                 child: Text(button.label ?? button.resourceKey.toUpperCase()),
               ),
@@ -736,13 +787,18 @@ class TemplateScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _resourceAction(BuildContext context, ResourceRecord resource) async {
+  Future<void> _resourceAction(
+    BuildContext context,
+    ResourceRecord resource,
+  ) async {
     if (resource.uri != null) {
       final opened = await PublicResourceLauncher().open(resource.uri);
       if (!context.mounted) return;
       if (!opened) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to open public resource securely.')),
+          const SnackBar(
+            content: Text('Unable to open public resource securely.'),
+          ),
         );
       }
       return;
@@ -752,6 +808,7 @@ class TemplateScreen extends StatelessWidget {
     final message = resource.uri != null
         ? '${resource.type.toUpperCase()} resource configured: ${resource.uri}'
         : '${resource.type.toUpperCase()} capability is configured.';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
