@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'input_rules.dart';
+import 'home_navigation_screen.dart';
 import 'keypad_surface.dart';
 import 'models.dart';
 import 'resolver_api.dart';
@@ -332,6 +333,14 @@ class _HomeScreenState extends State<HomeScreen> {
     ).push(MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing)));
   }
 
+  Future<void> _openHome() async {
+    final selected = await Navigator.of(context).push<SavedBookmark>(
+      MaterialPageRoute(builder: (_) => const HomeNavigationScreen()),
+    );
+    // Returning without choosing a saved entry leaves all dialer state intact.
+    if (selected != null && mounted) _setInput(selected.qualifiedIdentity);
+  }
+
   void _openSavedFolders({String kind = SavedCollections.bookmarksKind}) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -473,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Keypad(
                     onKey: _key,
                     onCall: _call,
-                    onHome: _clear,
+                    onHome: _openHome,
                     onBack: _backspace,
                     onEnter: _enter,
                     callEnabled: listing?.hasType('call') ?? false,

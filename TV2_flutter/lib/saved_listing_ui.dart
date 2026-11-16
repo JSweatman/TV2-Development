@@ -196,8 +196,8 @@ class _SaveListingDialogState extends State<_SaveListingDialog> {
       );
 }
 
-/// First-phase native folders viewer. Final HOME/personal landing-page
-/// integration is deferred until authenticated personal pages are available.
+/// Native on-device folders viewer, shared by Home and dialer shortcuts.
+/// No authenticated profile or phone contacts integration is required.
 class SavedFoldersScreen extends StatefulWidget {
   const SavedFoldersScreen({
     super.key,
