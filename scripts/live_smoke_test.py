@@ -69,7 +69,7 @@ def main() -> int:
     assert us["status"] == "resolved"
     assert india["status"] == "resolved"
     assert global_code["status"] == "resolved"
-    assert us["listing"]["display_name"] == "TV2 Fixture Alpha"
+    assert us["listing"]["display_name"] == "Jaz"
     assert india["listing"]["display_name"] == "TV2 Fixture India Namespace"
     assert global_code["listing"]["display_name"] == "TV2 Global Fixture"
 
