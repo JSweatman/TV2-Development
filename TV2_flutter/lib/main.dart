@@ -18,7 +18,7 @@ void main() {
       )));
 }
 
-class TV2App extends StatelessWidget {
+class TV2App extends StatefulWidget {
   const TV2App({
     super.key,
     required this.api,
@@ -31,12 +31,22 @@ class TV2App extends StatelessWidget {
   final TutorialVideo? tutorial;
 
   @override
+  State<TV2App> createState() => _TV2AppState();
+}
+
+class _TV2AppState extends State<TV2App> {
+  final _tutorialRoutes = RouteObserver<ModalRoute<dynamic>>();
+
+  @override
   Widget build(BuildContext context) => MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'List Number TV2',
         theme: ThemeData(useMaterial3: true),
-        navigatorObservers: [tutorialRouteObserver],
+        navigatorObservers: [_tutorialRoutes],
         home: HomeScreen(
-            api: api, initialCountry: initialCountry, tutorial: tutorial),
+            api: widget.api,
+            initialCountry: widget.initialCountry,
+            tutorial: widget.tutorial,
+            tutorialRoutes: _tutorialRoutes),
       );
 }

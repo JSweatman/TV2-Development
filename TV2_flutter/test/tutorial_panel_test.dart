@@ -21,12 +21,19 @@ class TestVideoPlatform extends VideoPlayerPlatform {
   bool fail = false;
   bool stall = false;
   bool failPlay = false;
+  bool failCreate = false;
+  bool failDispose = false;
+  Completer<void>? creationGate;
   @override
   Future<void> init() async {}
   @override
-  Future<int?> createWithOptions(VideoCreationOptions options) async {
+  Future<void> setMixWithOthers(bool value) async {}
+  @override
+  Future<int?> create(DataSource source) async {
+    if (failCreate) throw PlatformException(code: 'controlled-create-failure');
+    final gate = creationGate;
     final id = sources.length;
-    sources.add(options.dataSource);
+    sources.add(source);
     final stream = streams[id] = StreamController<VideoEvent>();
     if (fail) {
       stream.addError(
@@ -41,6 +48,7 @@ class TestVideoPlatform extends VideoPlayerPlatform {
         ),
       );
     }
+    if (gate != null) await gate.future;
     return id;
   }
 
@@ -50,6 +58,8 @@ class TestVideoPlatform extends VideoPlayerPlatform {
   Future<void> dispose(int playerId) async {
     disposed.add(playerId);
     await streams[playerId]!.close();
+    if (failDispose)
+      throw PlatformException(code: 'controlled-dispose-failure');
   }
 
   @override
@@ -74,8 +84,7 @@ class TestVideoPlatform extends VideoPlayerPlatform {
   @override
   Future<Duration> getPosition(int playerId) async => Duration.zero;
   @override
-  Widget buildViewWithOptions(VideoViewOptions options) =>
-      const ColoredBox(color: Colors.blue);
+  Widget buildView(int playerId) => const ColoredBox(color: Colors.blue);
 }
 
 void main() {
@@ -102,6 +111,8 @@ void main() {
                 tutorial: video,
                 controllerFactory: (_) => VideoPlayerController.asset(
                   'test/fixtures/tutorial_test_pattern.mp4',
+                  videoPlayerOptions:
+                      VideoPlayerOptions(allowBackgroundPlayback: true),
                 ),
               ),
             ),
@@ -246,7 +257,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Play tutorial'));
     await tester.pumpAndSettle();
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await tester.pumpAndSettle();
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
@@ -254,6 +265,119 @@ void main() {
     expect(find.text('Play tutorial'), findsOneWidget);
     await tester.tap(find.text('Dismiss tutorial'));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('failed creation and release do not block retry or reopen',
+      (tester) async {
+    platform.failCreate = true;
+    await mount(tester);
+    await tester.tap(find.text('Load tutorial'));
+    await tester.pumpAndSettle();
+    expect(find.text('Retry tutorial'), findsOneWidget);
+    platform.failCreate = false;
+    await tester.tap(find.text('Retry tutorial'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Play tutorial'));
+    await tester.pumpAndSettle();
+    final pausesBeforeDismiss = platform.pauses;
+    platform.failDispose = true;
+    await tester.tap(find.text('Dismiss tutorial'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(Duration.zero);
+    });
+    await tester.tap(find.text('Show tutorial'));
+    await tester.pumpAndSettle();
+    expect(find.text('Load tutorial'), findsOneWidget);
+    expect(platform.sources.length, 1);
+    expect(platform.disposed, [0]);
+    expect(platform.pauses, greaterThan(pausesBeforeDismiss));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('rapid reopen isolates late creation from the new player',
+      (tester) async {
+    final gate = Completer<void>();
+    platform.creationGate = gate;
+    await mount(tester);
+    await tester.tap(find.text('Load tutorial'));
+    await tester.pump();
+    await tester.tap(find.text('Dismiss tutorial'));
+    await tester.pump();
+    await tester.tap(find.text('Show tutorial'));
+    await tester.pump();
+    platform.creationGate = null;
+    await tester.tap(find.text('Load tutorial'));
+    await tester.pumpAndSettle();
+    expect(find.text('Play tutorial'), findsOneWidget);
+    gate.complete();
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(Duration.zero);
+    });
+    await tester.pump(const Duration(seconds: 21));
+    expect(find.text('Play tutorial'), findsOneWidget);
+    expect(platform.disposed, contains(0));
+    expect(platform.disposed, isNot(contains(1)));
+    expect(platform.plays, 0);
+    await tester.tap(find.text('Dismiss tutorial'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'two app navigators are independent and typed routes pause playback',
+      (tester) async {
+    tester.view.physicalSize = const Size(1000, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({'tv2_selected_nid': '1'});
+    await tester.pumpWidget(Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(children: [
+        Expanded(
+            child: TV2App(
+                key: const Key('first'),
+                api: NamespaceAwareApi(),
+                tutorial: video)),
+        Expanded(
+            child: TV2App(
+                key: const Key('second'),
+                api: NamespaceAwareApi(),
+                tutorial: video)),
+      ]),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final first = find.byKey(const Key('first'));
+    Finder inside(String text) =>
+        find.descendant(of: first, matching: find.text(text));
+    await tapVisible(tester, inside('Load tutorial'));
+    await tester.pumpAndSettle();
+    await tapVisible(tester, inside('Play tutorial'));
+    await tester.pumpAndSettle();
+    final panel =
+        find.descendant(of: first, matching: find.byType(TutorialPanel));
+    final navigator = Navigator.of(tester.element(panel));
+    final pausedBefore = platform.pauses;
+    final result = navigator.push<bool>(MaterialPageRoute<bool>(
+        builder: (_) => const Scaffold(body: Text('Typed destination'))));
+    await tester.pumpAndSettle();
+    expect(platform.pauses, greaterThan(pausedBefore));
+    navigator.pop(true);
+    await tester.pumpAndSettle();
+    expect(await result, isTrue);
+    expect(inside('Play tutorial'), findsOneWidget);
+    expect(platform.plays, 1);
+    expect(
+        find.descendant(
+            of: find.byKey(const Key('second')),
+            matching: find.text('Load tutorial')),
+        findsOneWidget);
+    await tapVisible(tester, inside('Dismiss tutorial'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('loading timeout reports recoverable error', (tester) async {

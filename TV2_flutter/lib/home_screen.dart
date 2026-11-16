@@ -16,11 +16,18 @@ import 'video_preview_placeholder.dart';
 import 'tutorial_panel.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.api, this.initialCountry, this.tutorial});
+  const HomeScreen({
+    super.key,
+    required this.api,
+    this.initialCountry,
+    this.tutorial,
+    this.tutorialRoutes,
+  });
 
   final ResolverApi api;
   final String? initialCountry;
   final TutorialVideo? tutorial;
+  final RouteObserver<ModalRoute<dynamic>>? tutorialRoutes;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -474,7 +481,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   // Keep the demo visible in the scrollable content even when
                   // the viewport cannot fit the panel and keypad together.
-                  TutorialPanel(tutorial: widget.tutorial),
+                  TutorialPanel(
+                    tutorial: widget.tutorial,
+                    routeObserver: widget.tutorialRoutes,
+                  ),
                   const SizedBox(height: 8),
                   SizedBox(
                     key: const Key('tv2-home-match-viewport'),

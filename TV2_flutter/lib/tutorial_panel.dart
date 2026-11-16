@@ -5,8 +5,6 @@ import 'package:video_player/video_player.dart';
 
 import 'video_preview_placeholder.dart';
 
-final tutorialRouteObserver = RouteObserver<ModalRoute<void>>();
-
 /// Build-owned configuration. No tutorial, account or analytics by default.
 class TutorialVideo {
   const TutorialVideo({required this.uri, this.title = 'TV2 tutorial'});
@@ -18,23 +16,24 @@ class TutorialVideo {
     if (uri == null ||
         uri.scheme != 'https' ||
         uri.host.isEmpty ||
-        uri.userInfo.isNotEmpty)
-      return null;
+        uri.userInfo.isNotEmpty) return null;
     return TutorialVideo(uri: uri);
   }
 }
 
-typedef TutorialControllerFactory =
-    VideoPlayerController Function(TutorialVideo);
+typedef TutorialControllerFactory = VideoPlayerController Function(
+    TutorialVideo);
 
 class TutorialPanel extends StatefulWidget {
   const TutorialPanel({
     super.key,
     required this.tutorial,
     this.controllerFactory,
+    this.routeObserver,
   });
   final TutorialVideo? tutorial;
   final TutorialControllerFactory? controllerFactory;
+  final RouteObserver<ModalRoute<dynamic>>? routeObserver;
 
   @override
   State<TutorialPanel> createState() => _TutorialPanelState();
@@ -57,14 +56,19 @@ class _TutorialPanelState extends State<TutorialPanel>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    tutorialRouteObserver.unsubscribe(this);
+    widget.routeObserver?.unsubscribe(this);
     final route = ModalRoute.of(context);
-    if (route != null) tutorialRouteObserver.subscribe(this, route);
+    if (route != null) widget.routeObserver?.subscribe(this, route);
   }
 
   @override
   void didUpdateWidget(TutorialPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.routeObserver != widget.routeObserver) {
+      oldWidget.routeObserver?.unsubscribe(this);
+      final route = ModalRoute.of(context);
+      if (route != null) widget.routeObserver?.subscribe(this, route);
+    }
     if (oldWidget.tutorial != widget.tutorial) {
       _release();
       _dismissed = false;
@@ -83,6 +87,10 @@ class _TutorialPanelState extends State<TutorialPanel>
     _controller = null;
     if (controller != null) {
       controller.removeListener(_changed);
+      // Stop playback even if native disposal subsequently reports a failure.
+      if (controller.value.isInitialized) {
+        unawaited(controller.pause().catchError((Object _) {}));
+      }
       unawaited(controller.dispose().catchError((Object _) {}));
     }
   }
@@ -96,9 +104,14 @@ class _TutorialPanelState extends State<TutorialPanel>
     });
     try {
       final video = widget.tutorial!;
-      final controller =
-          widget.controllerFactory?.call(video) ??
-          VideoPlayerController.networkUrl(video.uri);
+      final controller = widget.controllerFactory?.call(video) ??
+          VideoPlayerController.networkUrl(
+            video.uri,
+            // This widget owns lifecycle pausing; disable the plugin's automatic
+            // resume observer. This does not enable playback in our background.
+            videoPlayerOptions:
+                VideoPlayerOptions(allowBackgroundPlayback: true),
+          );
       _controller = controller;
       controller.addListener(_changed);
       await controller.initialize().timeout(const Duration(seconds: 20));
@@ -146,7 +159,7 @@ class _TutorialPanelState extends State<TutorialPanel>
 
   @override
   void dispose() {
-    tutorialRouteObserver.unsubscribe(this);
+    widget.routeObserver?.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _release();
     super.dispose();
@@ -224,18 +237,18 @@ class _TutorialPanelState extends State<TutorialPanel>
                   onPressed: _loading
                       ? null
                       : ready
-                      ? _toggle
-                      : _load,
+                          ? _toggle
+                          : _load,
                   child: Text(
                     error
                         ? 'Retry tutorial'
                         : ready
-                        ? playing
-                              ? 'Pause tutorial'
-                              : completed
-                              ? 'Replay tutorial'
-                              : 'Play tutorial'
-                        : 'Load tutorial',
+                            ? playing
+                                ? 'Pause tutorial'
+                                : completed
+                                    ? 'Replay tutorial'
+                                    : 'Play tutorial'
+                            : 'Load tutorial',
                   ),
                 ),
                 OutlinedButton(
