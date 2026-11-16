@@ -33,6 +33,8 @@ class KeypadSurface extends StatelessWidget {
           minimumSize: const Size(48, 48),
           foregroundColor: const Color(0xFF194E99),
           backgroundColor: const Color(0xFFE6ECFA),
+          disabledForegroundColor: const Color(0xFF687084),
+          disabledBackgroundColor: const Color(0xFFE6ECFA),
         ),
       ),
     ),

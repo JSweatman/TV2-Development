@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'input_rules.dart';
 import 'home_navigation_screen.dart';
 import 'keypad_surface.dart';
+import 'sunset_backdrop.dart';
 import 'models.dart';
 import 'resolver_api.dart';
 import 'public_resource_launcher.dart';
@@ -376,7 +377,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final listing = exactListing;
     return Scaffold(
-      body: SafeArea(
+      body: SunsetBackdrop(
+          child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: LayoutBuilder(
@@ -384,73 +386,80 @@ class _HomeScreenState extends State<HomeScreen> {
               // Content grows naturally for large text and long errors.
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton.icon(
-                          onPressed: countryLoading
-                              ? null
-                              : () {
-                                  if (countryOptions.isEmpty) {
-                                    _initializeCountryContext();
-                                  } else {
-                                    _editCountry();
-                                  }
-                                },
-                          icon: const Icon(Icons.public),
-                          label: Text(
-                            countryLoading
-                                ? 'Loading countries…'
-                                : countryOptions.isEmpty
-                                    ? 'Retry Country'
-                                    : selectedCountry == null
-                                        ? 'Select Country'
-                                        : selectedCountry!.nid == '1'
-                                            ? '+1'
-                                            : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'Saved folders',
-                        onPressed: _openSavedFolders,
-                        icon: const Icon(Icons.bookmarks_outlined),
-                      ),
-                      IconButton(
-                        tooltip: 'Address Book',
-                        onPressed: () => _openSavedFolders(
-                          kind: SavedCollections.addressBookKind,
-                        ),
-                        icon: const Icon(Icons.contact_page_outlined),
-                      ),
-                      IconButton(
-                        tooltip: 'Clear',
-                        onPressed: _clear,
-                        icon: const Icon(Icons.delete_outline),
-                      ),
-                    ],
-                  ),
-                  if (countryLoading)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-                      child: Row(
-                        children: [
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Connecting to country directory… '
-                              'The test server may take longer to start after inactivity.',
-                              style: Theme.of(context).textTheme.bodySmall,
+                  Material(
+                    color: const Color(0xF2FFFFFF),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: countryLoading
+                                ? null
+                                : () {
+                                    if (countryOptions.isEmpty) {
+                                      _initializeCountryContext();
+                                    } else {
+                                      _editCountry();
+                                    }
+                                  },
+                            icon: const Icon(Icons.public),
+                            label: Text(
+                              countryLoading
+                                  ? 'Loading countries…'
+                                  : countryOptions.isEmpty
+                                      ? 'Retry Country'
+                                      : selectedCountry == null
+                                          ? 'Select Country'
+                                          : selectedCountry!.nid == '1'
+                                              ? '+1'
+                                              : '${selectedCountry!.iso2}  +${selectedCountry!.nid}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
+                        ),
+                        IconButton(
+                          tooltip: 'Saved folders',
+                          onPressed: _openSavedFolders,
+                          icon: const Icon(Icons.bookmarks_outlined),
+                        ),
+                        IconButton(
+                          tooltip: 'Address Book',
+                          onPressed: () => _openSavedFolders(
+                            kind: SavedCollections.addressBookKind,
+                          ),
+                          icon: const Icon(Icons.contact_page_outlined),
+                        ),
+                        IconButton(
+                          tooltip: 'Clear',
+                          onPressed: _clear,
+                          icon: const Icon(Icons.delete_outline),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (countryLoading)
+                    ColoredBox(
+                      color: const Color(0xF2FFFFFF),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                        child: Row(
+                          children: [
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Connecting to country directory… '
+                                'The test server may take longer to start after inactivity.',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   const SizedBox(height: 4),
@@ -473,10 +482,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Matches scroll independently; long result sets must not
                     // push the keypad arbitrarily far down the home screen.
                     height: (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
-                    child: _MatchPanel(
-                      matches: matches,
-                      hasMore: hasMore,
-                      onSelect: _selectMatch,
+                    child: Material(
+                      color: matches.isEmpty
+                          ? Colors.transparent
+                          : const Color(0xF2FFFFFF),
+                      borderRadius: BorderRadius.circular(16),
+                      clipBehavior: Clip.antiAlias,
+                      child: _MatchPanel(
+                        matches: matches,
+                        hasMore: hasMore,
+                        onSelect: _selectMatch,
+                      ),
                     ),
                   ),
                   Keypad(
@@ -493,7 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }
