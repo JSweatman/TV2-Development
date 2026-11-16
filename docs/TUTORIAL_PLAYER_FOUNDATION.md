@@ -1,6 +1,8 @@
 # Optional tutorial player foundation — issue #32
 
-Base: main `3b67ec41175803e7a455ee91df416442fb8e068e`.
+Original base: main `3b67ec41175803e7a455ee91df416442fb8e068e`.
+Integrated main `01364374e46c127fd35303e6adc68d26d2f9dd97` via a normal merge,
+including PR #42's confirmed Jaz live-smoke expectation.
 
 ## Scope
 
@@ -58,10 +60,14 @@ minimum, iOS deployment target, app ID, signing or workflow change is made here.
   installation/SDK is not accessible here, and native Windows playback is not
   an endorsed video_player platform. PWA-on-Windows browser validation remains
   separate; this check used Linux Chromium.
-- Repository `render.yaml` configures only the Python backend, not the live PWA
-  Flutter build. The Render connector reported **no selected workspace** and
-  requires confirmation before reading service configuration. Therefore live
-  Render PWA SDK/build settings are **unverified**, not inferred from CI.
+- Parent verification on 2026-11-16 confirms the existing Render staging static
+  site pins **Flutter 3.50.0** and runs `flutter create --platforms=web`,
+  `flutter pub get`, and `flutter build web --release`, with **no tutorial define**.
+  This matches the toolchain used for local validation and is compatible with
+  the player constraints. This configuration evidence comes from the parent's
+  direct Render inspection, not an inference from CI. Repository `render.yaml`
+  separately configures the Python backend. This PR changes neither service
+  configuration nor media defaults and does not trigger a deployment.
 
 Official references checked during implementation:
 
