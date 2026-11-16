@@ -616,8 +616,38 @@ class Keypad extends StatelessWidget {
                         child: SizedBox(
                           height: 48,
                           child: FilledButton.tonal(
+                            key: value == '0'
+                                ? const Key('tv2-zero-operator-key')
+                                : null,
                             onPressed: () => onKey(value),
-                            child: Text(value, style: const TextStyle(fontSize: 22)),
+                            // OPER is a visual legend only. Tapping this
+                            // button still sends numeric zero.
+                            child: value == '0'
+                                ? const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '0',
+                                          style: TextStyle(fontSize: 22, height: 1),
+                                        ),
+                                        Text(
+                                          'OPER',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            height: 1.1,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : Text(
+                                    value,
+                                    style: const TextStyle(fontSize: 22),
+                                  ),
                           ),
                         ),
                       ),
