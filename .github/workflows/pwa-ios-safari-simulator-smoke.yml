@@ -1,0 +1,118 @@
+name: pwa-ios-safari-simulator-smoke
+
+# Tests the *hosted PWA* in Safari on an iPhone Simulator.
+# Separate from the native iOS Simulator app compilation / TestFlight path.
+# This is a simulator smoke test, not physical-iPhone acceptance.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pwa-ios-safari-simulator-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pwa-ios-safari-simulator-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safari-iphone-simulator:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inspect Xcode and available iPhone simulators
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcrun simctl list devices available --json > "${RUNNER_TEMP}/tv2-simulators.json"
+          python3 - <<'PY'
+          import json
+          import os
+
+          with open(os.path.join(os.environ['RUNNER_TEMP'], 'tv2-simulators.json')) as file:
+              catalog = json.load(file)
+          choices = []
+          for runtime, devices in catalog.get('devices', {}).items():
+              if 'iOS' not in runtime:
+                  continue
+              for device in devices:
+                  if device.get('isAvailable') and device.get('name', '').startswith('iPhone'):
+                      choices.append((runtime, device['name'], device['udid']))
+          if not choices:
+              raise SystemExit('No available iPhone Simulator. Cannot claim test.')
+          choices.sort(reverse=True)
+          runtime, name, udid = choices[0]
+          print(f'Selected iOS simulator: {name} ({runtime}), UDID {udid}')
+          with open(os.environ['GITHUB_ENV'], 'a') as out:
+              out.write(f'TV2_SIM_UDID={udid}\n')
+              out.write(f'TV2_SIM_NAME={name}\n')
+              out.write(f'TV2_SIM_RUNTIME={runtime}\n')
+          PY
+
+      - name: Boot iPhone Simulator and verify boot completes
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl boot "$TV2_SIM_UDID" || {
+            # A device may already be booted by the runner.
+            state="$(xcrun simctl list devices | grep "$TV2_SIM_UDID" || true)"
+            [[ "$state" == *"(Booted)"* ]] || exit 1
+          }
+          xcrun simctl bootstatus "$TV2_SIM_UDID" -b
+          xcrun simctl status_bar "$TV2_SIM_UDID" override --time '9:41' || true
+
+      - name: Open the hosted TV2 PWA in iOS Simulator Safari
+        shell: bash
+        run: |
+          set -euo pipefail
+          site='https://tv2-pwa-sundara-preview.onrender.com'
+          curl --fail --silent --show-error --location --max-time 30 "$site/" -o "${RUNNER_TEMP}/tv2-hosted-index.html"
+          grep -Eiq '<html' "${RUNNER_TEMP}/tv2-hosted-index.html"
+          xcrun simctl openurl "$TV2_SIM_UDID" "$site/"
+          sleep 18
+          mkdir -p ios-pwa-evidence
+          xcrun simctl io "$TV2_SIM_UDID" screenshot ios-pwa-evidence/TV2-PWA-iPhone-Safari.png
+          test -s ios-pwa-evidence/TV2-PWA-iPhone-Safari.png
+          sips -g pixelWidth -g pixelHeight ios-pwa-evidence/TV2-PWA-iPhone-Safari.png | tee ios-pwa-evidence/screenshot_dimensions.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('ios-pwa-evidence/screenshot_dimensions.txt').read_text()
+          width = re.search(r'pixelWidth: (\d+)', text)
+          height = re.search(r'pixelHeight: (\d+)', text)
+          if not width or not height or int(width.group(1)) < 300 or int(height.group(1)) < 500:
+              raise SystemExit('Invalid or missing iOS Simulator screenshot')
+          print('PASS: Safari URL opening, simulator screenshot and dimensions')
+          print('Screenshot requires separate visual inspection; this step does not prove Flutter controls are usable.')
+          PY
+
+      - name: Record iOS Safari browser smoke provenance
+        if: always()
+        shell: bash
+        env:
+          TV2_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p ios-pwa-evidence
+          {
+            echo 'TV2 PWA — iPhone Simulator Safari smoke test'
+            printf 'PWA URL: %s\n' 'https://tv2-pwa-sundara-preview.onrender.com'
+            printf 'Source commit: %s\n' "$TV2_SOURCE_SHA"
+            printf 'Workflow run: %s\n' "$GITHUB_RUN_ID"
+            printf 'Simulator: %s (%s)\n' "${TV2_SIM_NAME:-unknown}" "${TV2_SIM_RUNTIME:-unknown}"
+            echo 'Evidence: Safari openurl command and screenshot, NOT a real iPhone.'
+            echo 'Screenshot is not equivalent to tested keypad interaction, accessibility, installability or real-device acceptance.'
+            echo 'Native TV2 iOS .app compilation is verified separately; not executed in this browser test.'
+          } | tee ios-pwa-evidence/PROVENANCE.txt
+
+      - name: Upload iOS Safari screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv2-pwa-ios-safari-simulator-evidence
+          path: ios-pwa-evidence/
+          if-no-files-found: error
+          retention-days: 7
