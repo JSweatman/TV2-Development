@@ -60,7 +60,8 @@ class FakeApi implements ResolverApi {
   Future<ResolveResponse> resolve({
     required String input,
     required String country,
-  }) async => ResolveResponse(
+  }) async =>
+      ResolveResponse(
         status: input == '529' ? 'resolved' : 'not_found',
         countryContext: country,
         input: input,
@@ -69,7 +70,8 @@ class FakeApi implements ResolverApi {
                 countryCode: country,
                 listNumber: '529',
                 tldx: null,
-                displayName: country == '91' ? 'Fixture India' : 'Fixture Alpha',
+                displayName:
+                    country == '91' ? 'Fixture India' : 'Fixture Alpha',
                 entityType: 'person',
                 templateKey: 'basic',
                 resources: const [
@@ -221,15 +223,24 @@ class OfflineResolverApi extends FakeApi {
   }
 }
 
+// The home page deliberately scrolls when the demo and keypad do not fit.
+Future<void> tapVisible(WidgetTester tester, Finder target) async {
+  await tester.ensureVisible(target);
+  await tester.tap(target);
+}
+
 void main() {
-  testWidgets('video teaser is presentational on keypad and listing without affecting controls', (tester) async {
+  testWidgets(
+      'video teaser is presentational on keypad and listing without affecting controls',
+      (tester) async {
     tester.view.physicalSize = const Size(400, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     SharedPreferences.setMockInitialValues({});
 
-    await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
+    await tester
+        .pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('tv2-video-placeholder')), findsOneWidget);
     expect(find.text('VIDEO PREVIEW'), findsOneWidget);
@@ -238,13 +249,13 @@ void main() {
     expect(find.byTooltip('Play video'), findsNothing);
 
     for (final key in ['5', '2', '9']) {
-      await tester.tap(find.text(key));
+      await tapVisible(tester, find.text(key));
     }
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
     expect(find.text('Fixture Alpha'), findsWidgets);
 
-    await tester.tap(find.byTooltip('ENTER'));
+    await tapVisible(tester, find.byTooltip('ENTER'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('tv2-video-placeholder')), findsOneWidget);
     expect(find.text('COMING SOON'), findsOneWidget);
@@ -253,102 +264,114 @@ void main() {
     expect(find.byTooltip('Play video'), findsNothing);
   });
 
-  testWidgets('Address Book contact save and reopen are separate from Bookmarks', (tester) async {
+  testWidgets(
+      'Address Book contact save and reopen are separate from Bookmarks',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
+    await tester
+        .pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
     await tester.pumpAndSettle();
 
     for (final key in ['5', '2', '9']) {
-      await tester.tap(find.text(key));
+      await tapVisible(tester, find.text(key));
     }
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('ENTER'));
+    await tapVisible(tester, find.byTooltip('ENTER'));
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Save listing'), findsOneWidget);
     expect(find.byTooltip('Add to Address Book'), findsOneWidget);
-    await tester.tap(find.byTooltip('Add to Address Book'));
+    await tapVisible(tester, find.byTooltip('Add to Address Book'));
     await tester.pumpAndSettle();
     expect(find.text('Add to Address Book'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(0), 'My sister');
     await tester.enterText(find.byType(TextField).at(1), 'Family');
-    await tester.tap(find.text('Save'));
+    await tapVisible(tester, find.text('Save'));
     await tester.pumpAndSettle();
     expect(find.text('Contact saved to your Address Book.'), findsOneWidget);
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Address Book'));
+    await tapVisible(tester, find.byTooltip('Address Book'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Family'));
+    await tapVisible(tester, find.text('Family'));
     await tester.pumpAndSettle();
     expect(find.text('My sister'), findsOneWidget);
     expect(find.text('1*529'), findsOneWidget);
 
-    await tester.tap(find.text('My sister'));
+    await tapVisible(tester, find.text('My sister'));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
     expect(find.text('1*529'), findsWidgets);
     expect(find.text('Fixture Alpha'), findsWidgets);
 
-    await tester.tap(find.byTooltip('Saved folders'));
+    await tapVisible(tester, find.byTooltip('Saved folders'));
     await tester.pumpAndSettle();
     expect(find.textContaining('No saved folders yet'), findsOneWidget);
   });
 
-  testWidgets('SAVE from native listing creates folder and opens saved canonical listing', (tester) async {
+  testWidgets(
+      'SAVE from native listing creates folder and opens saved canonical listing',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
+    await tester
+        .pumpWidget(TV2App(api: NamespaceAwareApi(), initialCountry: '1'));
     await tester.pumpAndSettle();
 
     for (final key in ['5', '2', '9']) {
-      await tester.tap(find.text(key));
+      await tapVisible(tester, find.text(key));
     }
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('ENTER'));
+    await tapVisible(tester, find.byTooltip('ENTER'));
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Save listing'), findsOneWidget);
-    await tester.tap(find.byTooltip('Save listing'));
+    await tapVisible(tester, find.byTooltip('Save listing'));
     await tester.pumpAndSettle();
     expect(find.text('Save listing'), findsOneWidget);
-    expect(find.textContaining('Update alerts and landing-page sync are not yet available'), findsOneWidget);
+    expect(
+        find.textContaining(
+            'Update alerts and landing-page sync are not yet available'),
+        findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(0), 'My Alpha Contact');
     await tester.enterText(find.byType(TextField).at(1), 'Family');
-    await tester.tap(find.text('Save'));
+    await tapVisible(tester, find.text('Save'));
     await tester.pumpAndSettle();
     expect(find.text('Listing saved to your device.'), findsOneWidget);
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Saved folders'));
+    await tapVisible(tester, find.byTooltip('Saved folders'));
     await tester.pumpAndSettle();
     expect(find.text('Family'), findsOneWidget);
 
-    await tester.tap(find.text('Family'));
+    await tapVisible(tester, find.text('Family'));
     await tester.pumpAndSettle();
     expect(find.text('My Alpha Contact'), findsOneWidget);
     expect(find.text('1*529'), findsOneWidget);
 
-    await tester.tap(find.text('My Alpha Contact'));
+    await tapVisible(tester, find.text('My Alpha Contact'));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
     expect(find.text('1*529'), findsWidgets);
     expect(find.text('Fixture Alpha'), findsWidgets);
   });
 
-  testWidgets('country directory shows connecting progress during a slow startup', (tester) async {
+  testWidgets(
+      'country directory shows connecting progress during a slow startup',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
     final api = SlowCountryApi();
     await tester.pumpWidget(TV2App(api: api));
     await tester.pump();
 
     expect(find.text('Loading countries…'), findsOneWidget);
-    expect(find.textContaining('The test server may take longer'), findsOneWidget);
+    expect(
+        find.textContaining('The test server may take longer'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.text('Select Country / Namespace'), findsNothing);
     expect(find.text('+1'), findsNothing);
@@ -357,29 +380,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Select Country / Namespace'), findsOneWidget);
-    await tester.tap(find.text('India'));
+    await tapVisible(tester, find.text('India'));
     await tester.pumpAndSettle();
     expect(find.text('IN  +91'), findsOneWidget);
-    expect(find.textContaining('The test server may take longer'), findsNothing);
+    expect(
+        find.textContaining('The test server may take longer'), findsNothing);
   });
 
-  testWidgets('unqualified 529 follows selected country without changing input', (tester) async {
+  testWidgets('unqualified 529 follows selected country without changing input',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
     final api = NamespaceAwareApi();
     await tester.pumpWidget(TV2App(api: api, initialCountry: '1'));
     await tester.pumpAndSettle();
 
     for (final key in ['5', '2', '9']) {
-      await tester.tap(find.text(key));
+      await tapVisible(tester, find.text(key));
     }
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
     expect(find.text('529'), findsOneWidget);
     expect(find.text('Fixture Alpha'), findsWidgets);
 
-    await tester.tap(find.text('+1'));
+    await tapVisible(tester, find.text('+1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('India'));
+    await tapVisible(tester, find.text('India'));
     await tester.pumpAndSettle();
 
     expect(find.text('IN  +91'), findsOneWidget);
@@ -389,22 +414,23 @@ void main() {
     expect(api.lastPrefixCountry, '91');
   });
 
-  testWidgets('explicit 1*529 remains +1-scoped after switching to India', (tester) async {
+  testWidgets('explicit 1*529 remains +1-scoped after switching to India',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
     final api = NamespaceAwareApi();
     await tester.pumpWidget(TV2App(api: api, initialCountry: '1'));
     await tester.pumpAndSettle();
 
     for (final key in ['1', '*', '5', '2', '9']) {
-      await tester.tap(find.text(key));
+      await tapVisible(tester, find.text(key));
     }
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
     expect(find.text('Fixture Alpha'), findsWidgets);
 
-    await tester.tap(find.text('+1'));
+    await tapVisible(tester, find.text('+1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('India'));
+    await tapVisible(tester, find.text('India'));
     await tester.pumpAndSettle();
 
     expect(find.text('IN  +91'), findsOneWidget);
@@ -415,7 +441,8 @@ void main() {
     expect(api.lastPrefixCountry, '91');
   });
 
-  testWidgets('shared +1 appears once without country labels and persists', (tester) async {
+  testWidgets('shared +1 appears once without country labels and persists',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(TV2App(api: MultiplePlusOneApi()));
     await tester.pumpAndSettle();
@@ -429,7 +456,7 @@ void main() {
     expect(find.text('CA'), findsNothing);
     expect(find.text('JM'), findsNothing);
 
-    await tester.tap(find.text('+1'));
+    await tapVisible(tester, find.text('+1'));
     await tester.pumpAndSettle();
     expect(find.text('+1'), findsOneWidget);
     expect(find.text('US  +1'), findsNothing);
@@ -448,16 +475,17 @@ void main() {
     expect(find.text('Select Country / Namespace'), findsNothing);
 
     // Other namespaces, including their existing region labels, still work.
-    await tester.tap(find.text('+1'));
+    await tapVisible(tester, find.text('+1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('India'));
+    await tapVisible(tester, find.text('India'));
     await tester.pumpAndSettle();
     expect(find.text('IN  +91'), findsOneWidget);
     expect(prefs.getString('tv2_selected_nid'), '91');
     expect(prefs.getString('tv2_selected_country_iso2'), 'IN');
   });
 
-  testWidgets('legacy +1 selection never appears as US or CA in dialer', (tester) async {
+  testWidgets('legacy +1 selection never appears as US or CA in dialer',
+      (tester) async {
     SharedPreferences.setMockInitialValues({
       'tv2_selected_nid': '1',
       'tv2_selected_country_iso2': 'US',
@@ -469,9 +497,9 @@ void main() {
     expect(find.text('US  +1'), findsNothing);
     expect(find.text('CA  +1'), findsNothing);
 
-    await tester.tap(find.text('+1'));
+    await tapVisible(tester, find.text('+1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('+1').last);
+    await tapVisible(tester, find.text('+1').last);
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
@@ -479,16 +507,19 @@ void main() {
     expect(prefs.getString('tv2_selected_country_iso2'), isNull);
   });
 
-  testWidgets('offline resolver timeout gives actionable guidance', (tester) async {
+  testWidgets('offline resolver timeout gives actionable guidance',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(TV2App(api: OfflineResolverApi(), initialCountry: '1'));
+    await tester
+        .pumpWidget(TV2App(api: OfflineResolverApi(), initialCountry: '1'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('5'));
+    await tapVisible(tester, find.text('5'));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Check your internet connection'), findsOneWidget);
+    expect(
+        find.textContaining('Check your internet connection'), findsOneWidget);
     expect(find.textContaining('try again.'), findsOneWidget);
     expect(find.text('Fixture Alpha'), findsNothing);
   });
@@ -502,23 +533,23 @@ void main() {
     expect(find.text('Retry Country'), findsOneWidget);
     expect(find.textContaining('Resolver request timed out.'), findsOneWidget);
 
-    await tester.tap(find.text('Retry Country'));
+    await tapVisible(tester, find.text('Retry Country'));
     await tester.pumpAndSettle();
 
     expect(api.countryFetches, 2);
     expect(find.text('Select Country / Namespace'), findsOneWidget);
-    await tester.tap(find.text('India'));
+    await tapVisible(tester, find.text('India'));
     await tester.pumpAndSettle();
     expect(find.text('IN  +91'), findsOneWidget);
   });
 
-
-  testWidgets('progressive input reaches an exact backend-driven identity', (tester) async {
+  testWidgets('progressive input reaches an exact backend-driven identity',
+      (tester) async {
     await tester.pumpWidget(TV2App(api: FakeApi(), initialCountry: '1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('5'));
-    await tester.tap(find.text('2'));
-    await tester.tap(find.text('9'));
+    await tapVisible(tester, find.text('5'));
+    await tapVisible(tester, find.text('2'));
+    await tapVisible(tester, find.text('9'));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
 
@@ -527,7 +558,9 @@ void main() {
     expect(find.byTooltip('ENTER'), findsOneWidget);
   });
 
-  testWidgets('first launch requires country selection instead of defaulting to +1', (tester) async {
+  testWidgets(
+      'first launch requires country selection instead of defaulting to +1',
+      (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(TV2App(api: FakeApi()));
     await tester.pumpAndSettle();
@@ -536,7 +569,7 @@ void main() {
     expect(find.text('+1'), findsOneWidget);
     expect(find.text('India'), findsOneWidget);
 
-    await tester.tap(find.text('India'));
+    await tapVisible(tester, find.text('India'));
     await tester.pumpAndSettle();
     expect(find.text('IN  +91'), findsOneWidget);
   });
