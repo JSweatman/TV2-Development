@@ -22,10 +22,11 @@ HomeScreen and asks for a country on first use, without registration.
 
 - Obtain a clean licensed tropical background and implement full-bleed composition.
 - Compare baseline screenshots to the founder reference and tune spacing/glow.
-- Resolve the existing HOME contract mismatch separately: current main passes
-  `_clear` to HOME, while issue #34 requires navigation distinct from clear. This
-  presentation slice preserves existing behavior rather than inventing a new
-  navigation destination. The separate trash action remains available.
+- The original surface slice preserved HOME-to-clear behavior. The subsequent
+  guest Home navigation slice resolves that mismatch with separate on-device
+  Bookmarks and Address Book destinations. Returning preserves dialer input and
+  selected NID; only the separate trash action clears the input. Authenticated
+  personal profiles remain outside this scope.
 - Physical Android, iOS simulator/iPhone, and browser visual acceptance remain
   untested. Automated widget tests and web compilation do not establish those.
 - Appearance customization and operator hold behavior remain separate work.
