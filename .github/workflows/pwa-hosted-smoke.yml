@@ -1,0 +1,83 @@
+name: pwa-hosted-smoke
+
+# This verifies the already-hosted, public PWA + resolver CORS boundary.
+# It does not deploy, sign Android apps, access private data or change DNS.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pwa-hosted-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pwa-hosted-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-hosted-pwa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify public Flutter assets and exact resolver CORS origin
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import time
+          import urllib.error
+          import urllib.request
+
+          origin = "https://tv2-pwa-sundara-preview.onrender.com"
+          api = "https://tv2-development.onrender.com"
+          headers = {"User-Agent": "TV2-PWA-Hosted-Smoke/1.0"}
+
+          def fetch(url, with_origin=None):
+              request_headers = dict(headers)
+              if with_origin is not None:
+                  request_headers["Origin"] = with_origin
+              request = urllib.request.Request(url, headers=request_headers, method="GET")
+              last_error = None
+              for attempt in range(4):
+                  try:
+                      with urllib.request.urlopen(request, timeout=25) as response:
+                          payload = response.read()
+                          return response.status, response.headers, payload
+                  except (urllib.error.URLError, TimeoutError) as exc:
+                      last_error = exc
+                      if attempt < 3:
+                          time.sleep(5)
+              raise RuntimeError(f"Failed fetching {url}: {last_error}")
+
+          status, head, html = fetch(origin + "/")
+          assert status == 200 and b"<html" in html.lower(), "PWA index.html unavailable"
+          print("PASS: public PWA index.html is accessible")
+
+          status, head, bootstrap = fetch(origin + "/flutter_bootstrap.js")
+          assert status == 200 and bootstrap, "Flutter bootstrap asset unavailable"
+          print("PASS: Flutter bootstrap asset is accessible")
+
+          status, head, manifest_raw = fetch(origin + "/manifest.json")
+          manifest = json.loads(manifest_raw)
+          assert status == 200 and isinstance(manifest, dict), "Web manifest unavailable"
+          print("PASS: PWA web manifest is available")
+
+          status, head, body = fetch(api + "/v1/countries", with_origin=origin)
+          countries = json.loads(body)
+          assert status == 200 and isinstance(countries, list) and countries, "Country directory unavailable"
+          allowed_origin = head.get("Access-Control-Allow-Origin")
+          assert allowed_origin == origin, f"Expected exact CORS origin, got {allowed_origin!r}"
+          assert head.get("Access-Control-Allow-Credentials", "").lower() != "true"
+          print("PASS: country directory reachable and explicitly authorizes PWA origin")
+
+          status, head, body = fetch(
+              api + "/v1/countries", with_origin="https://untrusted.example.net"
+          )
+          assert status == 200, "Country directory error during unauthorized-origin check"
+          assert head.get("Access-Control-Allow-Origin") is None, "Unexpected wildcard/open CORS response"
+          print("PASS: unauthorized browser origin is not authorized by CORS")
+
+          print("HOSTED TV2 PWA STATIC ASSETS AND RESOLVER CORS: PASSED")
+          print("No real browser interaction, local-storage persistence, microphone, or physical-device testing is claimed.")
+          PY
