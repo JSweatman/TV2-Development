@@ -12,8 +12,9 @@ child, OPER legend, callback, and regression tests are retained.
 
 One shared Flutter layout grows and scrolls on compact viewports and enlarged
 text. The presentational video module and independently scrollable match list
-remain; the home video is still omitted when there is insufficient space, as in
-the preceding implementation. Country, resolver, persistence, SAVE, Address Book,
+remain. The home video stays in the scrollable content at all viewport heights,
+including compact phones and enlarged text. The match list has its own bounded
+72–160px viewport so long result sets cannot push the keypad arbitrarily far down. Country, resolver, persistence, SAVE, Address Book,
 clear, and navigation callbacks are unchanged. Launch still goes directly to
 HomeScreen and asks for a country on first use, without registration.
 
@@ -41,6 +42,9 @@ Flutter 3.50.0 stable (`ab2912035e`), Dart 3.14.0, Linux cloud workspace:
 - New coverage: all 16 exact callbacks, minimum 48px targets, semantic labels,
   contrast guidelines, 320×568 viewport at 1×/2×/3× text, resolution/open/clear,
   and enlarged offline guidance. The video status label now wraps at large text.
+  Compact tests explicitly scroll to both the demo panel and ENTER at all three
+  text scales, return to the panel after resolution, and open the listing.
+  Existing home interaction tests scroll controls into view before tapping.
 - `flutter analyze`: **no errors; exit 1**, one warning and ten info notices.
   Main under the same SDK reports one warning and eight info notices. The warning
   is the existing unnecessary `!` in `saved_collections.dart`; info notices are

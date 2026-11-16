@@ -452,41 +452,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     errorMessage: errorMessage,
                   ),
                   const SizedBox(height: 8),
+                  // Keep the demo visible in the scrollable content even when
+                  // the viewport cannot fit the panel and keypad together.
                   SizedBox(
-                    height: (constraints.maxHeight -
-                            280 -
-                            4 * keypadTileHeight(context) -
-                            MediaQuery.textScalerOf(context).scale(14) * 3)
-                        .clamp(72.0, double.infinity),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // Keep a readable match list and full keypad on small
-                        // devices. The media panel is strictly presentational.
-                        final previewVisible = constraints.maxHeight >= 160;
-                        final previewHeight =
-                            (constraints.maxHeight * 0.56).clamp(92.0, 160.0);
-                        return Column(
-                          children: [
-                            if (previewVisible)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: SizedBox(
-                                  height: previewHeight,
-                                  child: const VideoPreviewPlaceholder(
-                                    compact: true,
-                                  ),
-                                ),
-                              ),
-                            Expanded(
-                              child: _MatchPanel(
-                                matches: matches,
-                                hasMore: hasMore,
-                                onSelect: _selectMatch,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    height: 120 + MediaQuery.textScalerOf(context).scale(20),
+                    child: const VideoPreviewPlaceholder(compact: true),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    key: const Key('tv2-home-match-viewport'),
+                    // Matches scroll independently; long result sets must not
+                    // push the keypad arbitrarily far down the home screen.
+                    height: (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
+                    child: _MatchPanel(
+                      matches: matches,
+                      hasMore: hasMore,
+                      onSelect: _selectMatch,
                     ),
                   ),
                   Keypad(

@@ -64,7 +64,7 @@ void main() {
   });
 
   for (final scale in [1.0, 2.0, 3.0]) {
-    testWidgets('compact home resolves and clears with text scale $scale', (
+    testWidgets('compact home reaches video and ENTER with text scale $scale', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(320, 568);
@@ -80,6 +80,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('ENTER LIST NUMBER'), findsOneWidget);
       expect(find.text('+1'), findsOneWidget);
+      final preview = find.byKey(const Key('tv2-video-placeholder'));
+      expect(preview, findsOneWidget);
+      await tester.ensureVisible(preview);
+      expect(preview.hitTestable(), findsOneWidget);
+      expect(
+          tester
+              .getSize(find.byKey(const Key('tv2-home-match-viewport')))
+              .height,
+          lessThanOrEqualTo(160));
+      expect(tester.takeException(), isNull);
       for (final value in ['5', '2', '9']) {
         final key = find.ancestor(
           of: find.text(value),
@@ -91,6 +101,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.byTooltip('ENTER'));
+      expect(find.byTooltip('ENTER').hitTestable(), findsOneWidget);
+      // Scroll back to the demo after resolving, then return to ENTER.
+      await tester.ensureVisible(preview);
+      expect(preview.hitTestable(), findsOneWidget);
       await tester.ensureVisible(find.byTooltip('ENTER'));
       await tester.tap(find.byTooltip('ENTER'));
       await tester.pumpAndSettle();
