@@ -7,17 +7,19 @@ import 'video_preview_placeholder.dart';
 
 /// Build-owned configuration. No tutorial, account or analytics by default.
 class TutorialVideo {
-  const TutorialVideo({required this.uri, this.title = 'TV2 tutorial'});
+  const TutorialVideo(
+      {required this.uri, this.title = 'TV2 tutorial', this.captionsVtt = ''});
   final Uri uri;
   final String title;
+  final String captionsVtt;
 
-  static TutorialVideo? fromUrl(String value) {
+  static TutorialVideo? fromUrl(String value, {String captionsVtt = ''}) {
     final uri = Uri.tryParse(value);
     if (uri == null ||
         uri.scheme != 'https' ||
         uri.host.isEmpty ||
         uri.userInfo.isNotEmpty) return null;
-    return TutorialVideo(uri: uri);
+    return TutorialVideo(uri: uri, captionsVtt: captionsVtt);
   }
 }
 
@@ -46,6 +48,74 @@ class _TutorialPanelState extends State<TutorialPanel>
   bool _failed = false;
   bool _dismissed = false;
   int _generation = 0;
+  bool _captionsEnabled = false;
+  bool _captionError = false;
+  List<Caption>? _captions;
+
+  bool _prepareCaptions() {
+    if (_captions != null) return true;
+    try {
+      final source = widget.tutorial!.captionsVtt.trim();
+      if (!RegExp(r'^WEBVTT(?:[ \t].*)?(?:\r?\n|$)').hasMatch(source) ||
+          source.length > 65536) {
+        throw const FormatException('Invalid caption file');
+      }
+      final cues = WebVTTCaptionFile(source).captions;
+      if (cues.isEmpty ||
+          cues.length > 200 ||
+          RegExp('-->').allMatches(source).length != cues.length) {
+        throw const FormatException('Invalid caption cues');
+      }
+      var previousEnd = Duration.zero;
+      for (final cue in cues) {
+        if (cue.start < previousEnd ||
+            cue.end <= cue.start ||
+            cue.text.trim().isEmpty) {
+          throw const FormatException('Invalid caption timing');
+        }
+        previousEnd = cue.end;
+      }
+      _captions = cues;
+      return true;
+    } catch (_) {
+      setState(() => _captionError = true);
+      return false;
+    }
+  }
+
+  String _currentCaption() {
+    final controller = _controller;
+    if (!_captionsEnabled ||
+        controller == null ||
+        !controller.value.isInitialized ||
+        controller.value.hasError ||
+        controller.value.isCompleted) return '';
+    final position = controller.value.position;
+    for (final cue in _captions ?? <Caption>[]) {
+      if (cue.start <= position && position < cue.end) return cue.text;
+    }
+    return '';
+  }
+
+  void _showTranscript() {
+    if (!_prepareCaptions()) return;
+    _pause();
+    final transcript = _captions!.map((cue) => cue.text).join('\n\n');
+    showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text('Tutorial transcript'),
+              content: SingleChildScrollView(
+                  child: SelectionArea(
+                      child: Text(transcript,
+                          key: const Key('tutorial-transcript-text')))),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close transcript'))
+              ],
+            ));
+  }
 
   @override
   void initState() {
@@ -73,6 +143,9 @@ class _TutorialPanelState extends State<TutorialPanel>
       _release();
       _dismissed = false;
       _failed = false;
+      _captionsEnabled = false;
+      _captionError = false;
+      _captions = null;
     }
   }
 
@@ -189,6 +262,7 @@ class _TutorialPanelState extends State<TutorialPanel>
         !error && !_loading && (controller?.value.isInitialized ?? false);
     final playing = ready && controller!.value.isPlaying;
     final completed = ready && controller!.value.isCompleted;
+    final caption = _currentCaption();
     return Material(
       color: const Color(0xFF0A1529),
       borderRadius: BorderRadius.circular(18),
@@ -213,6 +287,14 @@ class _TutorialPanelState extends State<TutorialPanel>
                   ),
                 ),
               ),
+            if (caption.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(caption,
+                    key: const Key('tutorial-active-caption'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 18)),
+              ),
             if (_loading) ...[
               const LinearProgressIndicator(),
               const Text(
@@ -229,6 +311,32 @@ class _TutorialPanelState extends State<TutorialPanel>
                 ),
               ),
             const SizedBox(height: 8),
+            if (video.captionsVtt.isEmpty)
+              const Text('Captions and transcript are not configured.',
+                  style: TextStyle(color: Colors.white)),
+            if (_captionError)
+              Semantics(
+                  liveRegion: true,
+                  child: Text(
+                      'Captions and transcript unavailable. You can still use the video or keypad.',
+                      style: TextStyle(color: Colors.white))),
+            if (video.captionsVtt.isNotEmpty)
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                  onPressed: () {
+                    if (_prepareCaptions())
+                      setState(() => _captionsEnabled = !_captionsEnabled);
+                  },
+                  child: Text(
+                      _captionsEnabled ? 'Hide captions' : 'Show captions'),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                  onPressed: _showTranscript,
+                  child: const Text('Show transcript'),
+                ),
+              ]),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -257,7 +365,12 @@ class _TutorialPanelState extends State<TutorialPanel>
                   ),
                   onPressed: () {
                     _release();
-                    setState(() => _dismissed = true);
+                    setState(() {
+                      _dismissed = true;
+                      _captionsEnabled = false;
+                      _captionError = false;
+                      _captions = null;
+                    });
                   },
                   child: const Text('Dismiss tutorial'),
                 ),
