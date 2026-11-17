@@ -1,0 +1,7 @@
+2026-11-17 local only
+Guarded migration: security/grants retained; idempotency passed
+SQL exact/prefix: before/equal/after expiry; permanent and draft passed
+ASGI gateway: 112 direct/range/HEAD/conditional cases passed
+Main-based backend + deployable gate: 31 passed, 12 subtests, 4 warnings
+Hosted TLS/CDN/PostgREST and media provisioning: not verified
+Render read-only inventory: blocked, no workspace selected

@@ -14,7 +14,16 @@ def sql(query):
         capture_output=True, check=True).stdout.strip()
 
 sql((ROOT/'backend/sql/001_schema.sql').read_text())
-sql((Path(__file__).parent/'proposal.sql').read_text())
+baseline = (Path(__file__).parent/'proposal.sql').read_text()
+baseline = baseline.replace('AND (expires_at IS NULL OR expires_at > statement_timestamp())', '')
+baseline = baseline.replace('AND (l.expires_at IS NULL OR l.expires_at > statement_timestamp())', '')
+sql(baseline)
+sql("REVOKE ALL ON FUNCTION resolver_get_listing(text,text,text) FROM PUBLIC;")
+guarded=(Path(__file__).parent/'guarded_migration.sql').read_text()
+sql(guarded)
+sql(guarded)  # repeatability, no grant expansion
+assert sql("SELECT has_function_privilege('public','resolver_get_listing(text,text,text)','EXECUTE');") == 'f'
+print('PASS guarded migration: existing grants/security retained; idempotent')
 sql("""TRUNCATE listings CASCADE;
 INSERT INTO listings(country_code,list_number,display_name,entity_type,resolution_state)
 VALUES ('1','70001','Synthetic temporary','business','active'),
