@@ -31,20 +31,44 @@ VALUES ('1','70001','Synthetic temporary','business','active'),
        ('1','70003','Synthetic draft','business','draft');""")
 # In one server statement, statement_timestamp is exact and stable. This tests
 # the deployed-shape RPC bodies, not a client-side approximation of the clock.
-sql("""DO $$ DECLARE delta interval; found boolean; rows jsonb;
+sql("""DO $$ DECLARE test_case record; found boolean; rows jsonb;
 BEGIN
- FOREACH delta IN ARRAY ARRAY[interval '1 microsecond', interval '0', interval '-1 microsecond'] LOOP
-  UPDATE listings SET expires_at=statement_timestamp()+delta WHERE list_number='70001';
+ FOR test_case IN SELECT * FROM (VALUES
+   ('before open', interval '-1 microsecond', false),
+   ('exact open', interval '0', true),
+   ('before close', interval '24 hours' - interval '1 microsecond', true),
+   ('exact close', interval '24 hours', false),
+   ('after close', interval '24 hours' + interval '1 microsecond', false)
+ ) AS cases(label,elapsed,allowed) LOOP
+  UPDATE listings SET starts_at=statement_timestamp()-test_case.elapsed,
+    expires_at=statement_timestamp()-test_case.elapsed+interval '24 hours'
+    WHERE list_number='70001';
   found := resolver_get_listing('1','70001',null) IS NOT NULL;
-  ASSERT found = (delta > interval '0'), 'exact cutoff';
+  ASSERT found = test_case.allowed, test_case.label || ' exact RPC';
   rows := resolver_prefix('1','7000',null,10);
-  ASSERT (rows @> '[{"list_number":"70001"}]'::jsonb) = (delta > interval '0'), 'prefix cutoff';
+  ASSERT (rows @> '[{"list_number":"70001"}]'::jsonb) = test_case.allowed, test_case.label || ' prefix RPC';
   ASSERT resolver_get_listing('1','70002',null) IS NOT NULL, 'permanent';
   ASSERT rows @> '[{"list_number":"70002"}]'::jsonb, 'permanent prefix';
   ASSERT resolver_get_listing('1','70003',null) IS NULL, 'draft remains hidden';
  END LOOP;
 END $$;""")
-print('PASS SQL RPC exact/prefix: before, equal, after; permanent and draft unchanged')
+print('PASS SQL RPC window: before open, exact open, before close, exact close, after close; permanent/draft unchanged')
+def rejects_migration():
+    try: sql(guarded)
+    except subprocess.CalledProcessError: return
+    raise AssertionError('unsafe migration unexpectedly accepted')
+sql('ALTER TABLE listings ALTER COLUMN starts_at SET DEFAULT now();')
+rejects_migration()
+sql('ALTER TABLE listings ALTER COLUMN starts_at DROP DEFAULT;')
+sql('ALTER FUNCTION resolver_get_listing(text,text,text) VOLATILE;')
+rejects_migration()
+sql('ALTER FUNCTION resolver_get_listing(text,text,text) STABLE;')
+definition=sql("SELECT pg_get_functiondef('resolver_get_listing(text,text,text)'::regprocedure);")
+sql(definition.replace('starts_at <=', 'starts_at <'))
+rejects_migration() # marker still present, predicate tampering must fail closed
+sql(definition)
+sql(guarded)
+print('PASS catalog/column/tampered-tag rejection and recovery')
 def rpc(fn, number):
     if not re.fullmatch('[0-9]{1,15}',number): return None if fn=='resolver_get_listing' else []
     raw = sql(f"SELECT {fn}('1','{number}',null);")
@@ -56,7 +80,7 @@ app=create_app(lambda n:rpc('resolver_get_listing',n),lambda n:rpc('resolver_pre
 checks=0
 with TestClient(app) as client:
  for expired in (False,True):
-  sql("UPDATE listings SET expires_at=statement_timestamp()"+ ("-" if expired else "+") +"interval '24 hours' WHERE list_number='70001';")
+  sql("UPDATE listings SET starts_at=NULL, expires_at=statement_timestamp()"+ ("-" if expired else "+") +"interval '24 hours' WHERE list_number='70001';")
   assert (client.get('/v1/resolve/70001').json() is None)==expired
   assert any(r['list_number']=='70001' for r in client.get('/v1/prefix/7000').json()) != expired
   for number in ('70001','70002'):

@@ -15,7 +15,7 @@ jobs:
       # Parent resets synthetic window first; replace UNSET with its exact UTC
       # deadline and push this file to arm the next PR run. No dispatch/default
       # branch changes, tokens, secrets, artifacts, media downloads or deployment.
-      CANARY_EXPIRES_AT: '2026-11-17T19:28:10.434Z'
+      CANARY_EXPIRES_AT: UNSET
     steps:
       - uses: actions/checkout@v4
       - name: Report unarmed checkpoint

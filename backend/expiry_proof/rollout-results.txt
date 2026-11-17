@@ -5,3 +5,14 @@ ASGI gateway: 112 direct/range/HEAD/conditional cases passed
 Main-based backend + deployable gate: 31 passed, 12 subtests, 4 warnings
 Hosted TLS/CDN/PostgREST and media provisioning: not verified
 Render read-only inventory: blocked, no workspace selected
+
+Scheduled-window v2 local validation:
+SQL exact/prefix: before open, exact open, before close, exact close, after close PASS
+Null/null permanent and inactive draft checks PASS
+Unexpected clock default, catalog volatility, tampered tagged predicate rejected
+Idempotency and preserved revoked PUBLIC grant PASS
+112 ASGI direct/range/HEAD/conditional checks PASS
+31 backend tests + 12 subtests PASS (4 existing deprecation warnings)
+One-shot workflow disarmed before push; no new hosted test executed
+
+Conflicting PostgreSQL table lock: migration aborted on lock_timeout after 5.13s PASS

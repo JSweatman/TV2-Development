@@ -1,5 +1,39 @@
 # Root-coordinated limited rollout package
 
+## Current v2 scheduled window — supersedes immediate activation below
+
+Use `backend/expiry_proof/guarded_migration.sql` at the current PR head. It adds
+nullable `starts_at` AND `expires_at`, with request-time predicates `starts_at IS
+NULL OR starts_at <= statement_timestamp()` and `expires_at IS NULL OR expires_at
+> statement_timestamp()` in both RPCs. Null/null permanent rows are unchanged.
+The transaction sets `lock_timeout='5s'` and `statement_timeout='30s'`; contention
+or an unexpected catalog/column/function shape aborts without partial changes.
+Repeat execution validates the exact canonical predicate, not merely a version
+tag. Prior v1-only expiry logic is intentionally rejected for manual review;
+root confirms hosted RPCs currently have no clock columns/logic.
+
+After hosted synthetic tests pass, choose one FUTURE UTC opening S and closing
+E = S + exactly 24 hours. Provision the Sites request-time gates with those exact
+instants, then in advance set the exact resolver row active with starts_at=S and
+expires_at=E in one transaction. Verify both services deny before S. Neither
+service needs a mutation at S or E. If preparation cannot finish before S,
+suspend the row/disable the site and coordinate a new future window; do not
+silently shorten the promised window. Verify the Sites gate uses inclusive open
+and exclusive close, including direct media/ranges, and preserve millisecond
+precision and explicit UTC. This PR does not modify Sites or real data.
+
+Rollback/disable remains fail-closed: FIRST suspend the exact row and set expiry
+in the past, then disable Sites/direct media and the optional server gate. Keep
+both nullable clock columns and filters; never null them/reactivate as rollback.
+Old RPCs still respect suspended state. Restore prior definitions only if needed
+while suspended; never assume app rollback reverses database writes. Existing
+optional Python gate calls the exact RPC, so its lower bound is enforced there;
+its configured NOT_AFTER remains an additional upper cap.
+
+One-shot Sites canary workflow is DISARMED (`UNSET`) before this push. The earlier
+successful hosted canary remains evidence for its prior window only.
+
+
 This package is generic. No real listing identity, contact, artwork or media is
 included. Founder approval is recorded in the parent task; root alone performs
 hosted mutations, deploys, canary writes and final activation. Do not auto-merge.
