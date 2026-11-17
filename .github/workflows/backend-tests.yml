@@ -18,6 +18,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Synthetic media fixtures exercise real encoding and validation in CI.
+      # Ubuntu's distro package supplies both ffmpeg and ffprobe; no PPA/download.
+      - name: Install media test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
