@@ -1,0 +1,7 @@
+Local validation 2026-11-17; synthetic data only
+PostgreSQL 15 cached local container, network none; stopped after tests
+PASS SQL RPC exact/prefix: before, equal, after; permanent and draft unchanged
+PASS 112 direct/range/HEAD/conditional ASGI HTTP checks + resolver and fail-closed checks
+Backend regression: 37 passed, 4 warnings, 12 subtests passed in 0.55s
+No browser, hosted PostgREST, TLS/CDN or physical-device validation
+No push/deploy/remote mutation
