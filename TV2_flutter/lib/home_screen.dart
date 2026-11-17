@@ -13,6 +13,7 @@ import 'public_resource_launcher.dart';
 import 'saved_listing_ui.dart';
 import 'saved_collections.dart';
 import 'listing_video_panel.dart';
+import 'landing_theme.dart';
 import 'device_handoff.dart';
 import 'tutorial_panel.dart';
 
@@ -753,6 +754,112 @@ class TemplateScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spec = LandingThemeSpec.fromListing(listing);
+    if (spec != null) {
+      return Theme(
+          data: spec.theme(),
+          child: Builder(builder: (context) => _themed(context, spec)));
+    }
+    return _normal(context);
+  }
+
+  Widget _media() {
+    if (listingVideoUri(listing) == null && listing.hasType('provider_embed')) {
+      final configured = listing.resources
+          .where((r) => r.type == 'provider_embed')
+          .any((r) => ProviderVideoReference.parse(r) != null);
+      return Card(
+          child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(configured
+                  ? 'Provider video is not supported in this build.'
+                  : 'Provider video configuration is unavailable.')));
+    }
+    return ListingVideoPanel(listing: listing, routeObserver: routeObserver);
+  }
+
+  bool _configured(ResourceRecord? resource) {
+    if (resource == null) return false;
+    if (resource.type == 'call' || resource.type == 'text')
+      return deviceDestination(resource) != null;
+    if (resource.type == 'provider_embed' ||
+        resource.type == 'landing_theme' ||
+        resource.type == 'listing_video') return false;
+    return safePublicResourceUri(resource.uri) != null;
+  }
+
+  Widget _themed(BuildContext context, LandingThemeSpec spec) {
+    final slots = {for (final b in listing.buttons) b.slot: b};
+    return Scaffold(
+      appBar: AppBar(title: const Text('List Number'), actions: [
+        SaveListingAction(listing: listing),
+        SaveListingAction(
+            listing: listing, kind: SavedCollections.addressBookKind)
+      ]),
+      body: Center(
+          child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: ListView(padding: const EdgeInsets.all(20), children: [
+                if (spec.hero != null) ...[
+                  LandingHero(spec: spec),
+                  const SizedBox(height: 24)
+                ],
+                Text(listing.displayName,
+                    style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                Text(listing.qualifiedIdentity,
+                    style: TextStyle(color: spec.accent, fontSize: 16)),
+                const SizedBox(height: 24),
+                _media(),
+                const SizedBox(height: 24),
+                LayoutBuilder(builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 300 &&
+                          MediaQuery.textScalerOf(context).scale(16) <= 24
+                      ? 2
+                      : 1;
+                  final width =
+                      (constraints.maxWidth - (columns - 1) * 12) / columns;
+                  return Wrap(spacing: 12, runSpacing: 12, children: [
+                    for (var slot = 1; slot <= 6; slot++)
+                      SizedBox(
+                          width: width,
+                          child: ConstrainedBox(
+                              constraints: const BoxConstraints(minHeight: 56),
+                              child: FilledButton.tonal(
+                                key: ValueKey('landing-action-$slot'),
+                                style: FilledButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 18),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16))),
+                                onPressed: _configured(listing.resource(
+                                        slots[slot]?.resourceKey ?? ''))
+                                    ? () => _resourceAction(
+                                        context,
+                                        listing.resource(
+                                            slots[slot]!.resourceKey)!)
+                                    : null,
+                                child: Text(
+                                    slots[slot]?.label ??
+                                        slots[slot]
+                                            ?.resourceKey
+                                            .toUpperCase() ??
+                                        'Not configured',
+                                    textAlign: TextAlign.center),
+                              ))),
+                  ]);
+                }),
+                const SizedBox(height: 20),
+                if (List.generate(6, (i) => i + 1).any((slot) => !_configured(
+                    listing.resource(slots[slot]?.resourceKey ?? ''))))
+                  const Text('Some actions are not available yet.',
+                      textAlign: TextAlign.center),
+              ]))),
+    );
+  }
+
+  Widget _normal(BuildContext context) {
     final resources = {for (final item in listing.resources) item.key: item};
     return Scaffold(
       appBar: AppBar(
@@ -775,7 +882,7 @@ class TemplateScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text('${listing.entityType} • template: ${listing.templateKey}'),
           const SizedBox(height: 16),
-          ListingVideoPanel(listing: listing, routeObserver: routeObserver),
+          _media(),
           const SizedBox(height: 16),
           if (listing.resources.isEmpty)
             const Text('This identity has no configured public resources.'),
@@ -793,8 +900,11 @@ class TemplateScreen extends StatelessWidget {
               ),
             ),
           const Divider(height: 32),
-          for (final resource
-              in listing.resources.where((r) => r.type != 'listing_video'))
+          for (final resource in listing.resources.where((r) => !{
+                'listing_video',
+                'landing_theme',
+                'provider_embed'
+              }.contains(r.type)))
             ListTile(
               title: Text(resource.type),
               subtitle: resource.uri == null ? null : Text(resource.uri!),
@@ -810,6 +920,11 @@ class TemplateScreen extends StatelessWidget {
     BuildContext context,
     ResourceRecord resource,
   ) async {
+    if (resource.type == 'provider_embed' || resource.type == 'landing_theme') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('This resource is unavailable in this build.')));
+      return;
+    }
     if (resource.type == 'call' || resource.type == 'text') {
       await (deviceHandoff ?? DeviceHandoff()).request(context, resource);
       return;
