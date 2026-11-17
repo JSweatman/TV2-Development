@@ -1,0 +1,22 @@
+name: limited-delivery-smoke
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/limited-delivery-smoke.yml'
+      - 'scripts/limited_delivery_smoke.py'
+permissions:
+  contents: read
+jobs:
+  delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DELIVERY_ORIGIN: https://tv2-timed-demo.civil-elm-7579.chatgpt.site
+      DELIVERY_RESOLVER: https://tv2-development.onrender.com/v1/resolve?input=1%2A569385
+      DELIVERY_OPENS_AT: '2026-11-17T19:39:00Z'
+      DELIVERY_CLOSES_AT: '2026-11-18T19:39:00Z'
+      DELIVERY_CONTENT_RANGE: 'bytes 0-15/3513360'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify opened delivery without logging payloads
+        run: python3 scripts/limited_delivery_smoke.py
