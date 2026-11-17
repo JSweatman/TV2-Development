@@ -93,6 +93,6 @@ were visually inspected. Browser bulk `fill()` intermittently left Flutter's
 password controller empty; the repeatable proof uses focused keystrokes and Tab,
 not an auth shortcut. Browser evidence comes from the fixed release artifact.
 
-No remote PR or deployment is created for this local-only continuation. The
-smallest staging go/no-go remains the authorization/infrastructure decision above,
-not a claim that these preview routes are production-ready.
+This work is packaged as a stacked draft for review only. The
+[private-stage checklist](PRIVATE_STAGE_GATE.md) records the authorization and
+infrastructure gates; draft publication does not activate these routes.

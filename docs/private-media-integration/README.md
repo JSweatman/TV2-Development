@@ -118,4 +118,4 @@ framework/deprecation warnings). The complete disposable provider run passed
 again from an empty local stack and removed its containers, network and volumes.
 Flutter source was unchanged; no new Flutter/platform-build claim is made.
 The five-number branch remains at `359310ce592b69158a2d5fe923e555f893f4fd65`;
-#44/#45 remain at their original verified heads. This commit is local/unpublished.
+#44/#45 remain at their original verified heads. This proof is included in the stacked preview draft for review only.
