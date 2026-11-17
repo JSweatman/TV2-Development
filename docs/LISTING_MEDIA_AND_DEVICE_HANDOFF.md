@@ -62,12 +62,26 @@ PYTHONPATH=. python -m local_media_demo.browser_proof /absolute/build/web /absol
 
 The runner uploads the existing one-second synthetic blue fixture, never the
 private review cut. `1*5247` has display name **Local owner fixture**, not a claim
-that Jair's live listing exists. No actual contact is stored. The viewer loads
-`TemplateScreen` from this source in a second browser context. A test-only
-Playwright route maps the synthetic `https://media.example.org/clips/<hash>.mp4`
-reference to the uploaded loopback bytes. No request reaches that host; production
-HTTPS validation is unchanged. This proves upload → published reference → actual
-Flutter inline playback, not live storage, real user identity or native upload UI.
+that Jair's live listing exists. The separate visitor starts the actual `TV2App`,
+selects +1, enters 5247 and uses ENTER after the exact lookup. `HttpResolverApi`
+calls the production `/v1/countries`, `/v1/prefix` and `/v1/resolve` route functions,
+identity grammar and response schemas against an injected fixture repository.
+The dependency override is local to this test application; the deployed app's
+repository selection is unchanged. Local proof refuses non-fixture repository mode.
+
+The published URI points directly to a real local TLS server on port 443.
+Chromium maps `tv2-media.example.org` to loopback and trusts only that run's
+short-lived certificate SPKI. There is no request interception/fulfillment,
+`ignore_https_errors`, global certificate-error disabling or installed trust root.
+The generated key/certificate and media files are deleted after the run. This
+proves actual HTTP resolver and HTTPS byte delivery, not publicly trusted hosted
+TLS, real owner authentication or live Supabase storage.
+
+The low-bandwidth phase applies 150 ms latency and 8,192 bytes/s to media delivery
+after app assets have loaded. The clip is only 1,880 bytes: this verifies a bounded
+slow-network path, not real-world long-video buffering or mobile network behavior.
+See [the private staging plan](PRIVATE_STAGING_MEDIA_PLAN.md) for the disabled
+integration evaluation and the minimum setup/approval needed before any live demo.
 
 ## Flutter listing playback
 
@@ -120,18 +134,20 @@ The keypad tutorial, its captions PR and private review artifacts remain separat
   keypad adapter and clear invalidation, no-media allocation, video failure/retry,
   dismiss and compact 320×568 at 1×/3× text. Enlarged-text confirmation supports
   keyboard Escape without launching a handler.
-- 34 backend tests plus 12 subtests pass, including authorization/CSRF/host limits,
+- 36 backend tests plus 12 subtests pass, including authorization/CSRF/host limits,
   type/size checks, unpublished failures, codec/duration/track limits, viewer
   read-only behavior and no deployed upload routes.
 - Default PWA release build passes without tutorial/media defines. Test clip and
   local owner fixture are absent from the production web output.
 - Analysis has no errors: 21 findings (17 baseline, four new Material import
   deprecation infos); no toolchain upgrade attempted to suppress those infos.
-- Chromium 156.0.8078.79, 390×844: separate owner/viewer contexts; uploaded bytes
+- Chromium 156.0.8078.79, 390×844, actual TLS 1.3: separate owner/viewer contexts; uploaded bytes
   SHA-256 `ae0dccc68fca59e2be732b5a75b4304e73d1a00e2ab6ab17ddcac0fdb3f51e16`;
-  no media request before Load; no autoplay; inline playback observed at 0.2972 s,
+  no media request before Load; no autoplay; inline playback observed at 0.3308 s,
   160×90 decoded video, paused=false. Fixture playback was slowed to 0.25× solely
   for observation. Completion and dismiss verified. Screenshots inspected.
+  Media loaded in 1.010 s under the bounded throttle; a real Range request returned
+  HTTP 206 and bytes 0–31/1880. Response server address was 127.0.0.1.
 - [Owner upload](visuals/listing-media/owner-upload.png),
   [actual Flutter viewer](visuals/listing-media/viewer-playback.png), and
   [machine-readable local result](visuals/listing-media/result.json).

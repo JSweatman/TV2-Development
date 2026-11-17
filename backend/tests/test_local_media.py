@@ -51,8 +51,24 @@ class LocalMediaTests(unittest.TestCase):
         self.assertEqual(self.owner.put('/listings/1*5247/video', content=self.body, headers=dict(self.headers, **{'Content-Length': str(MAX_BYTES + 1)})).status_code, 413)
         with patch('local_media_demo.server.validate_clip', side_effect=ValueError('invalid')):
             self.assertEqual(self.owner.put('/listings/1*5247/video', content=self.body, headers=self.headers).status_code, 422)
-        self.assertEqual(self.viewer.get('/v1/resolve?input=5247').json()['listing']['resources'], [])
+        self.assertEqual(self.viewer.get('/v1/resolve?country=1&input=5247').json()['listing']['resources'], [])
         self.assertEqual(list(Path(self.temp.name).iterdir()), [])
+
+    def test_real_resolver_identity_grammar_and_prefix(self):
+        prefix = self.viewer.get('/v1/prefix?country=1&input=5247').json()
+        self.assertTrue(prefix['matches'][0]['exact'])
+        self.assertEqual(prefix['matches'][0]['qualified_input'], '1*5247')
+        self.assertEqual(self.viewer.get('/v1/resolve?country=91&input=5247').json()['status'], 'not_found')
+        exact = self.viewer.get('/v1/resolve?country=91&input=1*5247').json()
+        self.assertEqual(exact['listing']['country_code'], '1')
+        self.assertEqual(self.viewer.get('/v1/resolve?country=1&input=12**34').status_code, 400)
+
+    def test_fixture_override_cannot_reconfigure_deployed_app(self):
+        import app as resolver
+        self.assertNotIn(resolver.get_repository, resolver.app.dependency_overrides)
+        with patch.dict('os.environ', {'TV2_REPOSITORY': 'supabase'}):
+            with self.assertRaisesRegex(ValueError, 'fixture repository mode'):
+                create_app(owner_session=self.session, storage=Path(self.temp.name), origin=self.origin)
 
     def test_deployed_app_has_no_upload_route(self):
         import app

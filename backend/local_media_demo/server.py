@@ -9,17 +9,21 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import secrets
 import subprocess
 import tempfile
 from pathlib import Path
+from urllib.parse import urlsplit
+import sys
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 MAX_BYTES = 5 * 1024 * 1024
 IDENTITY = '1*5247'
+TLS_ORIGIN = 'https://tv2-media.example.org'
 
 
 def validate_clip(path: Path) -> None:
@@ -49,7 +53,9 @@ def validate_clip(path: Path) -> None:
 
 def create_app(*, owner_session: str, storage: Path, origin: str,
                web_dir: Path | None = None) -> FastAPI:
-    if not origin.startswith('http://127.0.0.1:') or not origin.removeprefix('http://127.0.0.1:').isdigit():
+    if os.getenv('TV2_REPOSITORY', 'fixture') != 'fixture':
+        raise ValueError('Local proof requires fixture repository mode')
+    if origin != TLS_ORIGIN and (not origin.startswith('http://127.0.0.1:') or not origin.removeprefix('http://127.0.0.1:').isdigit()):
         raise ValueError('Loopback origin required')
     if len(owner_session) < 32:
         raise ValueError('Inject a random local owner session')
@@ -62,7 +68,7 @@ def create_app(*, owner_session: str, storage: Path, origin: str,
     @app.middleware('http')
     async def loopback_only(request: Request, call_next):
         from fastapi.responses import Response
-        if request.client is None or request.client.host not in ('127.0.0.1', '::1', 'testclient') or request.headers.get('host') != origin.removeprefix('http://'):
+        if request.client is None or request.client.host not in ('127.0.0.1', '::1', 'testclient') or request.headers.get('host') != urlsplit(origin).netloc:
             return Response(status_code=403)
         response = await call_next(request)
         response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -132,23 +138,29 @@ s.textContent=r.ok?'Published for local viewers.':'Upload rejected ('+r.status+'
                 if path:
                     path.unlink(missing_ok=True)
 
-    @app.get('/v1/resolve')
-    def resolve(input: str, country: str = '1'):
-        # Synthetic display name, no real contacts. Viewer sees only published data.
-        if input not in ('5247', IDENTITY) or country != '1':
-            return {'status': 'not_found', 'country_context': country, 'input': input, 'listing': None}
-        resources = [] if not published else [{
-            'key': 'video', 'type': 'listing_video',
-            # The browser harness maps only this synthetic HTTPS host to loopback.
-            # Production Flutter HTTPS validation is never relaxed.
-            'uri': f'https://media.example.org/clips/{published}.mp4',
-            'metadata': {'publication': 'published', 'content_type': 'video/mp4'},
-        }]
-        return {'status': 'resolved', 'country_context': '1', 'input': input, 'listing': {
-            'country_code': '1', 'list_number': '5247', 'tldx': None,
-            'display_name': 'Local owner fixture', 'entity_type': 'test', 'template_key': 'basic',
-            'resources': resources, 'buttons': [],
-        }}
+    # Real route functions, identity grammar, schemas and repository interface.
+    # Dependency override belongs only to this local app, not the deployed app.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+    import app as resolver
+    from repository import FixtureRepository, ListingRecord, ResourceRecord
+
+    class PublishedFixtureRepository(FixtureRepository):
+        def get_listing(self, country_code, base, tldx):
+            record = super().get_listing(country_code, base, tldx)
+            if record is None or published is None:
+                return record
+            from dataclasses import replace
+            media_origin = origin if origin == TLS_ORIGIN else 'https://media.example.org'
+            return replace(record, resources=(ResourceRecord(
+                'video', 'listing_video', f'{media_origin}/clips/{published}.mp4',
+                {'publication': 'published', 'content_type': 'video/mp4'}),))
+
+    fixture_repository = PublishedFixtureRepository([ListingRecord(
+        '1', '5247', None, 'Local owner fixture', 'test', 'basic')])
+    routes = APIRouter(routes=[route for route in resolver.app.routes
+                              if route.path.startswith('/v1/')])
+    app.include_router(routes)
+    app.dependency_overrides[resolver.get_repository] = lambda: fixture_repository
 
     @app.get('/clips/{name}')
     def clip(name: str):

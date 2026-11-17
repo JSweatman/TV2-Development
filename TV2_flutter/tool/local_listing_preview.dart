@@ -1,21 +1,14 @@
-// Explicit local test entrypoint. Not imported by main.dart or production builds.
-import 'dart:convert';
+// Explicit local test entrypoint. Never imported by the production entrypoint.
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:tv2/home_screen.dart';
-import 'package:tv2/models.dart';
+import 'package:tv2/main.dart';
+import 'package:tv2/resolver_api.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Uri.base.host != '127.0.0.1') throw StateError('Local preview only');
-  final response =
-      await http.get(Uri.base.resolve('/v1/resolve?country=1&input=5247'));
-  final listing = Listing.fromJson(jsonDecode(response.body)['listing']);
-  final routes = RouteObserver<ModalRoute<dynamic>>();
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(useMaterial3: true),
-    navigatorObservers: [routes],
-    home: TemplateScreen(listing: listing, routeObserver: routes),
-  ));
+  if (Uri.base.host != '127.0.0.1' &&
+      Uri.base.origin != 'https://tv2-media.example.org') {
+    throw StateError('Local preview only');
+  }
+  // The genuine keypad, prefix lookup, exact lookup and listing navigation.
+  runApp(TV2App(api: HttpResolverApi(baseUri: Uri.parse(Uri.base.origin))));
 }

@@ -1,17 +1,29 @@
 {
   "browser": "156.0.8078.79",
-  "owner_upload": true,
-  "viewer_write_rejected": true,
-  "separate_contexts": true,
+  "resolver": "production /v1/prefix and /v1/resolve via HttpResolverApi",
+  "tls": "TLS 1.3",
+  "server_ip": "127.0.0.1",
+  "request_interception": false,
+  "separate_owner_visitor_contexts": true,
+  "visitor_write_rejected": true,
   "uploaded_sha256": "ae0dccc68fca59e2be732b5a75b4304e73d1a00e2ab6ab17ddcac0fdb3f51e16",
   "playback": {
-    "time": 0.2972,
+    "time": 0.3308,
     "paused": false,
     "width": 160,
     "height": 90
   },
+  "range": {
+    "status": 206,
+    "range": "bytes 0-31/1880",
+    "bytes": 32
+  },
+  "load_seconds": 1.01,
+  "network": {
+    "latency_ms": 150,
+    "bytes_per_second": 8192
+  },
   "no_media_before_opt_in": true,
-  "completion_and_dismiss": true,
-  "external_requests": false,
-  "scope": "local synthetic sessions; actual Flutter listing; HTTPS test-host interception to loopback"
+  "no_autoplay": true,
+  "scope": "local synthetic ownership; real TLS with ephemeral test pin and local DNS mapping; no hosted auth/storage"
 }
