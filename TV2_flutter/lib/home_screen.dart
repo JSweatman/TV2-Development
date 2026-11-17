@@ -16,6 +16,8 @@ import 'listing_video_panel.dart';
 import 'landing_theme.dart';
 import 'device_handoff.dart';
 import 'email_handoff.dart';
+import 'youtube_reference.dart';
+import 'youtube_panel.dart';
 import 'tutorial_panel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -768,6 +770,13 @@ class TemplateScreen extends StatelessWidget {
 
   Widget _media() {
     if (listingVideoUri(listing) == null && listing.hasType('provider_embed')) {
+      final providers =
+          listing.resources.where((r) => r.type == 'provider_embed').toList();
+      final youtube = providers.length == 1
+          ? YoutubeReference.parse(providers.single)
+          : null;
+      if (youtube != null)
+        return YoutubePanel(reference: youtube, routeObserver: routeObserver);
       final configured = listing.resources
           .where((r) => r.type == 'provider_embed')
           .any((r) => ProviderVideoReference.parse(r) != null);

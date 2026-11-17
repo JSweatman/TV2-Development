@@ -1,0 +1,24 @@
+{
+  "browser": "156.0.8078.79",
+  "viewport": [
+    390,
+    844
+  ],
+  "no_provider_request_before_opt_in": true,
+  "canonical_src": "https://www.youtube-nocookie.com/embed/M7lc1UVf-VE?autoplay=0&playsinline=1",
+  "frame_size": [
+    318,
+    200
+  ],
+  "actual_playback": false,
+  "interception": false,
+  "certificate_bypass": false,
+  "provider_failures": [
+    {
+      "url": "https://www.youtube-nocookie.com/embed/M7lc1UVf-VE?autoplay=0&playsinline=1",
+      "failure": "net::ERR_CERT_AUTHORITY_INVALID"
+    }
+  ],
+  "dismiss_removed_iframe": true,
+  "fallback_visible": true
+}
