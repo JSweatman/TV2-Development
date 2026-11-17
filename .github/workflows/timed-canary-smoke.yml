@@ -1,0 +1,26 @@
+name: timed-synthetic-canary-smoke
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/timed-canary-smoke.yml'
+      - 'scripts/timed_canary_smoke.py'
+permissions:
+  contents: read
+jobs:
+  headers-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CANARY_ORIGIN: https://tv2-timed-demo.civil-elm-7579.chatgpt.site
+      # Parent resets synthetic window first; replace UNSET with its exact UTC
+      # deadline and push this file to arm the next PR run. No dispatch/default
+      # branch changes, tokens, secrets, artifacts, media downloads or deployment.
+      CANARY_EXPIRES_AT: UNSET
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report unarmed checkpoint
+        if: env.CANARY_EXPIRES_AT == 'UNSET'
+        run: echo 'NOT RUN - waiting for parent-coordinated synthetic expiry window'
+      - name: Check active headers then expiry
+        if: env.CANARY_EXPIRES_AT != 'UNSET'
+        run: python3 scripts/timed_canary_smoke.py

@@ -137,3 +137,23 @@ rollback/activation scripts are executed by this package.
 - On main-based tree: 31 tests + 12 subtests pass (four deprecation warnings).
   Earlier proof's 37-test count included unmerged draft tests not in main.
 - No new dependencies, real payloads, hosted writes, deploy or media transfer.
+
+## Optional public synthetic Sites canary CI
+
+`.github/workflows/timed-canary-smoke.yml` uses the existing GitHub-hosted Ubuntu
+runner pattern with contents:read only. It is UNARMED; a green unarmed job is NOT
+canary evidence. Parent must reset the synthetic endpoint deadline with enough
+queue headroom, then replace UNSET with the exact returned UTC deadline in this
+PR branch. Script requires 30–480 seconds remaining on job start; if queue delay
+exceeds this, fail and coordinate another window, do not assert success. Prefer
+an eight-minute window and arm immediately. No workflow-dispatch/default-branch
+change, secrets or added permissions. Existing runner quota must suffice.
+
+`scripts/timed_canary_smoke.py` fetches status/headers only and does not read or
+archive bodies: HTML200 + no-store and MP4 Range206 + Content-Range while active;
+page, media and range-media410 + no-store on the first requests after expiry.
+No redirects, auth, TLS changes or retries around a network denial. Network
+latency means this demonstrates after-cutoff behavior, not exact equality; exact
+boundary remains covered by database tests. This separately hosted synthetic
+canary is not evidence that the resolver migration or final content is deployed.
+The managed local egress block has not been probed or bypassed.
