@@ -15,6 +15,7 @@ import 'saved_collections.dart';
 import 'listing_video_panel.dart';
 import 'landing_theme.dart';
 import 'device_handoff.dart';
+import 'email_handoff.dart';
 import 'tutorial_panel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -747,10 +748,12 @@ class TemplateScreen extends StatelessWidget {
       {super.key,
       required this.listing,
       this.deviceHandoff,
+      this.emailHandoff,
       this.routeObserver});
   final DeviceHandoff? deviceHandoff;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
+  final EmailHandoff? emailHandoff;
 
   @override
   Widget build(BuildContext context) {
@@ -780,6 +783,7 @@ class TemplateScreen extends StatelessWidget {
 
   bool _configured(ResourceRecord? resource) {
     if (resource == null) return false;
+    if (resource.type == 'email') return emailDestination(resource) != null;
     if (resource.type == 'call' || resource.type == 'text')
       return deviceDestination(resource) != null;
     if (resource.type == 'provider_embed' ||
@@ -923,6 +927,10 @@ class TemplateScreen extends StatelessWidget {
     if (resource.type == 'provider_embed' || resource.type == 'landing_theme') {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('This resource is unavailable in this build.')));
+      return;
+    }
+    if (resource.type == 'email') {
+      await (emailHandoff ?? EmailHandoff()).request(context, resource);
       return;
     }
     if (resource.type == 'call' || resource.type == 'text') {
