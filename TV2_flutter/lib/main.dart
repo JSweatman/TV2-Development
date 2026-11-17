@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
+import 'device_handoff.dart';
 import 'resolver_api.dart';
 import 'tutorial_panel.dart';
 
@@ -24,9 +25,11 @@ class TV2App extends StatefulWidget {
     required this.api,
     this.initialCountry,
     this.tutorial,
+    this.deviceHandoff,
   });
 
   final ResolverApi api;
+  final DeviceHandoff? deviceHandoff;
   final String? initialCountry;
   final TutorialVideo? tutorial;
 
@@ -45,6 +48,7 @@ class _TV2AppState extends State<TV2App> {
         navigatorObservers: [_tutorialRoutes],
         home: HomeScreen(
             api: widget.api,
+            deviceHandoff: widget.deviceHandoff,
             initialCountry: widget.initialCountry,
             tutorial: widget.tutorial,
             tutorialRoutes: _tutorialRoutes),

@@ -12,7 +12,8 @@ import 'resolver_api.dart';
 import 'public_resource_launcher.dart';
 import 'saved_listing_ui.dart';
 import 'saved_collections.dart';
-import 'video_preview_placeholder.dart';
+import 'listing_video_panel.dart';
+import 'device_handoff.dart';
 import 'tutorial_panel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,9 +23,11 @@ class HomeScreen extends StatefulWidget {
     this.initialCountry,
     this.tutorial,
     this.tutorialRoutes,
+    this.deviceHandoff,
   });
 
   final ResolverApi api;
+  final DeviceHandoff? deviceHandoff;
   final String? initialCountry;
   final TutorialVideo? tutorial;
   final RouteObserver<ModalRoute<dynamic>>? tutorialRoutes;
@@ -340,7 +343,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing)));
+    ).push(MaterialPageRoute(
+        builder: (_) => TemplateScreen(
+            listing: listing,
+            deviceHandoff: widget.deviceHandoff,
+            routeObserver: widget.tutorialRoutes)));
   }
 
   Future<void> _openHome() async {
@@ -369,17 +376,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _call() {
-    final listing = exactListing;
-    final canRequestCall = listing?.hasType('call') ?? false;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          canRequestCall
-              ? 'CALL capability is configured. Communications service is not connected in this checkpoint.'
-              : 'The call cannot be completed.',
-        ),
-      ),
-    );
+    final resources = exactListing?.resources.where((r) => r.type == 'call');
+    final resource =
+        resources == null || resources.isEmpty ? null : resources.first;
+    (widget.deviceHandoff ?? DeviceHandoff()).request(context, resource);
   }
 
   @override
@@ -742,7 +742,13 @@ class Keypad extends StatelessWidget {
 }
 
 class TemplateScreen extends StatelessWidget {
-  TemplateScreen({super.key, required this.listing});
+  TemplateScreen(
+      {super.key,
+      required this.listing,
+      this.deviceHandoff,
+      this.routeObserver});
+  final DeviceHandoff? deviceHandoff;
+  final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
 
   @override
@@ -769,10 +775,7 @@ class TemplateScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text('${listing.entityType} • template: ${listing.templateKey}'),
           const SizedBox(height: 16),
-          const AspectRatio(
-            aspectRatio: 16 / 9,
-            child: VideoPreviewPlaceholder(),
-          ),
+          ListingVideoPanel(listing: listing, routeObserver: routeObserver),
           const SizedBox(height: 16),
           if (listing.resources.isEmpty)
             const Text('This identity has no configured public resources.'),
@@ -790,7 +793,8 @@ class TemplateScreen extends StatelessWidget {
               ),
             ),
           const Divider(height: 32),
-          for (final resource in listing.resources)
+          for (final resource
+              in listing.resources.where((r) => r.type != 'listing_video'))
             ListTile(
               title: Text(resource.type),
               subtitle: resource.uri == null ? null : Text(resource.uri!),
@@ -806,6 +810,15 @@ class TemplateScreen extends StatelessWidget {
     BuildContext context,
     ResourceRecord resource,
   ) async {
+    if (resource.type == 'call' || resource.type == 'text') {
+      await (deviceHandoff ?? DeviceHandoff()).request(context, resource);
+      return;
+    }
+    if (resource.type == 'listing_video') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Use the listing video controls above.')));
+      return;
+    }
     if (resource.uri != null) {
       final opened = await PublicResourceLauncher().open(resource.uri);
       if (!context.mounted) return;
