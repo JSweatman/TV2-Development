@@ -84,6 +84,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--run-local',action='store_true',required=True)
     parser.add_argument('output',type=Path)
+    parser.add_argument('--flutter-web',type=Path)
     args=parser.parse_args()
     if args.output.exists():raise ValueError('Use a new empty output directory')
     names=('tv2-private-storage','tv2-private-auth','tv2-private-db')
@@ -94,7 +95,11 @@ def main():
                 raise RuntimeError('Existing local resource; refusing reuse: '+name)
     try:
         credential=setup()
-        run_proof(credential,args.output)
+        if args.flutter_web:
+            from .flutter_proof import run_flutter_proof
+            run_flutter_proof(credential,args.output,args.flutter_web)
+        else:
+            run_proof(credential,args.output)
     finally:
         for name in names:
             subprocess.run(['docker','rm','-f',name],capture_output=True)

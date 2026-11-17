@@ -747,10 +747,12 @@ class TemplateScreen extends StatelessWidget {
       {super.key,
       required this.listing,
       this.deviceHandoff,
-      this.routeObserver});
+      this.routeObserver,
+      this.mediaOverride});
   final DeviceHandoff? deviceHandoff;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
+  final Widget? mediaOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -764,6 +766,7 @@ class TemplateScreen extends StatelessWidget {
   }
 
   Widget _media() {
+    if (mediaOverride != null) return mediaOverride!;
     if (listingVideoUri(listing) == null && listing.hasType('provider_embed')) {
       final configured = listing.resources
           .where((r) => r.type == 'provider_embed')
