@@ -38,3 +38,30 @@ Aim to open one isolated TV2 **development preview** from both a laptop browser 
 2. Review cross-platform changes and backend CORS environment configuration.
 3. Merge only after checks and review; deploy preview separately.
 4. Record real laptop/mobile results in a dated acceptance note.
+
+## External WEBSITE / SOCIAL return — installed-PWA QA
+
+Record PASS/FAIL/NOT TESTED separately for desktop Chromium, installed iPhone
+PWA and installed Android PWA, including OS/browser version and app build.
+**Installed iPhone and Android behavior remains NOT TESTED.** A desktop popup
+return test does not prove mobile browser/app-switcher or process-restoration behavior.
+
+1. With a synthetic listing, note the selected NID and keypad query. Open the
+   themed listing with ENTER. Note its title/qualified identity and theme.
+2. Tap WEBSITE, then repeat for SOCIAL. Use a neutral approved test destination.
+   The browser/OS owns its navigation: close its tab, use the system return-to-app
+   affordance or switch back to TV2 as appropriate. Do not require a Back button
+   inside a third-party page or make TV2 inspect that page's browsing activity.
+3. On return without killing/reloading TV2, expect the same listing identity,
+   theme and actions. Do not silently redirect to the keypad, clear the query,
+   or re-resolve a different listing. If media was playing, verify it does not
+   unexpectedly resume. Record popup-blocking/handler errors separately.
+4. Use TV2's **top-left listing back arrow** to exit. Expect the keypad with the
+   original query and selected NID intact. The keypad's **BACK** button removes
+   a digit; it is not the listing exit. Trash/Clear remains a separate action.
+5. Separately exercise OS process eviction/relaunch and browser refresh. Do not
+   infer durable listing/query restoration from an ordinary tab return; record
+   actual behavior and treat any desired persistence as a separate requirement.
+
+Automation inspects only the synthetic fixture in the test runner. No production
+provider monitoring, injected tracking or external-page activity detection is added.

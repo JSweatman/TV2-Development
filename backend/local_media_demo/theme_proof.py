@@ -95,14 +95,42 @@ def main():
                     page.get_by_role('button',name='TEXT',exact=True).click()
                     page.get_by_text('Open messaging app?',exact=True).wait_for()
                     page.get_by_role('button',name='Cancel',exact=True).click()
-                    # Meaningful HTTPS action, to a fixed synthetic local page only.
-                    with page.expect_popup() as opened:
-                        page.get_by_role('button',name='WEBSITE',exact=True).click()
-                    popup=opened.value;popup.get_by_text('Synthetic action destination',exact=True).wait_for();popup.close()
-                    page.get_by_role('button',name='ABOUT',exact=True).scroll_into_view_if_needed()
-                    page.screenshot(path=str(output/(palette+'-actions.png')))
+                    # Real externalApplication launcher; browser closes its tab.
+                    returns=[]
+                    listing_title=exact['display_name']
+                    qualified='1*'+number
+                    resolve_count=sum('/v1/resolve?' in u for u in requests)
+                    app_url=page.url
+                    for action in ('WEBSITE','SOCIAL'):
+                        page.get_by_role('button',name=action,exact=True).scroll_into_view_if_needed()
+                        with page.expect_popup() as opened:
+                            page.get_by_role('button',name=action,exact=True).click()
+                        popup=opened.value
+                        popup.get_by_text('Synthetic action destination',exact=True).wait_for()
+                        assert popup.url==TLS_ORIGIN+'/theme-info/'+action.lower()
+                        popup.close()
+                        page.bring_to_front()
+                        assert page.url==app_url
+                        page.get_by_text(listing_title,exact=True).wait_for(state='attached')
+                        page.get_by_text(qualified,exact=True).wait_for(state='attached')
+                        page.get_by_role('button',name='Back',exact=True).wait_for()
+                        assert sum('/v1/resolve?' in u for u in requests)==resolve_count
+                        returns.append({'action':action,'browser_tab_closed':True,
+                                        'same_listing':True,'no_extra_lookup':True})
+                    page.get_by_text(listing_title,exact=True).scroll_into_view_if_needed()
+                    page.screenshot(path=str(output/(palette+'-returned-listing.png')))
+                    # App-bar arrow exits listing; keypad BACK deletes a digit.
+                    page.get_by_role('button',name='Back',exact=True).click()
+                    page.get_by_role('button',name='ENTER',exact=True).wait_for()
+                    snapshot=page.locator('body').aria_snapshot()
+                    assert re.search(r'\bList Number\s+'+re.escape(number)+r'\b',snapshot)
+                    page.get_by_role('button',name='+1',exact=True).wait_for()
+                    page.screenshot(path=str(output/(palette+'-returned-keypad.png')))
                     assert all(urlsplit(u).hostname=='tv2-media.example.org' for u in requests if u.startswith('http'))
-                    results.append({'palette':palette,'fixture':number,'resolved':True,'inline_playback':playback,'call_text_confirmation_cancel':True,'https_action':True,'no_media_before_opt_in':True})
+                    results.append({'palette':palette,'fixture':number,'resolved':True,
+                        'inline_playback':playback,'call_text_confirmation_cancel':True,
+                        'external_returns':returns,'keypad_query_retained':number,
+                        'selected_nid_retained':'1','no_media_before_opt_in':True})
                     context.close()
                 result={'browser':browser.version,'viewport':[390,844],'fixtures':results,'request_interception':False,'scope':'synthetic local fixtures, real resolver and TLS, no real handoff or business assignment'}
                 (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result));browser.close()

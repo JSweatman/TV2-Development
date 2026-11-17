@@ -1,0 +1,65 @@
+{
+  "browser": "156.0.8078.79",
+  "viewport": [
+    390,
+    844
+  ],
+  "fixtures": [
+    {
+      "palette": "graphite",
+      "fixture": "70001",
+      "resolved": true,
+      "inline_playback": {
+        "time": 0.1424,
+        "paused": false
+      },
+      "call_text_confirmation_cancel": true,
+      "external_returns": [
+        {
+          "action": "WEBSITE",
+          "browser_tab_closed": true,
+          "same_listing": true,
+          "no_extra_lookup": true
+        },
+        {
+          "action": "SOCIAL",
+          "browser_tab_closed": true,
+          "same_listing": true,
+          "no_extra_lookup": true
+        }
+      ],
+      "keypad_query_retained": "70001",
+      "selected_nid_retained": "1",
+      "no_media_before_opt_in": true
+    },
+    {
+      "palette": "lotus",
+      "fixture": "70002",
+      "resolved": true,
+      "inline_playback": {
+        "time": 0.1356,
+        "paused": false
+      },
+      "call_text_confirmation_cancel": true,
+      "external_returns": [
+        {
+          "action": "WEBSITE",
+          "browser_tab_closed": true,
+          "same_listing": true,
+          "no_extra_lookup": true
+        },
+        {
+          "action": "SOCIAL",
+          "browser_tab_closed": true,
+          "same_listing": true,
+          "no_extra_lookup": true
+        }
+      ],
+      "keypad_query_retained": "70002",
+      "selected_nid_retained": "1",
+      "no_media_before_opt_in": true
+    }
+  ],
+  "request_interception": false,
+  "scope": "synthetic local fixtures, real resolver and TLS, no real handoff or business assignment"
+}

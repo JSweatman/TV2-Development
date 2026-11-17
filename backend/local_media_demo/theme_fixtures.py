@@ -22,7 +22,7 @@ def install_theme_fixtures(app):
             resources=list(source.resources if source else ())
             resources.append(ResourceRecord('theme','landing_theme',None,{'version':1,'palette':palette,'hero':hero}))
             resources.extend(ResourceRecord(kind,kind,None,{'handoff':'device','phone_e164':'+12025550123'}) for kind in ('call','text'))
-            actions=[('CALL','call'),('TEXT','text'),('WEBSITE','website'),('DIRECTIONS','directions'),('SERVICES','services'),('ABOUT','about')]
+            actions=[('CALL','call'),('TEXT','text'),('WEBSITE','website'),('DIRECTIONS','directions'),('SOCIAL','social'),('ABOUT','about')]
             resources.extend(ResourceRecord(key,'web',TLS_ORIGIN+'/theme-info/'+key,{}) for _,key in actions[2:])
             buttons=tuple(ButtonRecord(i+1,label,key) for i,(label,key) in enumerate(actions))
             return replace(row,resources=tuple(resources),buttons=buttons)

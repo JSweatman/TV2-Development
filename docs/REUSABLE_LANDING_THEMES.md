@@ -124,3 +124,34 @@ HTTPS information page. Representative frames were inspected for fit and contras
 Default PWA release build passed with no demo defines. Output contains no synthetic
 business fixture names, contact number or MP4 fixture. Private review MP4/VTT
 SHA-256 values remain unchanged. `git diff --check` passed.
+
+## External-link return coverage (2026-11-17)
+
+The prior Chromium proof opened WEBSITE and closed its popup but did not assert
+what remained in TV2. The extended existing proof now exercises WEBSITE and
+SOCIAL on both synthetic palettes (70001/70002). SOCIAL replaces SERVICES only
+in local fixture data; production labels/routes/client code are unchanged.
+
+Observed Chromium 156.0.8078.79 at 390×844 using the real app and local resolver:
+- The normal HTTPS launcher opens each neutral local destination in a new tab.
+- Closing that browser-owned tab and bringing TV2 forward leaves the same listing
+  title, qualified identity and listing Back arrow; no additional exact lookup.
+- The listing's top-left Back arrow exits to the keypad with 70001/70002 and the
+  selected +1 unchanged. Keypad BACK/delete is not used for this navigation.
+- Existing opt-in video and cancelled CALL/TEXT checks still pass. No contact
+  handler is invoked. `no real handoff` in the historical result scope refers to
+  native telephone/messaging handoffs; the local HTTPS popup launch is real.
+
+Result and four inspected-state screenshots: `visuals/external-return/`.
+83 Flutter tests, 37 backend tests plus 12 subtests, explicit actual-app release
+web build, and the extended Chromium proof passed. No app defect was found; one
+test locator was corrected to read the combined List Number accessibility label.
+No production monitoring, callback, tracking or cross-site script was added.
+
+This uses the pre-existing loopback-only TLS fixture and its ephemeral per-run
+Chromium SPKI pin, unchanged by this patch. It is not publicly trusted TLS, a
+third-party site test, or the separate blocked invite-session experiment. No
+request interception, hosted requests or trust-store installation is used.
+Actual installed iPhone/Android PWA, system browser return, process eviction and
+relaunch remain NOT TESTED. See the external-return section in the existing
+PWA_DEVELOPMENT_TRACK_2026-11-09.md checklist for the platform acceptance steps.
