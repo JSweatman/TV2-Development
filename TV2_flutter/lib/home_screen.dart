@@ -15,6 +15,9 @@ import 'saved_collections.dart';
 import 'listing_video_panel.dart';
 import 'landing_theme.dart';
 import 'device_handoff.dart';
+import 'email_handoff.dart';
+import 'youtube_reference.dart';
+import 'youtube_panel.dart';
 import 'tutorial_panel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -747,10 +750,12 @@ class TemplateScreen extends StatelessWidget {
       {super.key,
       required this.listing,
       this.deviceHandoff,
+      this.emailHandoff,
       this.routeObserver});
   final DeviceHandoff? deviceHandoff;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
+  final EmailHandoff? emailHandoff;
 
   @override
   Widget build(BuildContext context) {
@@ -765,6 +770,13 @@ class TemplateScreen extends StatelessWidget {
 
   Widget _media() {
     if (listingVideoUri(listing) == null && listing.hasType('provider_embed')) {
+      final providers =
+          listing.resources.where((r) => r.type == 'provider_embed').toList();
+      final youtube = providers.length == 1
+          ? YoutubeReference.parse(providers.single)
+          : null;
+      if (youtube != null)
+        return YoutubePanel(reference: youtube, routeObserver: routeObserver);
       final configured = listing.resources
           .where((r) => r.type == 'provider_embed')
           .any((r) => ProviderVideoReference.parse(r) != null);
@@ -780,6 +792,7 @@ class TemplateScreen extends StatelessWidget {
 
   bool _configured(ResourceRecord? resource) {
     if (resource == null) return false;
+    if (resource.type == 'email') return emailDestination(resource) != null;
     if (resource.type == 'call' || resource.type == 'text')
       return deviceDestination(resource) != null;
     if (resource.type == 'provider_embed' ||
@@ -923,6 +936,10 @@ class TemplateScreen extends StatelessWidget {
     if (resource.type == 'provider_embed' || resource.type == 'landing_theme') {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('This resource is unavailable in this build.')));
+      return;
+    }
+    if (resource.type == 'email') {
+      await (emailHandoff ?? EmailHandoff()).request(context, resource);
       return;
     }
     if (resource.type == 'call' || resource.type == 'text') {
