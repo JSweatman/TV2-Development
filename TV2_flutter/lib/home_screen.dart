@@ -46,6 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? errorMessage;
   bool loading = false;
   bool hasMore = false;
+  // Selection hides suggestions until input or namespace is edited.
+  // The qualified lookup still runs, including normal error reporting.
+  bool _matchSelected = false;
   Timer? _debounce;
   int _requestGeneration = 0;
 
@@ -127,9 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _setInput(String value) {
+  void _setInput(String value, {bool selectedMatch = false}) {
     setState(() {
       input = value;
+      _matchSelected = selectedMatch;
+      loading = false;
       exactListing = null;
       matches = const [];
       hasMore = false;
@@ -151,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _requestGeneration++;
     setState(() {
       input = '';
+      _matchSelected = false;
       matches = const [];
       exactListing = null;
       errorMessage = null;
@@ -203,8 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() {
-        matches = prefix.matches;
-        hasMore = prefix.hasMore;
+        matches = _matchSelected ? const [] : prefix.matches;
+        hasMore = !_matchSelected && prefix.hasMore;
         exactListing = listing;
         loading = false;
       });
@@ -323,11 +329,11 @@ class _HomeScreenState extends State<HomeScreen> {
       countryCode = selected.nid;
       errorMessage = null;
     });
-    if (input.isNotEmpty) _scheduleLookup();
+    _setInput(input);
   }
 
   void _selectMatch(MatchRecord match) {
-    _setInput(match.qualifiedInput);
+    _setInput(match.qualifiedInput, selectedMatch: true);
   }
 
   void _enter() {
@@ -490,7 +496,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: const Key('tv2-home-match-viewport'),
                     // Matches scroll independently; long result sets must not
                     // push the keypad arbitrarily far down the home screen.
-                    height: (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
+                    // Compact portrait results without shrinking keys or media.
+                    // Keep a complete two-line row; extra matches scroll inside.
+                    height: _matchSelected
+                        ? 0
+                        : MediaQuery.sizeOf(context).width < 600 &&
+                                MediaQuery.orientationOf(context) ==
+                                    Orientation.portrait
+                            ? ((constraints.maxHeight * 0.15)
+                                        .clamp(72.0, 160.0) /
+                                    2)
+                                .clamp(
+                                    matches.isEmpty
+                                        ? 0.0
+                                        : 64.0 *
+                                            MediaQuery.textScalerOf(context)
+                                                .scale(14) /
+                                            14,
+                                    double.infinity)
+                            : (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
                     child: Material(
                       color: matches.isEmpty
                           ? Colors.transparent

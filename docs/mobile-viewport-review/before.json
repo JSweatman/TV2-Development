@@ -1,0 +1,178 @@
+[
+  {
+    "viewport": [
+      320,
+      568
+    ],
+    "gap_css": 81.9647216796875,
+    "first_key": {
+      "x": 19,
+      "y": 387.20001220703125,
+      "width": 66,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 244,
+      "y": 667.2000122070312,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1
+  },
+  {
+    "viewport": [
+      360,
+      640
+    ],
+    "gap_css": 92.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 398,
+      "width": 76,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 279,
+      "y": 678,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1
+  },
+  {
+    "viewport": [
+      360,
+      740
+    ],
+    "gap_css": 107.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 413,
+      "width": 76,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 279,
+      "y": 693,
+      "width": 48,
+      "height": 35
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1
+  },
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "gap_css": 123.36471557617188,
+    "first_key": {
+      "x": 19,
+      "y": 428.6000061035156,
+      "width": 83.5,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 305.25,
+      "y": 708.5999755859375,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": true,
+    "enter_reachable": true,
+    "scale": 1
+  },
+  {
+    "viewport": [
+      430,
+      932
+    ],
+    "gap_css": 136.564697265625,
+    "first_key": {
+      "x": 19,
+      "y": 441.79998779296875,
+      "width": 93.5,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 340.25,
+      "y": 721.7999877929688,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": true,
+    "enter_reachable": true,
+    "scale": 1
+  },
+  {
+    "viewport": [
+      320,
+      480
+    ],
+    "gap_css": 71.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 377,
+      "width": 66,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 244,
+      "y": 657,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "gap_css": 71.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 377,
+      "width": 197,
+      "height": 1
+    },
+    "enter_initial": {
+      "x": 702.5,
+      "y": 657,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1
+  },
+  {
+    "viewport": [
+      1280,
+      800
+    ],
+    "gap_css": 116.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 422,
+      "width": 306,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 1084,
+      "y": 702,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": true,
+    "enter_reachable": true,
+    "scale": 1
+  }
+]
