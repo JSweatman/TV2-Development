@@ -28,8 +28,12 @@ class ListingVideoPanel extends StatefulWidget {
     required this.listing,
     this.controllerFactory,
     this.routeObserver,
+    this.expanded = false,
+    this.onExpansionChanged,
   });
   final Listing listing;
+  final bool expanded;
+  final ValueChanged<bool>? onExpansionChanged;
   final ListingControllerFactory? controllerFactory;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
 
@@ -44,6 +48,20 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
   bool _failed = false;
   bool _dismissed = false;
   int _generation = 0;
+  Orientation? _orientation;
+  final _playerKey = GlobalKey();
+
+  void _requestExpansion(bool expanded) {
+    final generation = _generation;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || generation != _generation) return;
+      if (expanded &&
+          (_orientation != Orientation.landscape ||
+              !(_controller?.value.isPlaying ?? false) ||
+              (_controller?.value.hasError ?? false))) return;
+      widget.onExpansionChanged?.call(expanded);
+    });
+  }
 
   @override
   void initState() {
@@ -54,6 +72,21 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final orientation = MediaQuery.orientationOf(context);
+    if (_orientation != null && orientation != _orientation) {
+      final value = _controller?.value;
+      if (orientation == Orientation.portrait) {
+        if (widget.expanded) _requestExpansion(false);
+      } else if (value != null &&
+          value.isPlaying &&
+          !value.hasError &&
+          value.isInitialized &&
+          !_loading &&
+          !_dismissed) {
+        _requestExpansion(true);
+      }
+    }
+    _orientation = orientation;
     widget.routeObserver?.unsubscribe(this);
     final route = ModalRoute.of(context);
     if (route != null) widget.routeObserver?.subscribe(this, route);
@@ -77,11 +110,17 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
   }
 
   void _changed() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      if (widget.expanded && (_controller?.value.hasError ?? false)) {
+        _requestExpansion(false);
+      }
+      setState(() {});
+    }
   }
 
   void _release() {
     _generation++;
+    if (widget.expanded) _requestExpansion(false);
     _loading = false;
     final controller = _controller;
     _controller = null;
@@ -109,8 +148,9 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
             video,
             // This widget owns lifecycle pausing; disable the plugin's automatic
             // resume observer. This does not enable playback in our background.
-            videoPlayerOptions:
-                VideoPlayerOptions(allowBackgroundPlayback: true),
+            videoPlayerOptions: VideoPlayerOptions(
+              allowBackgroundPlayback: true,
+            ),
           );
       _controller = controller;
       controller.addListener(_changed);
@@ -150,7 +190,10 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
   }
 
   @override
-  void didPushNext() => _pause();
+  void didPushNext() {
+    _pause();
+    if (widget.expanded) _requestExpansion(false);
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -189,6 +232,58 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
         !error && !_loading && (controller?.value.isInitialized ?? false);
     final playing = ready && controller!.value.isPlaying;
     final completed = ready && controller!.value.isCompleted;
+    if (widget.expanded && ready) {
+      return ColoredBox(
+        key: const Key('listing-video-expanded'),
+        color: Colors.black,
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: controller!.value.aspectRatio,
+                  child: VideoPlayer(controller, key: _playerKey),
+                ),
+              ),
+            ),
+            // Controls stay outside the image: no cropping or hidden exit action.
+            Flexible(
+              flex: 0,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(context).height * 0.4),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.tonal(
+                          onPressed: _toggle,
+                          child: Text(
+                            playing
+                                ? 'Pause listing video'
+                                : completed
+                                    ? 'Replay listing video'
+                                    : 'Play listing video',
+                          ),
+                        ),
+                        FilledButton.tonal(
+                          onPressed: () =>
+                              widget.onExpansionChanged?.call(false),
+                          child: const Text('Exit expanded video'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Material(
       color: const Color(0xFF0A1529),
       borderRadius: BorderRadius.circular(18),
@@ -209,7 +304,7 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
                 child: Center(
                   child: AspectRatio(
                     aspectRatio: controller!.value.aspectRatio,
-                    child: VideoPlayer(controller),
+                    child: VideoPlayer(controller, key: _playerKey),
                   ),
                 ),
               ),
