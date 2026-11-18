@@ -490,7 +490,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: const Key('tv2-home-match-viewport'),
                     // Matches scroll independently; long result sets must not
                     // push the keypad arbitrarily far down the home screen.
-                    height: (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
+                    // Compact portrait results without shrinking keys or media.
+                    // Keep a complete two-line row; extra matches scroll inside.
+                    height: MediaQuery.sizeOf(context).width < 600 &&
+                            MediaQuery.orientationOf(context) ==
+                                Orientation.portrait
+                        ? ((constraints.maxHeight * 0.15).clamp(72.0, 160.0) /
+                                2)
+                            .clamp(
+                                matches.isEmpty
+                                    ? 0.0
+                                    : 64.0 *
+                                        MediaQuery.textScalerOf(context)
+                                            .scale(14) /
+                                        14,
+                                double.infinity)
+                        : (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
                     child: Material(
                       color: matches.isEmpty
                           ? Colors.transparent
