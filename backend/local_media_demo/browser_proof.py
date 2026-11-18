@@ -99,9 +99,14 @@ def main():
                 playback=page.locator('video').evaluate('(v)=>({time:v.currentTime,paused:v.paused,width:v.videoWidth,height:v.videoHeight})')
                 assert not playback['paused'] and playback['width']==160
                 page.screenshot(path=str(output/'viewer-playback.png'))
+                rotation = None
+                if '--landscape' in sys.argv:
+                    from .landscape_checks import verify_landscape
+                    rotation = verify_landscape(page, output)
                 page.get_by_role('button',name='Replay listing video',exact=True).wait_for(timeout=15000)
                 page.get_by_role('button',name='Dismiss listing video',exact=True).click()
                 page.get_by_role('button',name='Show listing video',exact=True).wait_for()
+                assert page.locator('video').count() == 0
                 # Real byte-range round trip, not mocked browser data.
                 ranged=page.evaluate("""async (uri)=>{const r=await fetch(uri,{headers:{Range:'bytes=0-31'}});return {status:r.status,range:r.headers.get('Content-Range'),bytes:(await r.arrayBuffer()).byteLength}}""",uri)
                 assert ranged['status']==206 and ranged['bytes']==32
@@ -111,7 +116,7 @@ def main():
                     'request_interception':False,'separate_owner_visitor_contexts':True,'visitor_write_rejected':True,
                     'uploaded_sha256':digest,'playback':playback,'range':ranged,'load_seconds':round(load_seconds,3),
                     'network':{'latency_ms':150,'bytes_per_second':8192},'no_media_before_opt_in':True,'no_autoplay':True,
-                    'scope':'local synthetic ownership; real TLS with ephemeral test pin and local DNS mapping; no hosted auth/storage'}
+                    'rotation':rotation,'scope':'local synthetic ownership; real TLS with ephemeral test pin and local DNS mapping; no hosted auth/storage'}
                 (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result));browser.close()
         finally:
             server.should_exit=True;thread.join(timeout=5)

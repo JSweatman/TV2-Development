@@ -741,19 +741,56 @@ class Keypad extends StatelessWidget {
       );
 }
 
-class TemplateScreen extends StatelessWidget {
-  TemplateScreen(
-      {super.key,
-      required this.listing,
-      this.deviceHandoff,
-      this.routeObserver});
+class TemplateScreen extends StatefulWidget {
+  TemplateScreen({
+    super.key,
+    required this.listing,
+    this.deviceHandoff,
+    this.routeObserver,
+  });
   final DeviceHandoff? deviceHandoff;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
 
   @override
+  State<TemplateScreen> createState() => _TemplateScreenState();
+}
+
+class _TemplateScreenState extends State<TemplateScreen> {
+  final _videoKey = GlobalKey();
+  bool _videoExpanded = false;
+  Listing get listing => widget.listing;
+  DeviceHandoff? get deviceHandoff => widget.deviceHandoff;
+  RouteObserver<ModalRoute<dynamic>>? get routeObserver => widget.routeObserver;
+
+  void _expandVideo(bool expanded) {
+    if (mounted && _videoExpanded != expanded) {
+      setState(() => _videoExpanded = expanded);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final resources = {for (final item in listing.resources) item.key: item};
+    final video = ListingVideoPanel(
+      key: _videoKey,
+      listing: listing,
+      routeObserver: routeObserver,
+      expanded: _videoExpanded,
+      onExpansionChanged: _expandVideo,
+    );
+    if (_videoExpanded) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) _expandVideo(false);
+        },
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: SafeArea(child: video),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(listing.displayName),
@@ -775,7 +812,7 @@ class TemplateScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text('${listing.entityType} • template: ${listing.templateKey}'),
           const SizedBox(height: 16),
-          ListingVideoPanel(listing: listing, routeObserver: routeObserver),
+          video,
           const SizedBox(height: 16),
           if (listing.resources.isEmpty)
             const Text('This identity has no configured public resources.'),
@@ -793,8 +830,9 @@ class TemplateScreen extends StatelessWidget {
               ),
             ),
           const Divider(height: 32),
-          for (final resource
-              in listing.resources.where((r) => r.type != 'listing_video'))
+          for (final resource in listing.resources.where(
+            (r) => r.type != 'listing_video',
+          ))
             ListTile(
               title: Text(resource.type),
               subtitle: resource.uri == null ? null : Text(resource.uri!),
@@ -815,8 +853,9 @@ class TemplateScreen extends StatelessWidget {
       return;
     }
     if (resource.type == 'listing_video') {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Use the listing video controls above.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Use the listing video controls above.')),
+      );
       return;
     }
     if (resource.uri != null) {
