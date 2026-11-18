@@ -209,7 +209,9 @@ class _HomeScreenState extends State<HomeScreen> {
         hasMore = prefix.hasMore;
         exactListing = listing;
         loading = false;
-        errorMessage = listing == null ? 'No exact match. ENTER retries.' : null;
+        errorMessage = listing == null && prefix.matches.isEmpty
+            ? 'No exact match. ENTER retries.'
+            : null;
       });
     } on ResolverApiException catch (error) {
       if (!mounted || generation != _requestGeneration) return;

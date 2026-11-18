@@ -25,3 +25,10 @@ No real listings or hosted configuration were changed.
 Synthetic widget tests cover no-match to active, active to unavailable, refreshed
 content, initial and ENTER transient errors, repeated taps, edit/NID changes in
 flight, qualified suggestion selection, and preserved input after details return.
+
+Integration note for #49 (`863a477e5d140ef8a1b30ffc3fa7dbfa4345c431`):
+the patch applies cleanly. Its selected-error test must expect the retry message
+and enabled ENTER instead of disabled ENTER; these are intentional changes in this
+patch. That expectation adjustment was exercised only in a detached local checkout,
+not committed to #49. Partial-match previews do not receive an extra no-match row,
+so the compact suggestion/keypad layout is preserved.
