@@ -42,7 +42,17 @@ try:
    suggestion=page.get_by_text(re.compile('Synthetic viewport listing')).last
    suggestion.wait_for();page.wait_for_timeout(400)
    page.screenshot(path=str(out/f'{width}x{height}-single.png'))
-   suggestion.click();page.wait_for_timeout(500)
+   before_select=page.get_by_role('button',name='1',exact=True).bounding_box()
+   if width<1000: suggestion.tap()
+   else: suggestion.click()
+   page.wait_for_timeout(500)
+   assert page.get_by_role('button',name='Save listing',exact=True).count()==0
+   after_select=page.get_by_role('button',name='1',exact=True).bounding_box()
+   assert after_select['y'] < before_select['y']
+   selected_enter=page.get_by_role('button',name='ENTER',exact=True).bounding_box()
+   results[-1]['selected_enter_visible']=bool(selected_enter and selected_enter['height']>=47.9 and selected_enter['y']+selected_enter['height']<=height)
+   results[-1]['selection_reclaimed_css']=before_select['y']-after_select['y']
+   page.screenshot(path=str(out/f'{width}x{height}-selected.png'))
    for _ in range(20):
     box=page.get_by_role('button',name='ENTER',exact=True).bounding_box()
     if box and box['height']>=47.9 and box['y']>=0 and box['y']+box['height']<=height:break
@@ -52,6 +62,10 @@ try:
    page.get_by_role('button',name='Back',exact=True).click()
    page.get_by_text('1*70001',exact=True).first.wait_for()
    results[-1]['single_selection_enter_return']=True
+   page.get_by_role('button',name='BACK',exact=True).click()
+   page.mouse.move(width/2,height*.5);page.mouse.wheel(0,-3000);page.wait_for_timeout(500)
+   page.get_by_text(re.compile('Synthetic viewport listing')).last.wait_for()
+   results[-1]['edit_restores_suggestion']=True
    context.close()
   browser.close()
 finally:server.shutdown()

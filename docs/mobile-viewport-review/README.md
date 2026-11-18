@@ -72,3 +72,30 @@ existing draft nor its description was edited. JOYFUL and its window are untouch
 - `flutter analyze` blocked by analyzer cache creation at read-only
   `/home/agent/.dartServer` (OS error 30); not reported as a passing analysis run.
 - No live resolver, media, contacts, trust settings or hosted state changed.
+
+## Selecting a suggestion
+
+A selected match fills the input with its unchanged `qualifiedInput` (namespace
+and suffix included), sets the results viewport to zero height, and stays on the
+keypad. ENTER opens the listing only after the normal qualified lookup succeeds.
+Returning from details retains that selection and collapsed panel. Real edits,
+backspace, clear and namespace selection restore normal matching. Request
+generation invalidation prevents stale completions/errors from reopening results
+or replacing the current listing. Current lookup errors remain visible.
+
+Six additional tests cover mobile/desktop selection and return, suffix integrity,
+semantics tap activation, country/clear/edit reset, delayed stale success and error,
+and current selected-lookup failure. All 78 Flutter tests pass. The previous
+empty/single and multiple-result/enlarged-text regressions remain included.
+
+The browser harness now uses touch selection in mobile emulation and records
+`selection_reclaimed_css`, `selected_enter_visible`, and edit-to-reopen behavior.
+The allocated suggestion height is fully removed; displacement of keys can be
+smaller because the resolved listing name also appears in the input display.
+No universal viewport fit or physical-device result is claimed.
+
+All eight Chromium cases pass selection → ENTER → details → return → edit.
+After selection the complete bottom row is visible without additional scrolling
+at 360×740, 390×844, 430×932 and 1280×800. Shorter cases retain working scrolling.
+At 360×740 the 64px result region becomes 0; keys move up 44px because the resolved
+name adds 20px to the identity display. The video-to-key gap is now 8px.
