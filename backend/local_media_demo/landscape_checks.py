@@ -28,7 +28,8 @@ def verify_landscape(page, output):
     page.get_by_role('button',name='Exit expanded video',exact=True).wait_for()
     page.set_viewport_size({'width':390,'height':844});page.wait_for_timeout(250)
     assert page.get_by_role('button',name='Exit expanded video',exact=True).count()==0
-    assert page.locator('video').evaluate('(v)=>!v.paused && v===window.tv2ObservedVideo')
+    state=page.locator('video').evaluate('(v)=>({paused:v.paused,same:v===window.tv2ObservedVideo,time:v.currentTime,ended:v.ended})')
+    assert not state['paused'] and state['same'], state
     page.screenshot(path=str(output/'portrait-return.png'))
     page.locator('video').evaluate('(v)=>v.playbackRate=1')
     return {'landscape':result,'paused_rotation_stays_inline':True,'portrait_return_same_element':True,

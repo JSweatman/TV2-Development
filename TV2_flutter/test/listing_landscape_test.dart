@@ -6,6 +6,7 @@ import 'package:tv2/home_screen.dart';
 
 import 'listing_media_handoff_test.dart' show listing, media, tapVisible;
 import 'tutorial_panel_test.dart' show TestVideoPlatform;
+import 'landing_theme_test.dart' as themed;
 
 class PositionPlatform extends TestVideoPlatform {
   Duration position = Duration.zero;
@@ -178,4 +179,27 @@ void main() {
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
   });
+  testWidgets('themed listing preserves player through landscape and return', (t) async {
+    t.view.physicalSize = const Size(390, 844);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    await t.pumpWidget(MaterialApp(home: TemplateScreen(listing: themed.fixture(extra: [media]))));
+    await t.pumpAndSettle();
+    await tapVisible(t, find.text('Load listing video'));
+    await tapVisible(t, find.text('Play listing video'));
+    final controller = t.widget<VideoPlayer>(find.byType(VideoPlayer)).controller;
+    await controller.seekTo(const Duration(milliseconds: 400));
+    await rotate(t, true);
+    expect(expanded, findsOneWidget);
+    await rotate(t, false);
+    expect(expanded, findsNothing);
+    expect(t.widget<VideoPlayer>(find.byType(VideoPlayer)).controller, same(controller));
+    expect(controller.value.position, const Duration(milliseconds: 400));
+    expect(platform.sources.length, 1);
+    await t.pumpWidget(const SizedBox());
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+  });
+
 }

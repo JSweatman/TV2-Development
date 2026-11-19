@@ -911,8 +911,10 @@ class _TemplateScreenState extends State<TemplateScreen> {
                 Text(listing.qualifiedIdentity,
                     style: TextStyle(color: spec.accent, fontSize: 16)),
                 const SizedBox(height: 24),
-                _media(),
-                const SizedBox(height: 24),
+                if (listingVideoUri(listing) != null || listing.hasType('provider_embed')) ...[
+                  _media(),
+                  const SizedBox(height: 24),
+                ],
                 LayoutBuilder(builder: (context, constraints) {
                   final columns = constraints.maxWidth >= 300 &&
                           MediaQuery.textScalerOf(context).scale(16) <= 24

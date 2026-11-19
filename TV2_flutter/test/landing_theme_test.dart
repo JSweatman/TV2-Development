@@ -95,7 +95,7 @@ void main() {
   for (final palette in ['graphite', 'lotus']) {
     for (final scale in [1.0, 3.0]) {
       testWidgets(
-          '$palette six actions 320 wide scale $scale no media and call',
+          '$palette hides unconfigured actions 320 wide scale $scale',
           (tester) async {
         tester.view.physicalSize = const Size(320, 568);
         tester.view.devicePixelRatio = 1;
@@ -115,7 +115,7 @@ void main() {
                   return true;
                 }))));
         await tester.pumpAndSettle();
-        for (var slot = 1; slot <= 6; slot++) {
+        for (final slot in [1]) {
           final f = find.byKey(ValueKey('landing-action-$slot'));
           await tester.scrollUntilVisible(f, 150,
               scrollable: find.byType(Scrollable).first);
@@ -123,12 +123,9 @@ void main() {
           expect(tester.getSize(f).height, greaterThanOrEqualTo(48));
           expect(tester.takeException(), isNull);
         }
-        expect(
-            tester
-                .widget<FilledButton>(
-                    find.byKey(const ValueKey('landing-action-2')))
-                .onPressed,
-            isNull);
+        for (var slot = 2; slot <= 6; slot++) {
+          expect(find.byKey(ValueKey('landing-action-$slot')), findsNothing);
+        }
         final call = find.byKey(const ValueKey('landing-action-1'));
         await tester.ensureVisible(call);
         await tester.pumpAndSettle();
@@ -141,6 +138,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(opened.single.toString(), 'tel:+12025550123');
         expect(platform.sources, isEmpty);
+        expect(find.byKey(const Key('tv2-video-placeholder')), findsNothing);
         expect(tester.takeException(), isNull);
       });
     }
