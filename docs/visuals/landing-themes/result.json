@@ -1,0 +1,35 @@
+{
+  "browser": "156.0.8078.79",
+  "viewport": [
+    390,
+    844
+  ],
+  "fixtures": [
+    {
+      "palette": "graphite",
+      "fixture": "70001",
+      "resolved": true,
+      "inline_playback": {
+        "time": 0.146,
+        "paused": false
+      },
+      "call_text_confirmation_cancel": true,
+      "https_action": true,
+      "no_media_before_opt_in": true
+    },
+    {
+      "palette": "lotus",
+      "fixture": "70002",
+      "resolved": true,
+      "inline_playback": {
+        "time": 0.2669,
+        "paused": false
+      },
+      "call_text_confirmation_cancel": true,
+      "https_action": true,
+      "no_media_before_opt_in": true
+    }
+  ],
+  "request_interception": false,
+  "scope": "synthetic local fixtures, real resolver and TLS, no real handoff or business assignment"
+}

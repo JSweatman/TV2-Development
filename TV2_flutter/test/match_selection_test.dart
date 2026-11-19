@@ -168,13 +168,13 @@ void main() {
     await tap(t, find.text('5'));
     api.failSelected = true;
     await tap(t, find.text('Synthetic choice'));
-    expect(find.text('Synthetic lookup failed'), findsOneWidget);
+    expect(find.text('Synthetic lookup failed ENTER retries.'), findsOneWidget);
     expect(t.getSize(panel).height, 0);
     expect(
         t
             .widget<IconButton>(find.byWidgetPredicate(
                 (w) => w is IconButton && w.tooltip == 'ENTER'))
             .onPressed,
-        isNull);
+        isNotNull);
   });
 }
