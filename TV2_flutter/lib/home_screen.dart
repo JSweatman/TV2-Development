@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Listing? exactListing;
   String? errorMessage;
   bool loading = false;
+  bool _enterPending = false;
   bool hasMore = false;
   Timer? _debounce;
   int _requestGeneration = 0;
@@ -167,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _scheduleLookup() {
     _debounce?.cancel();
     final generation = ++_requestGeneration;
+    setState(() => loading = input.isNotEmpty);
     if (input.isEmpty) return;
     _debounce = Timer(_debounceDuration, () => _lookup(generation));
   }
@@ -207,6 +209,9 @@ class _HomeScreenState extends State<HomeScreen> {
         hasMore = prefix.hasMore;
         exactListing = listing;
         loading = false;
+        errorMessage = listing == null && prefix.matches.isEmpty
+            ? 'No exact match. ENTER retries.'
+            : null;
       });
     } on ResolverApiException catch (error) {
       if (!mounted || generation != _requestGeneration) return;
@@ -215,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
         exactListing = null;
         matches = const [];
         hasMore = false;
-        errorMessage = error.message;
+        errorMessage = '${error.message} ENTER retries.';
       });
     } catch (_) {
       if (!mounted || generation != _requestGeneration) return;
@@ -224,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
         exactListing = null;
         matches = const [];
         hasMore = false;
-        errorMessage = 'Unexpected resolver error.';
+        errorMessage = 'Unexpected resolver error. ENTER retries.';
       });
     }
   }
@@ -308,6 +313,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (selected == null) return;
+    // Invalidate pending navigation before asynchronous preference storage.
+    _requestGeneration++;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tv2_selected_nid', selected.nid);
     if (selected.nid == '1') {
@@ -323,24 +330,65 @@ class _HomeScreenState extends State<HomeScreen> {
       countryCode = selected.nid;
       errorMessage = null;
     });
-    if (input.isNotEmpty) _scheduleLookup();
+    _setInput(input);
   }
 
   void _selectMatch(MatchRecord match) {
     _setInput(match.qualifiedInput);
   }
 
-  void _enter() {
-    final listing = exactListing;
-    if (listing == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This List Number does not exist.')),
+  bool get _canEnter =>
+      countryCode != null && input.isNotEmpty && !_enterPending;
+
+  Future<void> _enter() async {
+    if (!_canEnter) return;
+    _debounce?.cancel();
+    final generation = ++_requestGeneration;
+    final requestedInput = input;
+    final requestedCountry = countryCode!;
+    setState(() {
+      _enterPending = true;
+      loading = true;
+      exactListing = null;
+      errorMessage = null;
+    });
+    try {
+      // ENTER verifies availability now; preview results are not authorization
+      // to open a listing that may since have changed or expired.
+      final response = await widget.api.resolve(
+        input: requestedInput,
+        country: requestedCountry,
       );
-      return;
+      if (!mounted || generation != _requestGeneration) return;
+      final listing = response.status == 'resolved' ? response.listing : null;
+      setState(() {
+        loading = false;
+        exactListing = listing;
+        if (listing == null) {
+          matches = const [];
+          hasMore = false;
+          errorMessage = 'No exact match. ENTER retries.';
+        }
+      });
+      if (listing != null && ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing)),
+        );
+      }
+    } catch (error) {
+      if (!mounted || generation != _requestGeneration) return;
+      setState(() {
+        loading = false;
+        exactListing = null;
+        matches = const [];
+        hasMore = false;
+        errorMessage = error is ResolverApiException
+            ? '${error.message} ENTER retries.'
+            : 'Unable to check this listing. ENTER retries.';
+      });
+    } finally {
+      if (mounted) setState(() => _enterPending = false);
     }
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing)));
   }
 
   Future<void> _openHome() async {
@@ -511,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onBack: _backspace,
                     onEnter: _enter,
                     callEnabled: listing?.hasType('call') ?? false,
-                    enterEnabled: listing != null,
+                    enterEnabled: _canEnter,
                   ),
                 ],
               ),
