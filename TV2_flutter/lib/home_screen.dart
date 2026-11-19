@@ -338,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool get _canEnter =>
-      countryCode != null && input.isNotEmpty && !loading && !_enterPending;
+      countryCode != null && input.isNotEmpty && !_enterPending;
 
   Future<void> _enter() async {
     if (!_canEnter) return;
