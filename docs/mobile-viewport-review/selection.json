@@ -1,0 +1,210 @@
+[
+  {
+    "viewport": [
+      320,
+      568
+    ],
+    "gap_css": 40.864715576171875,
+    "first_key": {
+      "x": 19,
+      "y": 346.1000061035156,
+      "width": 66,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 244,
+      "y": 626.0999755859375,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": false,
+    "selection_reclaimed_css": 44,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  },
+  {
+    "viewport": [
+      360,
+      640
+    ],
+    "gap_css": 46.26470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 351.5,
+      "width": 76,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 279,
+      "y": 631.5,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": false,
+    "selection_reclaimed_css": 44,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  },
+  {
+    "viewport": [
+      360,
+      740
+    ],
+    "gap_css": 53.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 359,
+      "width": 76,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 279,
+      "y": 639,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": true,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": true,
+    "selection_reclaimed_css": 44,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  },
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "gap_css": 61.564697265625,
+    "first_key": {
+      "x": 19,
+      "y": 366.79998779296875,
+      "width": 83.5,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 305.25,
+      "y": 646.7999877929688,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": true,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": true,
+    "selection_reclaimed_css": 44,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  },
+  {
+    "viewport": [
+      430,
+      932
+    ],
+    "gap_css": 68.16470336914062,
+    "first_key": {
+      "x": 19,
+      "y": 373.3999938964844,
+      "width": 93.5,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 340.25,
+      "y": 653.4000244140625,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": true,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": true,
+    "selection_reclaimed_css": 48.399993896484375,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  },
+  {
+    "viewport": [
+      320,
+      480
+    ],
+    "gap_css": 35.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 341,
+      "width": 66,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 244,
+      "y": 621,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": false,
+    "selection_reclaimed_css": 44,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "gap_css": 71.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 377,
+      "width": 197,
+      "height": 1
+    },
+    "enter_initial": {
+      "x": 702.5,
+      "y": 657,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": false,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": false,
+    "selection_reclaimed_css": 52,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  },
+  {
+    "viewport": [
+      1280,
+      800
+    ],
+    "gap_css": 116.76470947265625,
+    "first_key": {
+      "x": 19,
+      "y": 422,
+      "width": 306,
+      "height": 64
+    },
+    "enter_initial": {
+      "x": 1084,
+      "y": 702,
+      "width": 48,
+      "height": 48
+    },
+    "bottom_row_visible_initially": true,
+    "enter_reachable": true,
+    "scale": 1,
+    "selected_enter_visible": true,
+    "selection_reclaimed_css": 97,
+    "single_selection_enter_return": true,
+    "edit_restores_suggestion": true
+  }
+]
