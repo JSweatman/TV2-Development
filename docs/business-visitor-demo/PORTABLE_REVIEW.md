@@ -85,3 +85,24 @@ with 844x390 video expansion retaining the same DOM element. `/owner` and
 `/v1/resolve` return 404; writes return 405; MP4 Range returns `206 bytes 0-15/93094`.
 All visitor requests stayed same-origin; the HTTP-origin app blocked itself before
 media/API use. Screenshots were visually inspected locally. See `portable-result.json`.
+
+## Separate Alex destination review candidate
+
+The portable adapter now maps only Alex (`1*70002`) to `/alex.html`, a fictional
+personal bio-links page with working same-page About, Small projects and Favorite
+things links. Northstar (`1*700001`) retains `/sample-website.html`. No contacts,
+forms, signup, transactions, external links or new services were introduced.
+The guide distinguishes the personal example. The original delivered ZIP is preserved;
+this candidate is not an update to any hosted preview.
+
+`tv2-owner-private-review-alex.zip`: **14,208,372 bytes**, 46 files.
+SHA-256: `495e2ba433b22098f98a967647329f44e9730f75deb0ab456bb3ad386b72d43e`.
+Every extracted hash and exact archive inventory passed validation. Byte comparison
+against the original ZIP confirmed Northstar's HTML and MP4 are unchanged.
+
+The focused adapter/origin tests, all 113 Flutter tests, read-only HTTP contract test
+and portable release build passed. The exact extracted-package HTTPS Chromium flow
+passed both distinct WEBSITE destinations, Alex's section link, popup close/return
+to each listing, Alex's retained keypad query, existing video rotation, origin guard
+and same-origin-only requests. Screenshots were inspected locally; see `alex-result.json`.
+This remains browser automation, not physical-phone or installed-PWA verification.

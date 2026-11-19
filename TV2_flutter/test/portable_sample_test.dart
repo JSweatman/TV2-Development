@@ -9,6 +9,9 @@ void main() {
       final row = (await api.resolve(input: '1*$n', country: '81')).listing!;
       expect(row.qualifiedIdentity, '1*$n');
       expect(row.buttons.single.label, 'WEBSITE');
+      expect(row.resource('website')!.uri,
+          'https://review.example.org${n == '700001' ? '/sample-website.html' : '/alex.html'}');
+      expect(row.hasType('listing_video'), n == '700001');
       for (final r in row.resources) {
         expect(['call', 'text', 'email', 'owner'].contains(r.type), false);
         if (r.uri != null)

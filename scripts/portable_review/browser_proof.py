@@ -53,6 +53,7 @@ with tempfile.TemporaryDirectory() as directory:
           page.get_by_role('button',name='WEBSITE',exact=True).click()
         destination=popup.value;destination.wait_for_url(origin+'/sample-website.html')
         assert destination.get_by_role('heading',name='Northstar Workshop').is_visible()
+        assert destination.get_by_role('heading',name="Alex's notebook").count()==0
         destination.close();page.bring_to_front()
         page.get_by_role('button',name='Back',exact=True).click()
         page.get_by_role('button',name='ENTER',exact=True).wait_for()
@@ -70,7 +71,24 @@ with tempfile.TemporaryDirectory() as directory:
         page.get_by_text('Alex (sample)',exact=True).wait_for()
         assert page.get_by_role('button',name='Load listing video',exact=True).count()==0
         page.screenshot(path=str(output/'personal.png'))
+        with page.expect_popup() as personal_popup:
+          page.get_by_role('button',name='WEBSITE',exact=True).click()
+        personal_destination=personal_popup.value
+        personal_destination.wait_for_url(origin+'/alex.html')
+        assert personal_destination.get_by_role('heading',name="Alex's notebook",exact=True).is_visible()
+        assert personal_destination.get_by_role('heading',name='Northstar Workshop').count()==0
+        assert personal_destination.locator('form,input,iframe,video').count()==0
+        assert personal_destination.locator('a').evaluate_all("links=>links.every(a=>a.origin===location.origin)")
+        personal_destination.get_by_role('link',name='Small projects',exact=True).click()
+        personal_destination.wait_for_url(origin+'/alex.html#projects')
+        assert personal_destination.get_by_role('heading',name='Small projects',exact=True).is_visible()
+        personal_destination.screenshot(path=str(output/'alex-page.png'))
+        personal_destination.close();page.bring_to_front()
+        page.get_by_text('Alex (sample)',exact=True).wait_for()
+        assert '1*70002' in page.locator('body').inner_text()
         page.get_by_role('button',name='Back',exact=True).click()
+        page.get_by_role('button',name='ENTER',exact=True).wait_for()
+        assert '70002' in page.locator('body').inner_text()
         # Refresh keeps country; all navigation can start again without an account.
         page.reload();page.locator('flt-semantics-placeholder').evaluate('(e)=>e.click()')
         page.get_by_role('button',name='+1',exact=True).wait_for()
@@ -97,7 +115,7 @@ with tempfile.TemporaryDirectory() as directory:
           insecure.shutdown();insecure.server_close();insecure_thread.join()
         result={'browser':browser.version,'package_root':root.name,'viewport':[390,844],
           'guide_to_app':True,'account_free':True,'immediate_enter':True,'fill_only_selection':True,
-          'website_popup_return':True,'country_retained_on_refresh':True,'unknown_retry':True,
+          'website_popup_return':True,'distinct_personal_destination':True,'personal_links_and_return':True,'country_retained_on_refresh':True,'unknown_retry':True,
           'rotation':rotation,'http':statuses,'all_requests_same_origin':True,'no_autoplay':True,
           'no_media_before_opt_in':True,'no_request_interception':True,'http_guard_blocks_app':True}
         (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result));browser.close()

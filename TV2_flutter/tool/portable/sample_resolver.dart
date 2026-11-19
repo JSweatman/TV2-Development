@@ -35,7 +35,9 @@ class SampleResolver implements ResolverApi {
           ResourceRecord(
               key: 'website',
               type: 'web',
-              uri: origin.resolve('/sample-website.html').toString(),
+              uri: origin
+                  .resolve(business ? '/sample-website.html' : '/alex.html')
+                  .toString(),
               metadata: const {}),
           if (business)
             ResourceRecord(
