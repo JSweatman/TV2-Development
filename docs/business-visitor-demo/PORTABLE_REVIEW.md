@@ -106,3 +106,37 @@ passed both distinct WEBSITE destinations, Alex's section link, popup close/retu
 to each listing, Alex's retained keypad query, existing video rotation, origin guard
 and same-origin-only requests. Screenshots were inspected locally; see `alex-result.json`.
 This remains browser automation, not physical-phone or installed-PWA verification.
+
+## Northstar class introduction candidate
+
+This asset-only sample update makes Northstar a fictional beginner woodwork class:
+make a small shelf with a tutor, bring closed-toe shoes and a water bottle; the
+class supplies wood, tools and eye protection. The WEBSITE answers “What should I
+bring?” and includes the full introduction under “Words from the video.” The
+transcript is accessible HTML on the nearby WEBSITE destination, not a new inline
+player control. No booking, date, price, contact or real class is implied.
+
+The silent introduction is original local text/shapes rendered using the installed
+DejaVu Sans font and ffmpeg: **16 seconds, 768x432, H.264, no audio track**. Four
+four-second scenes use legible on-frame captions. All scenes were inspected at
+336x189 (mobile inline size); full decode passed. No paid voice, external image or
+real business media is used. `northstar_content.py` keeps the caption text and HTML
+transcript together. The guide has one primary cue: open TV2, choose +1, type
+700001 and press ENTER, with qualification and Alex under a secondary disclosure.
+This is guided self-serve review, not evidence of uncoached human first use.
+
+`tv2-owner-private-review-northstar.zip`: **14,178,975 bytes**, 46 files.
+SHA-256: `a7fc321d7906356abfda7c5dce56c9a6ef0b9face2515f3d0de76aa624312525`.
+All extracted hashes and ZIP inventory were verified. Every compiled Flutter app
+asset and the distinct Alex page are byte-identical to the prior Alex candidate;
+production code and the sample resolver were not changed. The existing tested
+release build was reused rather than altering the genuine TV2 UI.
+
+Focused Flutter adapter/origin tests and the HTTP contract test passed. The exact
+extracted-package HTTPS Chromium proof passed video playback/rotation/return,
+both distinct WEBSITE destinations, the promised bring-answer and HTML transcript,
+Alex's links/return, same-origin-only requests, no autoplay and the insecure-origin
+guard. MP4 Range returned `206 bytes 0-15/68191`. See `northstar-result.json`.
+No physical device, installed PWA or actual visitor test is claimed. This is a new
+separate private review archive; no current Site, prior artifact or public service
+was replaced or deployed.

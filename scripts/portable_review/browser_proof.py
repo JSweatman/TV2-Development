@@ -47,12 +47,17 @@ with tempfile.TemporaryDirectory() as directory:
         page.get_by_role('button',name='Play listing video',exact=True).click()
         page.wait_for_function('document.querySelector("video").currentTime>0.1')
         rotation=verify_landscape(page,output)
-        page.get_by_role('button',name='Replay listing video',exact=True).wait_for(timeout=15000)
+        page.get_by_role('button',name='Replay listing video',exact=True).wait_for(timeout=25000)
         page.mouse.wheel(0,500)
         with page.expect_popup() as popup:
           page.get_by_role('button',name='WEBSITE',exact=True).click()
         destination=popup.value;destination.wait_for_url(origin+'/sample-website.html')
         assert destination.get_by_role('heading',name='Northstar Workshop').is_visible()
+        assert destination.get_by_text('Bring closed-toe shoes and a water bottle.',exact=True).is_visible()
+        assert destination.get_by_text('We supply the wood, tools and eye protection.',exact=True).is_visible()
+        assert destination.get_by_role('heading',name='Words from the video',exact=True).is_visible()
+        assert destination.locator('form,input,iframe').count()==0
+        assert destination.locator('a').evaluate_all("links=>links.every(a=>a.origin===location.origin)")
         assert destination.get_by_role('heading',name="Alex's notebook").count()==0
         destination.close();page.bring_to_front()
         page.get_by_role('button',name='Back',exact=True).click()
@@ -115,7 +120,7 @@ with tempfile.TemporaryDirectory() as directory:
           insecure.shutdown();insecure.server_close();insecure_thread.join()
         result={'browser':browser.version,'package_root':root.name,'viewport':[390,844],
           'guide_to_app':True,'account_free':True,'immediate_enter':True,'fill_only_selection':True,
-          'website_popup_return':True,'distinct_personal_destination':True,'personal_links_and_return':True,'country_retained_on_refresh':True,'unknown_retry':True,
+          'website_popup_return':True,'concrete_bring_answer':True,'accessible_transcript':True,'distinct_personal_destination':True,'personal_links_and_return':True,'country_retained_on_refresh':True,'unknown_retry':True,
           'rotation':rotation,'http':statuses,'all_requests_same_origin':True,'no_autoplay':True,
           'no_media_before_opt_in':True,'no_request_interception':True,'http_guard_blocks_app':True}
         (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result));browser.close()

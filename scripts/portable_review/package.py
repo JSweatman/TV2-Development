@@ -3,9 +3,9 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
-import subprocess
 import sys
 import zipfile
+from northstar_content import make_intro, TRANSCRIPT
 
 build, destination = map(Path, sys.argv[1:3])
 if destination.exists():
@@ -13,19 +13,22 @@ if destination.exists():
 www = destination / 'www'
 shutil.copytree(build, www/'app', ignore=shutil.ignore_patterns('*.map'))
 (www/'media').mkdir()
-subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','testsrc2=size=160x90:rate=15',
-                '-t','8','-an','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',
-                str(www/'media/sample.mp4')],check=True)
+make_intro(www/'media/sample.mp4')
 (www/'index.html').write_text('''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Private TV2 sample review</title><style>body{font:18px system-ui;max-width:42rem;margin:2rem auto;padding:1rem;line-height:1.5}a{display:inline-block;padding:1rem;background:#182a35;color:white;border-radius:1rem}</style>
-<h1>A business introduction from one List Number</h1><p>Let visitors discover a business, watch its introduction and open its website.</p>
-<p><strong>Private review • sample data only.</strong> These two listings are synthetic, not real assignments. Browsing requires no account or payment.</p>
-<p>Business: <strong>1*700001</strong> — Northstar (sample)</p><p>Personal: <strong>1*70002</strong> — Alex (sample): a personal bio, projects and favorite things</p>
-<p>Choose +1 and enter the number, or enter its full qualified form. ENTER opens the listing; selecting a suggestion only fills the number.</p>
-<a href="/app/">Open List Number TV2</a><p>No signup, owner upload, contact sends, purchases or waitlist are available in this sample.</p></html>''')
+<h1>Meet Northstar Workshop</h1><p>A first woodwork class: make a small shelf and find out what to bring.</p>
+<p><strong>Private review • sample data only.</strong> Northstar and Alex are fictional. Browsing needs no TV2 account or payment.</p>
+<p>Open List Number TV2. Choose +1, type <strong>700001</strong>, and press ENTER to see Northstar Workshop.</p>
+<a href="/app/">Open List Number TV2</a>
+<details><summary>Other ways to try the sample</summary><p>Full number: <strong>1*700001</strong>. Selecting a name fills the number; ENTER opens the page.</p><p>Personal / 10E sample: <strong>1*70002</strong> — Alex's bio, small projects and favorite things.</p></details>
+<p>No booking, signup, contact sends, purchase or waitlist is offered.</p></html>''')
 (www/'sample-website.html').write_text('''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Northstar sample website</title><style>body{font:18px system-ui;max-width:40rem;padding:1.5rem;line-height:1.5}</style>
-<h1>Northstar Workshop</h1><p>Synthetic sample website. No real business, contacts or transactions.</p>
+<title>Northstar Workshop — class notes</title><style>body{font:18px system-ui;max-width:40rem;margin:auto;padding:1.5rem;line-height:1.6;background:#f8f6ed;color:#203d37}h1,h2{line-height:1.2}a{color:inherit}section{padding-top:1rem}</style>
+<p>Fictional sample class • 1*700001</p><h1>Northstar Workshop</h1>
+<p>Try your first woodwork class. Make a small shelf with a tutor who guides each step. No past skill is needed.</p>
+<section aria-labelledby="bring"><h2 id="bring">What should I bring?</h2><p><strong>Bring closed-toe shoes and a water bottle.</strong></p><p>We supply the wood, tools and eye protection.</p></section>
+<section aria-labelledby="transcript"><h2 id="transcript">Words from the video</h2><p>''' + TRANSCRIPT + '''</p></section>
+<p>This is a fictional class for private review. There is no real class date, booking, payment or contact form.</p>
 <p>Close this tab to return to the same listing in TV2.</p><a href="/">Private review guide</a></html>''')
 (www/'alex.html').write_text('''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Alex's sample notebook</title><style>body{font:18px system-ui;max-width:40rem;margin:auto;padding:1.5rem;line-height:1.6;background:#f8f6ed;color:#203d37}nav{display:flex;flex-wrap:wrap;gap:.75rem}nav a{padding:.75rem 1rem;background:#dfebe3;border-radius:1rem;color:inherit}section{padding-top:1rem}a:focus-visible{outline:3px solid #203d37;outline-offset:3px}</style>
@@ -42,7 +45,7 @@ No server API, credentials, sessions, upload handler, database or production res
 This archive is NOT a published phone link. The host must enforce owner-only access for ALL assets including MP4; the archive itself contains no authentication. Do not publicly publish or grant access without separate approval.
 The host needs GET/HEAD static files, correct MIME types (.wasm application/wasm, .js text/javascript, .mp4 video/mp4), MP4 single-byte Range 206/416, and no-store headers. Reject writes; do not add CORS exceptions. No external runtime assets should be fetched. Mount at origin root (not a subpath).
 The app fails closed on HTTP, file://, localhost and numeric-IP origins. It accepts valid HTTPS DNS origins, derives video and website URLs from its own origin and makes no production API calls. This is portable across approved private hosts, not permission to publish anywhere.
-Video is an eight-second locally generated test pattern, not a business endorsement. Phone/installed-PWA behavior remains physically unverified. Do not treat the read-only sample as business onboarding or production ownership/storage.
+Video is a 16-second locally generated silent, captioned introduction to a fictional class. Its accessible transcript is on the sample WEBSITE under Words from the video. Phone/installed-PWA behavior remains physically unverified. Do not treat the read-only sample as business onboarding or production ownership/storage.
 ''')
 # Restrict inventory to web build assets, with no source maps, keys or executables.
 for p in www.rglob('*'):
