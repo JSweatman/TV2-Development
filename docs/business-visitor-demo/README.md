@@ -1,5 +1,8 @@
 # Private synthetic business visitor integration
 
+For the newer self-contained read-only package, see [PORTABLE_REVIEW.md](PORTABLE_REVIEW.md).
+The original lab instructions below remain historical local integration evidence.
+
 This branch integrates the actual shared Flutter app from #44 (listing MP4 and
 handoffs), #45 (themes), #49 (compact keypad and fill-only selection), #50
 (landscape viewport) and #51 (immediate fresh ENTER). It is a review branch, not a

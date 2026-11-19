@@ -26,3 +26,5 @@ jobs:
         env:
           TV2_REPOSITORY: fixture
         run: pytest -q tests
+      - name: Verify portable read-only host contract
+        run: python ../scripts/portable_review/test_host.py
