@@ -44,7 +44,9 @@ def validate_clip(path: Path) -> None:
     if not 0 < duration <= 30 or len(videos) != 1 or len(streams) > 2:
         raise ValueError('Expected a short single-video clip')
     video = videos[0]
-    if video['codec_name'] != 'h264' or not (0 < video['width'] <= 1920 and 0 < video['height'] <= 1080):
+    # Bound the encoded pixel dimensions independently of portrait/landscape.
+    short_side, long_side = sorted((video['width'], video['height']))
+    if video['codec_name'] != 'h264' or not (0 < short_side <= 1080 and long_side <= 1920):
         raise ValueError('Unsupported video')
     for stream in streams:
         if stream is not video and (stream['codec_type'] != 'audio' or stream['codec_name'] != 'aac'):

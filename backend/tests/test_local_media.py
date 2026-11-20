@@ -92,3 +92,27 @@ class ClipValidationTests(unittest.TestCase):
                     validate_clip(path)
             with patch('local_media_demo.server.subprocess.run', return_value=SimpleNamespace(stdout=json.dumps({'format':{'duration':'1'},'streams':[good]}))):
                 validate_clip(path)
+
+
+    def test_real_encoded_dimensions_in_both_orientations(self):
+        import subprocess
+        from local_media_demo.server import validate_clip
+        with tempfile.TemporaryDirectory() as directory:
+            for width, height, accepted in (
+                (1280, 720, True), (1920, 1080, True),
+                (720, 1280, True), (1080, 1920, True),
+                (1922, 1080, False), (1080, 1922, False),
+                (1920, 1082, False), (1082, 1920, False),
+            ):
+                with self.subTest(width=width, height=height):
+                    clip = Path(directory) / f'{width}x{height}.mp4'
+                    subprocess.run([
+                        'ffmpeg', '-v', 'error', '-f', 'lavfi', '-i',
+                        f'color=c=blue:s={width}x{height}:d=0.1',
+                        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', str(clip),
+                    ], check=True, capture_output=True)
+                    if accepted:
+                        validate_clip(clip)
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'Unsupported video'):
+                            validate_clip(clip)

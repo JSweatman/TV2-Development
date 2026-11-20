@@ -1,0 +1,30 @@
+{
+  "nonowner_upload": 403,
+  "forged_token_upload": 401,
+  "anonymous_upload": 401,
+  "owner_upload": 200,
+  "nonowner_publish": 403,
+  "owner_publish": 200,
+  "owner_direct_storage_write": 400,
+  "owner_direct_storage_read": 400,
+  "viewer_direct_storage_write": 400,
+  "viewer_direct_storage_read": 400,
+  "public_bucket_read": 400,
+  "unauthorized_playback": 403,
+  "service_and_storage_restart_preserved_sha256": true,
+  "authorized_range": 206,
+  "browser_playback": {
+    "browser": "156.0.8078.79",
+    "current_time": 0.2193,
+    "paused_before_explicit_play": true,
+    "harness": "local explicit-play HTML harness; not Flutter"
+  },
+  "revoked_viewer_denied": true,
+  "clip_sha256": "d8d4c1b74f2e7d8cf469dbf475c147e401686d2a5a107f7ef51929855e31a38a",
+  "clip_bytes": 2962,
+  "real_gotrue": true,
+  "real_supabase_storage": true,
+  "private_bucket": true,
+  "remote_requests": false,
+  "physical_devices": 0
+}

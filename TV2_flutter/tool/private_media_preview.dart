@@ -1,0 +1,144 @@
+// Web-only disposable preview. Not imported by lib/main.dart.
+// ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
+import 'dart:async';
+import 'dart:convert';
+import 'dart:html' as html;
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:video_player/video_player.dart';
+import 'private_media_widgets.dart';
+import 'private_video_load.dart';
+
+class LocalMediaApi implements PreviewMediaApi {
+  LocalMediaApi(this.identity);
+  final String identity;
+  http.Client client = http.Client();
+  Uri uri(String path) => Uri.parse('${Uri.base.origin}$path');
+  void check(http.Response r) {
+    if (r.statusCode != 200) throw PreviewMediaFailure(r.statusCode);
+  }
+
+  @override
+  Future<bool> signIn(String email, String password) async {
+    final r = await client.post(uri('/preview/session'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password, 'listing': identity}));
+    check(r);
+    return jsonDecode(r.body)['owner'] == true;
+  }
+
+  @override
+  Future<String> upload(Uint8List bytes) async {
+    final r = await client.put(uri('/private/listings/$identity/uploads'),
+        headers: {'Content-Type': 'video/mp4'}, body: bytes);
+    check(r);
+    return jsonDecode(r.body)['upload_id'] as String;
+  }
+
+  @override
+  Future<void> publish(String id) async {
+    final r = await client.post(uri('/private/listings/$identity/publish/$id'));
+    check(r);
+  }
+
+  @override
+  void cancel() {
+    client.close();
+    client = http.Client();
+  }
+
+  @override
+  Future<void> signOut() async {
+    try {
+      await client.delete(uri('/preview/session'));
+    } catch (_) {
+      // Always remove the local UI session, even when the gateway is unavailable.
+    } finally {
+      cancel();
+    }
+  }
+}
+
+Future<PreviewClip?> pick() async {
+  final input = html.FileUploadInputElement()..accept = '.mp4,video/mp4';
+  final done = Completer<PreviewClip?>();
+  input.addEventListener('cancel', (_) {
+    if (!done.isCompleted) done.complete(null);
+  });
+  input.onChange.listen((_) async {
+    try {
+      final files = input.files;
+      if (files == null || files.isEmpty) {
+        done.complete(null);
+        return;
+      }
+      final f = files.single;
+      if (f.size > 5242880) {
+        done.complete(PreviewClip(f.name, Uint8List(0)));
+        return;
+      }
+      final reader = html.FileReader();
+      reader.readAsArrayBuffer(f);
+      await reader.onLoad.first;
+      done.complete(PreviewClip(f.name, reader.result as Uint8List));
+    } catch (_) {
+      if (!done.isCompleted) done.complete(null);
+    }
+  });
+  input.click();
+  return done.future;
+}
+
+// The URL belongs to this selection only; it never crosses the network API.
+class SelectedClipPreview extends StatefulWidget {
+  const SelectedClipPreview({super.key, required this.clip});
+  final PreviewClip clip;
+  @override
+  State<SelectedClipPreview> createState() => _SelectedClipPreviewState();
+}
+
+class _SelectedClipPreviewState extends State<SelectedClipPreview> {
+  String? url;
+  void release() {
+    if (url != null) html.Url.revokeObjectUrl(url!);
+    url = null;
+  }
+  @override
+  void dispose() {
+    release();
+    super.dispose();
+  }
+  @override
+  Widget build(BuildContext context) => PrivatePreviewPlayer(
+    local: true,
+    onRelease: release,
+    create: () {
+      release();
+      url = html.Url.createObjectUrlFromBlob(html.Blob([widget.clip.bytes], 'video/mp4'));
+      return VideoPlayerController.networkUrl(Uri.parse(url!),
+        videoPlayerOptions: VideoPlayerOptions(allowBackgroundPlayback: true));
+    });
+}
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Uri.base.host != '127.0.0.1' ||
+      Uri.base.scheme != 'http' ||
+      Uri.base.port != 54327) throw StateError('Disposable local preview only');
+  final identity = Uri.base.queryParameters['listing'] ?? '1*73141';
+  final listing = previewListings[identity];
+  if (listing == null) throw StateError('Unknown synthetic listing');
+  runApp(MaterialApp(
+      home: PrivateMediaPreview(
+          api: LocalMediaApi(identity),
+          listing: listing,
+          pick: pick,
+          selectedPreview: (clip) => SelectedClipPreview(clip: clip),
+          player: () => PrivatePreviewPlayer(
+              create: () => VideoPlayerController.networkUrl(
+                  privateVideoLoadUri(Uri.parse(
+                      '${Uri.base.origin}/private/listings/$identity/video')),
+                  videoPlayerOptions:
+                      VideoPlayerOptions(allowBackgroundPlayback: true))))));
+}

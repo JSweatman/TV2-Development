@@ -1,0 +1,17 @@
+{
+  "cancel_never_published": true,
+  "actual_flutter_playback": true,
+  "no_autoplay": true,
+  "viewer_upload_denied": 403,
+  "invalid_session_ui_denied": true,
+  "browser": "156.0.8078.79",
+  "viewport": [
+    320,
+    640
+  ],
+  "real_gotrue": true,
+  "real_private_storage": true,
+  "browser_token_storage": false,
+  "request_interception": false,
+  "physical_devices": 0
+}

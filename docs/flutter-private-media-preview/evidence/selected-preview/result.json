@@ -1,0 +1,32 @@
+{
+  "signed_in_invalid_clip_status": 422,
+  "preview_and_reselection_no_writes": true,
+  "replaced_blob_revoked": true,
+  "cancel_releases_blob": true,
+  "cancel_never_published": true,
+  "viewer_unavailable_before_publish": true,
+  "viewer_receives_second_clip_only": true,
+  "portrait_playback": {
+    "width": 720,
+    "height": 1280,
+    "time": 0.3203,
+    "paused": false
+  },
+  "rotation_metadata_exercised": false,
+  "replacement_without_sign_in": true,
+  "actual_flutter_playback": true,
+  "no_autoplay": true,
+  "viewer_upload_denied": 403,
+  "invalid_session_ui_denied": true,
+  "signout_releases_blob": true,
+  "browser": "156.0.8078.79",
+  "viewport": [
+    320,
+    640
+  ],
+  "real_gotrue": true,
+  "real_private_storage": true,
+  "browser_token_storage": false,
+  "request_interception": false,
+  "physical_devices": 0
+}

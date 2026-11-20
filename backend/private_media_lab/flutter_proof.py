@@ -1,0 +1,267 @@
+"""Actual Flutter web preview against disposable GoTrue and Storage."""
+import asyncio
+import json
+import hashlib
+import secrets
+import subprocess
+import threading
+import time
+import httpx
+import uvicorn
+from playwright.sync_api import sync_playwright
+from .app import connect
+from .providers import SupabaseAuth, SupabasePrivateStore
+from .flutter_gateway import create_gateway
+from .proof import AUTH, STORAGE, SERVICE, BASE
+
+def run_flutter_proof(secret,output,web):
+    output.mkdir(parents=True)
+    client=httpx.Client(trust_env=False,timeout=10)
+    accounts=[]
+    for role in ('owner','viewer','second-owner'):
+        email=role+'-'+secrets.token_hex(4)+'@example.invalid';password=secrets.token_urlsafe(32)
+        r=client.post(AUTH+'/signup',json={'email':email,'password':password});r.raise_for_status()
+        accounts.append((email,password,r.json()['user']['id']))
+    db=output/'private-metadata.sqlite'
+    app=create_gateway(auth=SupabaseAuth(AUTH),store=SupabasePrivateStore(STORAGE,secret),database=db,web_dir=web)
+    with connect(db) as con:
+        con.execute('INSERT INTO listings VALUES (?,?)',('1*73141',accounts[0][2]))
+        con.execute('INSERT INTO viewers VALUES (?,?)',('1*73141',accounts[1][2]))
+    with connect(db) as con:
+        con.execute('INSERT INTO listings VALUES (?,?)',('1*73142',accounts[2][2]))
+        con.execute('INSERT INTO viewers VALUES (?,?)',('1*73142',accounts[1][2]))
+    app.state.delay_upload=False
+    @app.middleware('http')
+    async def controlled_delay(request,call_next):
+        if request.url.path.endswith('/uploads') and app.state.delay_upload:await asyncio.sleep(1)
+        return await call_next(request)
+    clip=output/'synthetic.mp4'
+    subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','color=c=navy:s=720x1280:d=3','-vf',
+        "drawbox=x=0:y=0:w=iw:h=180:color=green:t=fill,"
+        "drawtext=text='TOP - UPRIGHT':fontcolor=white:fontsize=56:x=(w-tw)/2:y=60,"
+        "drawtext=text='PORTRAIT':fontcolor=white:fontsize=64:x=(w-tw)/2:y=(h-th)/2,"
+        "drawbox=x=0:y=1100:w=iw:h=180:color=red:t=fill,"
+        "drawtext=text='BOTTOM':fontcolor=white:fontsize=56:x=(w-tw)/2:y=1160",'-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
+    server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=54327,log_level='critical',access_log=False))
+    thread=threading.Thread(target=server.run,daemon=True);thread.start()
+    for _ in range(100):
+        if server.started:break
+        time.sleep(.05)
+    result={}
+    try:
+      with sync_playwright() as p:
+        browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
+        owner=browser.new_context(viewport={'width':320,'height':640});viewer=browser.new_context(viewport={'width':320,'height':640})
+        def login(context,account,identity=None):
+            page=context.new_page();page.goto(SERVICE+('?listing='+identity if identity else ''))
+            page.locator('flt-semantics-placeholder').evaluate('(e)=>e.click()')
+            account_input=page.get_by_role('textbox',name='Test account',exact=True)
+            account_input.click();account_input.press_sequentially(account[0],delay=15)
+            account_input.press('Tab')
+            password_input=page.get_by_role('textbox',name='Test password',exact=True)
+            password_input.click();password_input.press_sequentially(account[1],delay=15)
+            assert password_input.input_value()==account[1]
+            password_input.press('Tab')
+            try:
+                with page.expect_response(lambda r:r.url.endswith('/preview/session')) as signed:
+                    page.get_by_role('button',name='Sign in to local preview',exact=True).click()
+                assert signed.value.status == 200, 'Local sign-in failed'
+            except Exception:
+                page.screenshot(path=str(output/'signin-diagnostic.png'))
+                print('Sign-in UI:',page.locator('body').inner_text()[:1000])
+                print('Field lengths:',len(page.get_by_role('textbox',name='Test account',exact=True).input_value()),len(page.get_by_role('textbox',name='Test password',exact=True).input_value()))
+                raise
+            return page
+        writes=[]
+        owner.on('request',lambda r: writes.append(r.url) if '/uploads' in r.url or '/publish/' in r.url else None)
+        page=login(owner,accounts[0]);page.get_by_role('button',name='Choose synthetic MP4').wait_for()
+        assert page.evaluate('localStorage.length')==0
+        assert all(c['httpOnly'] for c in owner.cookies())
+        # Genuine unsupported codec in a valid MP4, under the same signed-in session.
+        unsupported=output/'unsupported.mp4'
+        subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i',
+            'color=c=blue:s=160x90:d=1','-c:v','mpeg4',str(unsupported)],check=True)
+        with page.expect_file_chooser() as rejected:page.get_by_role('button',name='Choose synthetic MP4').click()
+        rejected.value.set_files(str(unsupported))
+        with page.expect_response(lambda r:r.url.endswith('/uploads')) as invalid:
+            page.get_by_role('button',name='Upload private draft',exact=True).click()
+        assert invalid.value.status==422
+        page.get_by_text('This clip could not be validated.',exact=False).first.wait_for()
+        assert page.get_by_role('button',name='Sign in to local preview',exact=True).count()==0
+        with connect(db) as con:assert con.execute('SELECT count(*) FROM publications').fetchone()[0]==0
+        page.screenshot(path=str(output/'invalid-clip-guidance.png'))
+        result['signed_in_invalid_clip_status']=422
+        first=output/'first.mp4'
+        subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i',
+            'color=c=orange:s=320x180:d=3','-vf',
+            "drawtext=text='FIRST':fontcolor=black:fontsize=48:x=(w-tw)/2:y=(h-th)/2",
+            '-c:v','libx264','-pix_fmt','yuv420p',str(first)],check=True)
+        baseline=len(writes)
+        with page.expect_file_chooser() as selected:page.get_by_role('button',name='Choose synthetic MP4').click()
+        selected.value.set_files(str(first))
+        page.get_by_role('button',name='Load selected preview',exact=True).click()
+        page.get_by_role('button',name='Play selected clip',exact=True).wait_for()
+        assert page.locator('video').evaluate('(v)=>v.paused')
+        page.mouse.wheel(0,250)
+        page.get_by_role('button',name='Play selected clip',exact=True).click()
+        page.wait_for_function('document.querySelector("video").currentTime > 0.2')
+        first_url=page.locator('video').evaluate('(v)=>v.src')
+        assert first_url.startswith('blob:')
+        page.locator('video').screenshot(path=str(output/'owner-first.png'))
+        page.mouse.wheel(0,-1200);page.wait_for_timeout(300)
+        with page.expect_file_chooser() as chosen:page.get_by_role('button',name='Choose synthetic MP4').click()
+        chosen.value.set_files(str(clip))
+        page.get_by_text('Synthetic MP4 selected. Server validates content before publication.',exact=True).first.wait_for()
+        assert page.locator('video').count()==0
+        assert page.evaluate('(u)=>fetch(u).then(()=>false,()=>true)',first_url)
+        page.get_by_role('button',name='Load selected preview',exact=True).click()
+        page.get_by_role('button',name='Play selected clip',exact=True).wait_for()
+        page.mouse.wheel(0,400);page.wait_for_timeout(300)
+        page.get_by_role('button',name='Play selected clip',exact=True).click()
+        page.wait_for_function('document.querySelector("video").currentTime > 0.2')
+        second_url=page.locator('video').evaluate('(v)=>v.src')
+        assert page.locator('video').evaluate('(v)=>v.videoWidth===720 && v.videoHeight===1280')
+        page.locator('video').screenshot(path=str(output/'owner-second.png'))
+        assert len(writes)==baseline
+        result['preview_and_reselection_no_writes']=True
+        result['replaced_blob_revoked']=True
+        page.mouse.wheel(0,-1500);page.wait_for_timeout(300)
+        app.state.delay_upload=True
+        page.get_by_role('button',name='Upload private draft',exact=True).click()
+        page.get_by_role('button',name='Cancel action',exact=True).click()
+        page.get_by_text('Cancelled. Nothing was published; a private draft may need cleanup.',exact=True).first.wait_for()
+        with connect(db) as con:assert con.execute('SELECT count(*) FROM publications').fetchone()[0]==0
+        assert page.locator('video').count()==0
+        assert page.evaluate('(u)=>fetch(u).then(()=>false,()=>true)',second_url)
+        result['cancel_releases_blob']=True
+        result['cancel_never_published']=True;app.state.delay_upload=False
+        page.get_by_role('button',name='Upload private draft',exact=True).click()
+        page.get_by_text('Private draft ready. Publish is a separate action.',exact=True).first.wait_for()
+        vp=login(viewer,accounts[1])
+        assert viewer.request.get(SERVICE+BASE+'/video').status==404
+        result['viewer_unavailable_before_publish']=True
+        page.get_by_role('button',name='Publish listing video',exact=True).click()
+        page.get_by_text('Published for allowed viewers.',exact=True).first.wait_for()
+        page.screenshot(path=str(output/'flutter-owner.png'))
+        delivered=viewer.request.get(SERVICE+BASE+'/video')
+        assert delivered.status==200
+        assert hashlib.sha256(delivered.body()).digest()==hashlib.sha256(clip.read_bytes()).digest()
+        result['viewer_receives_second_clip_only']=True
+        vp.screenshot(path=str(output/'viewer-after-signin.png'))
+        try:
+            vp.get_by_text('Local allowed-viewer preview',exact=True).first.wait_for(timeout=10000)
+        except Exception:
+            vp.screenshot(path=str(output/'viewer-failure.png'))
+            print('Viewer visible UI:',vp.locator('body').inner_text()[:1000])
+            raise
+        vp.screenshot(path=str(output/'viewer-before-load.png'))
+        vp.wait_for_function('document.body.innerText.includes("Copper Observatory")')
+        assert vp.get_by_role('button',name='Upload private draft').count()==0
+        assert vp.locator('video').count()==0
+        vp.get_by_role('button',name='Load private video',exact=True).click()
+        vp.get_by_role('button',name='Play private video',exact=True).first.wait_for()
+        assert vp.locator('video').evaluate('(v)=>v.paused')
+        # Scroll the listing normally so the full tall frame fits the viewport.
+        vp.mouse.move(160, 500)
+        vp.mouse.wheel(0, 300)
+        vp.wait_for_timeout(300)
+        vp.get_by_role('button',name='Play private video',exact=True).click()
+        vp.wait_for_function('document.querySelector("video").currentTime > 0.2')
+        vp.locator('video').screenshot(path=str(output/'portrait-playing.png'))
+        dimensions=vp.locator('video').evaluate('(v)=>({width:v.videoWidth,height:v.videoHeight,time:v.currentTime,paused:v.paused})')
+        assert dimensions['width']==720 and dimensions['height']==1280
+        assert dimensions['time']>0.2
+        result['portrait_playback']=dimensions
+        result['rotation_metadata_exercised']=False
+        vp.screenshot(path=str(output/'flutter-viewer.png'))
+        result['replacement_without_sign_in']=True
+        result['actual_flutter_playback']=True
+        result['no_autoplay']=True
+        r=viewer.request.put(SERVICE+BASE+'/uploads',headers={'Origin':SERVICE,'Content-Type':'video/mp4'},data=clip.read_bytes());assert r.status==403;result['viewer_upload_denied']=r.status
+        # Invalidate the server-side owner session without exposing a token to the UI.
+        sid=owner.cookies()[0]['value'];app.state.preview_sessions[sid]='invalid'
+        page.get_by_role('button',name='Upload private draft',exact=True).click()
+        page.get_by_text('Session unavailable. Sign out and sign in again.',exact=True).first.wait_for()
+        result['invalid_session_ui_denied']=True
+        page.get_by_role('button',name='Load selected preview',exact=True).click()
+        page.get_by_role('button',name='Play selected clip',exact=True).wait_for()
+        logout_url=page.locator('video').evaluate('(v)=>v.src')
+        page.get_by_role('button',name='Sign out',exact=True).click()
+        page.get_by_role('button',name='Sign in to local preview',exact=True).wait_for()
+        assert page.locator('video').count()==0
+        assert page.evaluate('(u)=>fetch(u).then(()=>false,()=>true)',logout_url)
+        result['signout_releases_blob']=True
+        # Second independent owner/listing, through the same actual Flutter UI.
+        other=browser.new_context(viewport={'width':320,'height':640})
+        second_base='/private/listings/1*73142'
+        op=login(other,accounts[2],'1*73142')
+        op.get_by_text('1*73142 · Maple Studio · synthetic',exact=True).wait_for()
+        assert other.request.put(SERVICE+BASE+'/uploads',headers={'Origin':SERVICE,'Content-Type':'video/mp4'},data=first.read_bytes()).status==403
+        with op.expect_file_chooser() as chosen:op.get_by_role('button',name='Choose synthetic MP4').click()
+        chosen.value.set_files(str(first))
+        op.get_by_role('button',name='Upload private draft',exact=True).click()
+        op.get_by_text('Private draft ready. Publish is a separate action.',exact=True).first.wait_for()
+        assert viewer.request.get(SERVICE+second_base+'/video').status==404
+        op.get_by_role('button',name='Publish listing video',exact=True).click()
+        op.get_by_text('Published for allowed viewers.',exact=True).first.wait_for()
+        v2=login(viewer,accounts[1],'1*73142')
+        v2.get_by_text('Maple Studio · synthetic',exact=True).wait_for()
+        v2.get_by_role('button',name='Load private video',exact=True).click()
+        v2.get_by_role('button',name='Play private video',exact=True).click()
+        v2.wait_for_function('document.querySelector("video").currentTime>0.2')
+        assert v2.locator('video').evaluate('(v)=>v.videoWidth===320 && v.videoHeight===180')
+        v2.screenshot(path=str(output/'second-listing-viewer.png'))
+        def digest(path):
+            response=viewer.request.get(SERVICE+path+'/video');assert response.status==200
+            return hashlib.sha256(response.body()).hexdigest()
+        original_second=digest(second_base)
+        assert original_second==hashlib.sha256(first.read_bytes()).hexdigest()
+        assert digest(BASE)==hashlib.sha256(clip.read_bytes()).hexdigest()
+        # Re-authenticate first owner normally after the invalid-session control.
+        p1=login(owner,accounts[0])
+        assert owner.request.put(SERVICE+second_base+'/uploads',headers={'Origin':SERVICE,'Content-Type':'video/mp4'},data=clip.read_bytes()).status==403
+        assert owner.request.post(SERVICE+second_base+'/publish/not-owned',headers={'Origin':SERVICE}).status==403
+        assert other.request.post(SERVICE+BASE+'/publish/not-owned',headers={'Origin':SERVICE}).status==403
+        updated=output/'updated-first.mp4'
+        subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','color=c=green:s=160x90:d=3',
+            '-vf',"drawtext=text='UPDATED':fontcolor=white:fontsize=24:x=(w-tw)/2:y=(h-th)/2",
+            '-c:v','libx264','-pix_fmt','yuv420p',str(updated)],check=True)
+        with p1.expect_file_chooser() as chosen:p1.get_by_role('button',name='Choose synthetic MP4').click()
+        chosen.value.set_files(str(updated))
+        p1.get_by_role('button',name='Upload private draft',exact=True).click()
+        p1.get_by_text('Private draft ready. Publish is a separate action.',exact=True).first.wait_for()
+        assert digest(BASE)==hashlib.sha256(clip.read_bytes()).hexdigest()
+        assert digest(second_base)==original_second
+        p1.get_by_role('button',name='Publish listing video',exact=True).click()
+        p1.get_by_text('Published for allowed viewers.',exact=True).first.wait_for()
+        assert digest(BASE)==hashlib.sha256(updated.read_bytes()).hexdigest()
+        assert digest(second_base)==original_second
+        # Reuse the already-playing viewer page with ordinary caching enabled.
+        # A fresh tab hid stale same-URL browser media buffers in earlier proof.
+        v1=vp
+        old_source=v1.locator('video').evaluate('(v)=>v.currentSrc')
+        v1.get_by_role('button',name='Dismiss private video',exact=True).click()
+        with v1.expect_response(lambda r: '/private/listings/' in r.url and '/video' in r.url) as media:
+            v1.get_by_role('button',name='Load private video',exact=True).click()
+        assert media.value.status==206
+        assert media.value.headers['cache-control']=='no-store'
+        assert hashlib.sha256(media.value.body()).hexdigest()==hashlib.sha256(updated.read_bytes()).hexdigest()
+        v1.get_by_role('button',name='Play private video',exact=True).wait_for()
+        assert v1.locator('video').evaluate('(v)=>v.currentSrc')!=old_source
+        assert v1.locator('video').evaluate('(v)=>v.paused')
+        v1.get_by_role('button',name='Play private video',exact=True).click()
+        v1.wait_for_function('document.querySelector("video").currentTime>0.2')
+        assert v1.locator('video').evaluate('(v)=>v.videoWidth===160 && v.videoHeight===90')
+        v1.screenshot(path=str(output/'updated-first-viewer.png'))
+        result['two_exact_owned_listings']=True
+        result['cross_owner_upload_and_publish_denied']=True
+        result['viewer_plays_both_listings']=True
+        result['updating_first_preserves_second_bytes']=True
+        result['same_viewer_reload_fetches_current_publication']=True
+        result['unpublished_replacement_preserves_current_video']=True
+        other.close()
+        result.update({'browser':browser.version,'viewport':[320,640],'real_gotrue':True,'real_private_storage':True,'browser_token_storage':False,'request_interception':False,'physical_devices':0})
+        owner.close();viewer.close();browser.close()
+        (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result))
+    finally:
+        server.should_exit=True;thread.join(5);client.close()
