@@ -59,6 +59,57 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  for (final outcome in ['success', 'refused', 'invalid']) {
+    testWidgets('website handoff pauses playing video: $outcome', (tester) async {
+      tester.view.physicalSize = const Size(390, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final platform = TestVideoPlatform();
+      VideoPlayerPlatform.instance = platform;
+      var launches = 0;
+      const channel = MethodChannel('plugins.flutter.io/url_launcher');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'launch') {
+          launches++;
+          expect(platform.pauses, greaterThan(0));
+          return outcome == 'success';
+        }
+        return true;
+      });
+      addTearDown(() => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null));
+      final record = Listing(countryCode: '1', listNumber: '700001', tldx: null,
+        displayName: 'Sample workshop', entityType: 'test', templateKey: 'basic',
+        resources: [media, ResourceRecord(key: 'website', type: 'web',
+          uri: outcome == 'invalid' ? 'http://example.org' : 'https://example.org', metadata: {})],
+        buttons: const [ButtonRecord(slot: 1, label: 'WEBSITE', resourceKey: 'website')]);
+      await tester.pumpWidget(MaterialApp(home: TemplateScreen(listing: record)));
+      await tapVisible(tester, find.text('Load listing video'));
+      final idlePauses = platform.pauses;
+      await tapVisible(tester, find.text('WEBSITE'));
+      expect(platform.pauses, idlePauses); // Loading alone is not playing.
+      final initialLaunches = launches;
+      await tapVisible(tester, find.text('Play listing video'));
+      final playingPauses = platform.pauses;
+      await tapVisible(tester, find.text('WEBSITE'));
+      if (outcome == 'invalid') {
+        expect(launches, 0);
+        expect(platform.pauses, playingPauses);
+      } else {
+        expect(launches, initialLaunches + 1);
+        expect(platform.pauses, playingPauses + 1);
+        expect(platform.plays, 1);
+        await tester.pump(const Duration(seconds: 1));
+        expect(platform.plays, 1);
+        await tapVisible(tester, find.text('Play listing video'));
+        expect(platform.plays, 2);
+      }
+      if (outcome != 'success') expect(find.text('Unable to open public resource securely.'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
   test('only typed E164 destinations', () {
     expect(deviceDestination(call).toString(), 'tel:+12025550123');
     expect(deviceDestination(text).toString(), 'sms:+12025550123');

@@ -46,6 +46,28 @@ with tempfile.TemporaryDirectory() as directory:
         assert page.locator('video').evaluate('(v)=>v.paused && v.currentTime===0')
         page.get_by_role('button',name='Play listing video',exact=True).click()
         page.wait_for_function('document.querySelector("video").currentTime>0.1')
+        page.wait_for_function('document.querySelector("video").currentTime>1')
+        page.evaluate("window.handoffVideo=document.querySelector('video');window.handoffEvents=[];document.addEventListener('visibilitychange',()=>handoffEvents.push(document.visibilityState))")
+        before_handoff=page.locator('video').evaluate('(v)=>v.currentTime')
+        with page.expect_popup() as during_play:
+          page.get_by_role('button',name='WEBSITE',exact=True).click()
+        external=during_play.value;external.wait_for_url(origin+'/sample-website.html')
+        external.bring_to_front()
+        assert external.get_by_text('Bring closed-toe shoes and a water bottle.',exact=True).is_visible()
+        assert external.get_by_text('We supply the wood, tools and eye protection.',exact=True).is_visible()
+        page.wait_for_function('document.querySelector("video").paused')
+        paused_at=page.locator('video').evaluate('(v)=>v.currentTime')
+        page.wait_for_timeout(2000)
+        external.close();page.bring_to_front();page.wait_for_timeout(1000)
+        returned=page.locator('video').evaluate('(v)=>({time:v.currentTime,paused:v.paused,same:v===window.handoffVideo})')
+        assert returned['same'] and returned['paused'] and abs(returned['time']-paused_at)<0.1
+        assert 'Northstar (sample)' in page.locator('body').inner_text() and '1*700001' in page.locator('body').inner_text()
+        page.screenshot(path=str(output/'handoff-return-paused.png'))
+        page.get_by_role('button',name='Play listing video',exact=True).click()
+        page.wait_for_function('(t)=>document.querySelector("video").currentTime>t+0.2',arg=paused_at)
+        handoff={'before':before_handoff,'paused_at':paused_at,'returned':returned,
+          'after_explicit_play':page.locator('video').evaluate('(v)=>v.currentTime'),
+          'visibility_events':page.evaluate('window.handoffEvents'),'supplies_answer':True}
         rotation=verify_landscape(page,output)
         page.get_by_role('button',name='Replay listing video',exact=True).wait_for(timeout=25000)
         page.mouse.wheel(0,500)
@@ -121,7 +143,7 @@ with tempfile.TemporaryDirectory() as directory:
         result={'browser':browser.version,'package_root':root.name,'viewport':[390,844],
           'guide_to_app':True,'account_free':True,'immediate_enter':True,'fill_only_selection':True,
           'website_popup_return':True,'concrete_bring_answer':True,'accessible_transcript':True,'distinct_personal_destination':True,'personal_links_and_return':True,'country_retained_on_refresh':True,'unknown_retry':True,
-          'rotation':rotation,'http':statuses,'all_requests_same_origin':True,'no_autoplay':True,
+          'handoff':handoff,'rotation':rotation,'http':statuses,'all_requests_same_origin':True,'no_autoplay':True,
           'no_media_before_opt_in':True,'no_request_interception':True,'http_guard_blocks_app':True}
         (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result));browser.close()
     finally:

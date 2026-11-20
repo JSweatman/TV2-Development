@@ -140,3 +140,33 @@ guard. MP4 Range returned `206 bytes 0-15/68191`. See `northstar-result.json`.
 No physical device, installed PWA or actual visitor test is claimed. This is a new
 separate private review archive; no current Site, prior artifact or public service
 was replaced or deployed.
+
+## Explicit pause at WEBSITE handoff (November 20)
+
+A valid public-link tap now requests a pause from this listing's own inline
+player before calling the existing URL launcher. The pause is not awaited, so
+opening the external URL stays in the original user gesture. Invalid links do
+not pause; unloaded/already-paused players are unchanged. Launch refusal retains
+the existing fallback and leaves playback under the user's control. No destination
+monitoring or return-triggered playback was added.
+
+116 Flutter tests pass, including successful/refused launch, invalid URL and
+non-playing cases; the static-host test passes. The rebuilt extracted package
+passed the full local Chromium proof at 390×844: playing at 1.0209s, paused at
+1.0499s when WEBSITE opened, still paused at exactly 1.0499s after closing the
+popup and waiting, then advancing to 1.2837s only after explicit Play. No
+visibility events fired. The video element, Northstar listing and qualified
+identity were preserved; the class supplies answer opened correctly. Rotation,
+Alex destination/return, input, range/no-store and isolation regressions passed.
+[Result](handoff/result.json), [paused return](handoff/handoff-return-paused.png).
+This is automated local Chromium evidence, not phone/installed-PWA acceptance.
+
+The separately prepared local candidate is `tv2-owner-private-review-handoff-v2.zip`
+(46 files, 14,179,000 bytes), SHA-256
+`74d6e92c3349da59812c10df7bddfe17d6951492cf2d3b2281fb1e4a5f8f8552`.
+It was built with the documented `/app/` base path and inventory/manifest checked.
+An initial local build with the wrong root base path was rejected by browser QA;
+that earlier candidate is not the validated deliverable. The original Northstar
+ZIP (`a7fc321d7906356abfda7c5dce56c9a6ef0b9face2515f3d0de76aa624312525`)
+and owner-hosted build are unchanged. This candidate has not been uploaded,
+published or deployed; replacing any hosted review requires a separate action.

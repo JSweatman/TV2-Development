@@ -828,7 +828,7 @@ class TemplateScreen extends StatefulWidget {
 }
 
 class _TemplateScreenState extends State<TemplateScreen> {
-  final _videoKey = GlobalKey();
+  final _videoKey = GlobalKey<ListingVideoPanelState>();
   bool _videoExpanded = false;
   Listing get listing => widget.listing;
   DeviceHandoff? get deviceHandoff => widget.deviceHandoff;
@@ -1037,6 +1037,10 @@ class _TemplateScreenState extends State<TemplateScreen> {
       return;
     }
     if (resource.uri != null) {
+      if (safePublicResourceUri(resource.uri) != null) {
+        _videoKey.currentState?.pauseForExternalHandoff();
+      }
+      // Do not await the pause: launch must retain the user's browser gesture.
       final opened = await PublicResourceLauncher().open(resource.uri);
       if (!context.mounted) return;
       if (!opened) {

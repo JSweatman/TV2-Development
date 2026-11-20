@@ -38,10 +38,10 @@ class ListingVideoPanel extends StatefulWidget {
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
 
   @override
-  State<ListingVideoPanel> createState() => _ListingVideoPanelState();
+  State<ListingVideoPanel> createState() => ListingVideoPanelState();
 }
 
-class _ListingVideoPanelState extends State<ListingVideoPanel>
+class ListingVideoPanelState extends State<ListingVideoPanel>
     with WidgetsBindingObserver, RouteAware {
   VideoPlayerController? _controller;
   bool _loading = false;
@@ -180,6 +180,12 @@ class _ListingVideoPanelState extends State<ListingVideoPanel>
       _release();
       setState(() => _failed = true);
     }
+  }
+
+  /// Request a pause without awaiting platform work, so the caller can open
+  /// an external URL in the original user gesture. Never resumes on return.
+  void pauseForExternalHandoff() {
+    if (_controller?.value.isPlaying ?? false) _pause();
   }
 
   void _pause() {
