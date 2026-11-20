@@ -32,7 +32,12 @@ def run_flutter_proof(secret,output,web):
         if request.url.path.endswith('/uploads') and app.state.delay_upload:await asyncio.sleep(1)
         return await call_next(request)
     clip=output/'synthetic.mp4'
-    subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','color=c=blue:s=160x90:d=2','-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
+    subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','color=c=navy:s=720x1280:d=3','-vf',
+        "drawbox=x=0:y=0:w=iw:h=180:color=green:t=fill,"
+        "drawtext=text='TOP - UPRIGHT':fontcolor=white:fontsize=56:x=(w-tw)/2:y=60,"
+        "drawtext=text='PORTRAIT':fontcolor=white:fontsize=64:x=(w-tw)/2:y=(h-th)/2,"
+        "drawbox=x=0:y=1100:w=iw:h=180:color=red:t=fill,"
+        "drawtext=text='BOTTOM':fontcolor=white:fontsize=56:x=(w-tw)/2:y=1160",'-c:v','libx264','-pix_fmt','yuv420p',str(clip)],check=True)
     server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=54327,log_level='critical',access_log=False))
     thread=threading.Thread(target=server.run,daemon=True);thread.start()
     for _ in range(100):
@@ -95,8 +100,18 @@ def run_flutter_proof(secret,output,web):
         vp.get_by_role('button',name='Load private video',exact=True).click()
         vp.get_by_role('button',name='Play private video',exact=True).first.wait_for()
         assert vp.locator('video').evaluate('(v)=>v.paused')
+        # Scroll the listing normally so the full tall frame fits the viewport.
+        vp.mouse.move(160, 500)
+        vp.mouse.wheel(0, 300)
+        vp.wait_for_timeout(300)
         vp.get_by_role('button',name='Play private video',exact=True).click()
         vp.wait_for_function('document.querySelector("video").currentTime > 0.2')
+        vp.locator('video').screenshot(path=str(output/'portrait-playing.png'))
+        dimensions=vp.locator('video').evaluate('(v)=>({width:v.videoWidth,height:v.videoHeight,time:v.currentTime,paused:v.paused})')
+        assert dimensions['width']==720 and dimensions['height']==1280
+        assert dimensions['time']>0.2
+        result['portrait_playback']=dimensions
+        result['rotation_metadata_exercised']=False
         vp.screenshot(path=str(output/'flutter-viewer.png'))
         result['actual_flutter_playback']=True
         result['no_autoplay']=True

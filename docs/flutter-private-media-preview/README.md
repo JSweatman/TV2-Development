@@ -96,3 +96,35 @@ not an auth shortcut. Browser evidence comes from the fixed release artifact.
 This work is packaged as a stacked draft for review only. The
 [private-stage checklist](PRIVATE_STAGE_GATE.md) records the authorization and
 infrastructure gates; draft publication does not activate these routes.
+
+## Portrait ingest regression (November 20)
+
+The shared local MP4 validator now bounds the **long side at 1920 and short side
+at 1080**, rather than rejecting every encoded height above 1080. The original
+validator rejected a generated upright 720×1280 H.264 clip with `Unsupported
+video`. Duration (30 seconds), upload bytes (5 MiB), codec/track restrictions,
+identity checks, private storage and explicit publication are unchanged.
+
+`test_real_encoded_dimensions_in_both_orientations` runs real ffmpeg/ffprobe for
+1280×720, 1920×1080, 720×1280 and 1080×1920 acceptance and for over-limit long
+or short sides in both orientations. Full backend regression: 56 tests and 20
+subtests passed. The Flutter proof now generates a labeled portrait clip (green
+TOP, navy PORTRAIT, red BOTTOM), selects/uploads/publishes it through the real
+owner UI, and checks 720×1280 inline playback in a separate allowed-viewer session.
+It retains cancellation, no-autoplay, forbidden viewer upload and invalid-session
+checks. Rotation metadata is **not exercised**: this is encoded upright video.
+
+The browser proof uses the retained verified private-preview release build;
+Flutter source is unchanged from `348f3610b337d61dca413d1b2af9a16fb78036d2`.
+Its `main.dart.js` SHA-256 is
+`017922446beea1abf542a9676a1a4aeac256bde9a7cb53318cd2d9de15c0f537`.
+A fresh SDK invocation in this executor fails trying to create
+`/home/agent/.dart-tool` on a read-only filesystem. No Flutter source or dependency
+changed in this fix. These are local Chromium and disposable GoTrue/Storage
+results, not physical-phone, hosted TLS or production ingest acceptance.
+
+The final 320×640 Chromium 156 frame was visually inspected: TOP, PORTRAIT and
+BOTTOM are upright and entirely visible with Pause/Dismiss, after ordinary
+listing scroll. [Result](evidence/portrait/result.json) and
+[viewer frame](evidence/portrait/flutter-viewer.png) contain only synthetic data.
+The local runner removed its containers, volumes and identity database afterward.
