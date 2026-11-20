@@ -170,3 +170,57 @@ that earlier candidate is not the validated deliverable. The original Northstar
 ZIP (`a7fc321d7906356abfda7c5dce56c9a6ef0b9face2515f3d0de76aa624312525`)
 and owner-hosted build are unchanged. This candidate has not been uploaded,
 published or deployed; replacing any hosted review requires a separate action.
+
+## Installed-PWA rotation candidate
+
+The portable packager sets only its copied `www/app/manifest.json` orientation to
+`any`. The default/public PWA manifest and native files are not changed. Existing
+relative `start_url: "."`, inferred identity/scope `/app/`, standalone display and
+icons remain intact. The root `/` is a review guide, not the installed app entry.
+This permits rotation where the browser/OS supports it; it does not force device
+orientation or prove an installed app's behavior.
+
+Run the regression against the actual compiled release build before delivery:
+
+```sh
+python scripts/portable_review/test_package.py /tmp/tv2-portable-web/build/web
+```
+
+It runs the real packager and verifies ZIP inventory/hashes, the app index/base
+path/bootstrap/manifest link, resolved launch/identity/scope, orientation, icons,
+guide separation, and that packaging leaves the input manifest unchanged.
+Then extract the candidate and run the existing HTTPS browser proof as above,
+including explicit WEBSITE pause, return and user-controlled resumption.
+
+### Separate actual-device acceptance (not yet performed)
+
+On each approved phone, use a fresh test installation of the exact candidate;
+keep any original TV2 installation untouched. Record OS/browser and candidate
+identity. Any hosting sign-in is separate from TV2, which needs no account.
+
+1. Open `/app/` through the guide and add that app to Home Screen. Launch its icon:
+   it must open the keypad, not the guide. Record standalone/browser presentation.
+2. Open Northstar, explicitly load/play video, rotate to landscape and return to
+   portrait. Check aspect ratio, accessible exit and playback position. OS rotation
+   lock and browser support can affect this; browser viewport automation is separate.
+3. Open WEBSITE during playback, verify the class-supply answer, return and confirm
+   the same listing stays paused until explicit Play.
+4. Open Alex, Save, close and relaunch the installed instance. HOME → Bookmarks →
+   Alex should fill `1*70002`; ENTER should open Alex's distinct personal page.
+   Record storage behavior inside that installation, not a separate browser session.
+
+No device installation, hosting/access change or publication is performed by this
+packaging task. Existing delivered archives and hosted Northstar remain unchanged.
+
+Validated local candidate: `tv2-owner-private-review-orientation-any.zip`,
+14,178,989 bytes / 46 files, SHA-256
+`f17338a1734483561ff3a68418360dfa0a3e5e9ceddffa07941b4728001474ab`.
+The release build, two focused Flutter tests, read-only host test and real-build
+packaging regression passed. Every final archive entry/hash was checked before
+extracting it for Chromium 156. At 390×844 (and 844×390 viewport rotation), the
+existing complete browser journey passed: immediate/fill-only ENTER, both distinct
+sample destinations, country retention, origin isolation and media opt-in/Range.
+WEBSITE paused at 1.0557 seconds, returned on the same video element at 1.0557,
+and advanced to 1.296 only after explicit Play. The landscape frame was contained
+at 608×342 for the 768×432 source, with explicit exit and same-element portrait
+return. These viewport results do not establish Home Screen installation behavior.

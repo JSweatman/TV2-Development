@@ -12,6 +12,12 @@ if destination.exists():
     raise SystemExit('Use a fresh output directory')
 www = destination / 'www'
 shutil.copytree(build, www/'app', ignore=shutil.ignore_patterns('*.map'))
+# Portable review only: allow installed-app rotation without changing the
+# source/default PWA manifest, launch identity, inferred /app/ scope or icons.
+app_manifest = www/'app/manifest.json'
+app_config = json.loads(app_manifest.read_text())
+app_config['orientation'] = 'any'
+app_manifest.write_text(json.dumps(app_config, indent=4)+'\n')
 (www/'media').mkdir()
 make_intro(www/'media/sample.mp4')
 (www/'index.html').write_text('''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
