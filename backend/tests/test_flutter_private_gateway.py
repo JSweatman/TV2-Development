@@ -34,6 +34,12 @@ def test_cookie_boundary_and_invalid_session(tmp_path,monkeypatch):
     assert r.json()=={'owner':True}
     assert 'HttpOnly' in r.headers['set-cookie'] and 'SameSite=strict' in r.headers['set-cookie']
     assert 'synthetic-token' not in r.text and 'synthetic-token' not in r.headers['set-cookie']
+    # Role is determined for the selected exact listing, never globally.
+    with connect(db) as con:con.execute('INSERT INTO listings VALUES (?,?)',('1*73142','another-owner'))
+    assert c.post('/preview/session',headers=origin,json={'email':'x','password':'fixture','listing':'1*73142'}).json()=={'owner':False}
+    assert c.put('/private/listings/1*73142/uploads',headers={**origin,'Content-Type':'video/mp4'},content=b'bad').status_code==403
+    assert c.post('/private/listings/1*73142/publish/arbitrary',headers=origin).status_code==403
+    assert c.post('/preview/session',headers=origin,json={'email':'x','password':'fixture','listing':'1*99999'}).status_code==400
     auth.valid=False
     assert c.put('/private/listings/1*73141/uploads',headers={**origin,'Content-Type':'video/mp4'},content=b'bad').status_code==401
     assert c.delete('/preview/session',headers=origin).status_code==200

@@ -50,10 +50,13 @@ def create_gateway(*, auth, store, database, web_dir):
             uid = auth.user(token)
         except (KeyError, ValueError, TypeError, httpx.HTTPError, AuthRejected):
             return JSONResponse({'error':'Sign-in unavailable. Check the test account and retry.'},status_code=401)
+        identity = body.get('listing','1*73141')
+        if identity not in ('1*73141','1*73142'):
+            return JSONResponse({},status_code=400)
         old = request.cookies.get('tv2_preview',''); sessions.pop(old,None)
         sid = secrets.token_urlsafe(32); sessions[sid]=token
         with connect(database) as db:
-            owner = db.execute('SELECT 1 FROM listings WHERE identity=? AND owner=?',('1*73141',uid)).fetchone() is not None
+            owner = db.execute('SELECT 1 FROM listings WHERE identity=? AND owner=?',(identity,uid)).fetchone() is not None
         response = JSONResponse({'owner':owner})
         response.set_cookie('tv2_preview',sid,httponly=True,samesite='strict',path='/')
         # HTTP is exclusively loopback; TLS/Secure cookies remain a staging gate.

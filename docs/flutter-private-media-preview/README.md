@@ -191,3 +191,37 @@ identity metadata were removed. [Result](evidence/selected-preview/result.json),
 This remains browser-only, with no physical-device or rotation-metadata evidence,
 no HEVC/MOV expansion, and no production owner controls.
 The fresh default PWA release build also passed; normal startup is unchanged.
+
+## Two independent synthetic listings (November 20)
+
+The same disposable owner/viewer app can now be opened for either fixed fixture:
+`http://127.0.0.1:54327/` (Copper, `1*73141`) or
+`http://127.0.0.1:54327/?listing=1*73142` (Maple Studio). Unknown fixture IDs fail
+closed. The session gateway determines the owner role for that exact selected
+listing. The query parameter is **not authorization**: unchanged private-service
+checks verify ownership on upload and publication and viewer grants on playback.
+No deployed resolver, onboarding API or permission-management route changed.
+
+The existing full local browser proof now seeds two independent synthetic owners
+and one viewer granted to both. Both owners select, upload and explicitly publish
+through the actual Flutter UI. The viewer plays Copper's upright portrait and
+Maple's orange clip. Upload and publication against the other owner's listing are
+403 in both directions. Copper's green replacement remains unpublished while the
+viewer can still fetch its previous portrait; after explicit Publish, Copper's
+bytes change to the replacement and Maple's SHA-256 remains unchanged. The viewer
+also plays the new Copper clip. Prior preview/revocation, validation, cancellation,
+session-denial and no-autoplay checks run in the same proof.
+
+[Result](evidence/two-listings/result.json),
+[Maple playback](evidence/two-listings/second-listing-viewer.png),
+[Copper replacement](evidence/two-listings/updated-first-viewer.png).
+Observed in Chromium 156 at 320×640 using disposable real local GoTrue/Storage,
+without interception. Local services and identity metadata were removed afterward.
+96 Flutter tests, 56 backend tests plus 20 subtests, and a fresh preview release
+build passed. Physical phones and rotation metadata remain untested.
+
+**Still not self-service:** fixture catalog, accounts, exact owner bindings and
+viewer grants are provisioned by the disposable harness. This adds no signup,
+listing creation/claiming, invitation UI, production ingest service or hosted
+activation. Existing TLS/session/revocation and untrusted-ingest gates remain.
+The fresh default PWA release build also passed with normal startup unchanged.

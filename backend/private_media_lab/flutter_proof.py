@@ -18,7 +18,7 @@ def run_flutter_proof(secret,output,web):
     output.mkdir(parents=True)
     client=httpx.Client(trust_env=False,timeout=10)
     accounts=[]
-    for role in ('owner','viewer'):
+    for role in ('owner','viewer','second-owner'):
         email=role+'-'+secrets.token_hex(4)+'@example.invalid';password=secrets.token_urlsafe(32)
         r=client.post(AUTH+'/signup',json={'email':email,'password':password});r.raise_for_status()
         accounts.append((email,password,r.json()['user']['id']))
@@ -27,6 +27,9 @@ def run_flutter_proof(secret,output,web):
     with connect(db) as con:
         con.execute('INSERT INTO listings VALUES (?,?)',('1*73141',accounts[0][2]))
         con.execute('INSERT INTO viewers VALUES (?,?)',('1*73141',accounts[1][2]))
+    with connect(db) as con:
+        con.execute('INSERT INTO listings VALUES (?,?)',('1*73142',accounts[2][2]))
+        con.execute('INSERT INTO viewers VALUES (?,?)',('1*73142',accounts[1][2]))
     app.state.delay_upload=False
     @app.middleware('http')
     async def controlled_delay(request,call_next):
@@ -49,8 +52,8 @@ def run_flutter_proof(secret,output,web):
       with sync_playwright() as p:
         browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
         owner=browser.new_context(viewport={'width':320,'height':640});viewer=browser.new_context(viewport={'width':320,'height':640})
-        def login(context,account):
-            page=context.new_page();page.goto(SERVICE)
+        def login(context,account,identity=None):
+            page=context.new_page();page.goto(SERVICE+('?listing='+identity if identity else ''))
             page.locator('flt-semantics-placeholder').evaluate('(e)=>e.click()')
             account_input=page.get_by_role('textbox',name='Test account',exact=True)
             account_input.click();account_input.press_sequentially(account[0],delay=15)
@@ -188,6 +191,63 @@ def run_flutter_proof(secret,output,web):
         assert page.locator('video').count()==0
         assert page.evaluate('(u)=>fetch(u).then(()=>false,()=>true)',logout_url)
         result['signout_releases_blob']=True
+        # Second independent owner/listing, through the same actual Flutter UI.
+        other=browser.new_context(viewport={'width':320,'height':640})
+        second_base='/private/listings/1*73142'
+        op=login(other,accounts[2],'1*73142')
+        op.get_by_text('1*73142 · Maple Studio · synthetic',exact=True).wait_for()
+        assert other.request.put(SERVICE+BASE+'/uploads',headers={'Origin':SERVICE,'Content-Type':'video/mp4'},data=first.read_bytes()).status==403
+        with op.expect_file_chooser() as chosen:op.get_by_role('button',name='Choose synthetic MP4').click()
+        chosen.value.set_files(str(first))
+        op.get_by_role('button',name='Upload private draft',exact=True).click()
+        op.get_by_text('Private draft ready. Publish is a separate action.',exact=True).first.wait_for()
+        assert viewer.request.get(SERVICE+second_base+'/video').status==404
+        op.get_by_role('button',name='Publish listing video',exact=True).click()
+        op.get_by_text('Published for allowed viewers.',exact=True).first.wait_for()
+        v2=login(viewer,accounts[1],'1*73142')
+        v2.get_by_text('Maple Studio · synthetic',exact=True).wait_for()
+        v2.get_by_role('button',name='Load private video',exact=True).click()
+        v2.get_by_role('button',name='Play private video',exact=True).click()
+        v2.wait_for_function('document.querySelector("video").currentTime>0.2')
+        assert v2.locator('video').evaluate('(v)=>v.videoWidth===320 && v.videoHeight===180')
+        v2.screenshot(path=str(output/'second-listing-viewer.png'))
+        def digest(path):
+            response=viewer.request.get(SERVICE+path+'/video');assert response.status==200
+            return hashlib.sha256(response.body()).hexdigest()
+        original_second=digest(second_base)
+        assert original_second==hashlib.sha256(first.read_bytes()).hexdigest()
+        assert digest(BASE)==hashlib.sha256(clip.read_bytes()).hexdigest()
+        # Re-authenticate first owner normally after the invalid-session control.
+        p1=login(owner,accounts[0])
+        assert owner.request.put(SERVICE+second_base+'/uploads',headers={'Origin':SERVICE,'Content-Type':'video/mp4'},data=clip.read_bytes()).status==403
+        assert owner.request.post(SERVICE+second_base+'/publish/not-owned',headers={'Origin':SERVICE}).status==403
+        assert other.request.post(SERVICE+BASE+'/publish/not-owned',headers={'Origin':SERVICE}).status==403
+        updated=output/'updated-first.mp4'
+        subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','color=c=green:s=160x90:d=3',
+            '-vf',"drawtext=text='UPDATED':fontcolor=white:fontsize=24:x=(w-tw)/2:y=(h-th)/2",
+            '-c:v','libx264','-pix_fmt','yuv420p',str(updated)],check=True)
+        with p1.expect_file_chooser() as chosen:p1.get_by_role('button',name='Choose synthetic MP4').click()
+        chosen.value.set_files(str(updated))
+        p1.get_by_role('button',name='Upload private draft',exact=True).click()
+        p1.get_by_text('Private draft ready. Publish is a separate action.',exact=True).first.wait_for()
+        assert digest(BASE)==hashlib.sha256(clip.read_bytes()).hexdigest()
+        assert digest(second_base)==original_second
+        p1.get_by_role('button',name='Publish listing video',exact=True).click()
+        p1.get_by_text('Published for allowed viewers.',exact=True).first.wait_for()
+        assert digest(BASE)==hashlib.sha256(updated.read_bytes()).hexdigest()
+        assert digest(second_base)==original_second
+        v1=login(viewer,accounts[1])
+        v1.get_by_role('button',name='Load private video',exact=True).click()
+        v1.get_by_role('button',name='Play private video',exact=True).click()
+        v1.wait_for_function('document.querySelector("video").currentTime>0.2')
+        assert v1.locator('video').evaluate('(v)=>v.videoWidth===160 && v.videoHeight===90')
+        v1.screenshot(path=str(output/'updated-first-viewer.png'))
+        result['two_exact_owned_listings']=True
+        result['cross_owner_upload_and_publish_denied']=True
+        result['viewer_plays_both_listings']=True
+        result['updating_first_preserves_second_bytes']=True
+        result['unpublished_replacement_preserves_current_video']=True
+        other.close()
         result.update({'browser':browser.version,'viewport':[320,640],'real_gotrue':True,'real_private_storage':True,'browser_token_storage':False,'request_interception':False,'physical_devices':0})
         owner.close();viewer.close();browser.close()
         (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result))

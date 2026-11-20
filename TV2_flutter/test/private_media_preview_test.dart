@@ -82,6 +82,18 @@ class _PreviewProbeState extends State<PreviewProbe> {
 }
 
 void main() {
+  testWidgets('fixed second fixture renders its own owner and viewer identity', (t) async {
+    for (final owner in [true, false]) {
+      final api = FakeApi()..owner = owner;
+      await t.pumpWidget(MaterialApp(home: PrivateMediaPreview(
+        key: ValueKey(owner), api: api, pick: () async => null,
+        listing: secondPrivateListing, player: () => const Text('Second fixture video'))));
+      await enter(t);
+      expect(find.textContaining('Maple Studio'), findsOneWidget);
+      expect(find.textContaining('Copper Observatory'), findsNothing);
+      expect(find.text('Upload private draft'), owner ? findsOneWidget : findsNothing);
+    }
+  });
   testWidgets('replacement clears old draft and disposes local preview without writes', (t) async {
     final api = FakeApi();
     var disposed = 0;
@@ -189,10 +201,12 @@ void main() {
     await launch(t, api, scale: 2, clip: PreviewClip('synthetic.mp4', Uint8List(12)));
     await enter(t);
     final scroll = find.byType(Scrollable).first;
+    await t.scrollUntilVisible(find.text('Choose synthetic MP4'), 100, scrollable: scroll);
     await Scrollable.ensureVisible(t.element(find.text('Choose synthetic MP4')), alignment: 0.5);
     await t.pumpAndSettle();
     await t.tap(find.text('Choose synthetic MP4'));
     await t.pumpAndSettle();
+    await t.scrollUntilVisible(find.text('Upload private draft'), 100, scrollable: scroll);
     await Scrollable.ensureVisible(t.element(find.text('Upload private draft')), alignment: 0.5);
     await t.pumpAndSettle();
     await t.tap(find.text('Upload private draft'));

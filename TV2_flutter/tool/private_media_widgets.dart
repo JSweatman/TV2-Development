@@ -59,10 +59,18 @@ const privateListing = Listing(
     ],
     buttons: []);
 
+// Fixed synthetic catalog for the disposable preview; not enrollment data.
+const secondPrivateListing = Listing(
+    countryCode: '1', listNumber: '73142', tldx: null,
+    displayName: 'Maple Studio · synthetic', entityType: 'test',
+    templateKey: 'basic', resources: [], buttons: []);
+const previewListings = {'1*73141': privateListing, '1*73142': secondPrivateListing};
+
 class PrivateMediaPreview extends StatefulWidget {
   const PrivateMediaPreview(
-      {super.key, required this.api, required this.pick, required this.player, this.selectedPreview});
+      {super.key, required this.api, required this.pick, required this.player, this.selectedPreview, this.listing = privateListing});
   final PreviewMediaApi api;
+  final Listing listing;
   final Future<PreviewClip?> Function() pick;
   final Widget Function() player;
   final Widget Function(PreviewClip clip)? selectedPreview;
@@ -215,7 +223,7 @@ class _PreviewState extends State<PrivateMediaPreview> {
             ])),
         Expanded(
             child: TemplateScreen(
-                listing: privateListing, mediaOverride: widget.player()))
+                listing: widget.listing, mediaOverride: widget.player()))
       ]));
     return Scaffold(
         appBar: AppBar(
@@ -251,7 +259,7 @@ class _PreviewState extends State<PrivateMediaPreview> {
                         onPressed: busy ? null : signIn,
                         child: const Text('Sign in to local preview')),
                   ] else ...[
-                    const Text('1*73141 · Copper Observatory'),
+                    Text('${widget.listing.countryCode}*${widget.listing.listNumber} · ${widget.listing.displayName}'),
                     const Text('MP4 only · up to 5 MiB · up to 30 seconds'),
                     Wrap(spacing: 8, runSpacing: 8, children: [
                       FilledButton(

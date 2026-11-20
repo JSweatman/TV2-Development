@@ -10,6 +10,8 @@ import 'package:video_player/video_player.dart';
 import 'private_media_widgets.dart';
 
 class LocalMediaApi implements PreviewMediaApi {
+  LocalMediaApi(this.identity);
+  final String identity;
   http.Client client = http.Client();
   Uri uri(String path) => Uri.parse('${Uri.base.origin}$path');
   void check(http.Response r) {
@@ -20,14 +22,14 @@ class LocalMediaApi implements PreviewMediaApi {
   Future<bool> signIn(String email, String password) async {
     final r = await client.post(uri('/preview/session'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}));
+        body: jsonEncode({'email': email, 'password': password, 'listing': identity}));
     check(r);
     return jsonDecode(r.body)['owner'] == true;
   }
 
   @override
   Future<String> upload(Uint8List bytes) async {
-    final r = await client.put(uri('/private/listings/1*73141/uploads'),
+    final r = await client.put(uri('/private/listings/$identity/uploads'),
         headers: {'Content-Type': 'video/mp4'}, body: bytes);
     check(r);
     return jsonDecode(r.body)['upload_id'] as String;
@@ -35,7 +37,7 @@ class LocalMediaApi implements PreviewMediaApi {
 
   @override
   Future<void> publish(String id) async {
-    final r = await client.post(uri('/private/listings/1*73141/publish/$id'));
+    final r = await client.post(uri('/private/listings/$identity/publish/$id'));
     check(r);
   }
 
@@ -123,15 +125,19 @@ void main() {
   if (Uri.base.host != '127.0.0.1' ||
       Uri.base.scheme != 'http' ||
       Uri.base.port != 54327) throw StateError('Disposable local preview only');
+  final identity = Uri.base.queryParameters['listing'] ?? '1*73141';
+  final listing = previewListings[identity];
+  if (listing == null) throw StateError('Unknown synthetic listing');
   runApp(MaterialApp(
       home: PrivateMediaPreview(
-          api: LocalMediaApi(),
+          api: LocalMediaApi(identity),
+          listing: listing,
           pick: pick,
           selectedPreview: (clip) => SelectedClipPreview(clip: clip),
           player: () => PrivatePreviewPlayer(
               create: () => VideoPlayerController.networkUrl(
                   Uri.parse(
-                      '${Uri.base.origin}/private/listings/1*73141/video'),
+                      '${Uri.base.origin}/private/listings/$identity/video'),
                   videoPlayerOptions:
                       VideoPlayerOptions(allowBackgroundPlayback: true))))));
 }
