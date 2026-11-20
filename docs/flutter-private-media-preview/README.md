@@ -225,3 +225,40 @@ viewer grants are provisioned by the disposable harness. This adds no signup,
 listing creation/claiming, invitation UI, production ingest service or hosted
 activation. Existing TLS/session/revocation and untrusted-ingest gates remain.
 The fresh default PWA release build also passed with normal startup unchanged.
+
+### Reloading a replaced publication in the same viewer
+
+A Chromium 156 regression on `df6609654701f3956c0d04382d9df165f2d632d5`
+was real stale playback, not audio-counter timing. With ordinary caching enabled,
+we published a visibly distinct silent portrait control, played it, then replaced
+it with a 1280×720 H.264 file carrying a +90° display matrix and non-silent AAC.
+Dismiss emptied the old video element; Load created a new element, but no new
+media request occurred. Its pixels remained the silent control and decoded-audio
+bytes stayed zero through 2.58 seconds. A fresh viewer received the new bytes in
+an authenticated Range 206 response and decoded AAC. Both responses had no-store.
+
+The disposable preview now assigns a unique query value at each explicit Load.
+This changes only browser media-buffer identity: the same private endpoint still
+checks the session and exact listing grant, with unchanged no-store headers,
+Range handling, upload limits, rate limits and explicit publication. The value is
+not a credential, grant or durable public reference. No automatic reload or
+playback is introduced. Normal `lib/main.dart` does not import this helper.
+
+The existing two-listing browser proof now reuses the original viewer page after
+publication changes. It requires a new Range response with the current file's
+hash, a different load URL, paused initial state, and the replacement's decoded
+dimensions after explicit Play. Tests do not disable browser caching or intercept
+requests. The separate local rotation/AAC diagnostic also compares rendered
+pixels, video element events and audio-decode counters against a fresh viewer.
+This is Chromium loopback evidence, not physical-device or audible listening
+verification; hosted TLS/session/ingest gates remain as documented above.
+
+Fixed-build diagnostic: the reused viewer made a new `bytes=0-` request,
+received 206 `bytes 0-53776/53777` with no-store and the exact published hash,
+rendered the upright replacement pixels, and reported 35,253 decoded audio bytes
+at 2.59 seconds (unmuted). A fresh viewer independently received the same hash
+and decoded audio. The old/new elements were distinct; disposal emitted emptied.
+The previous silent control's hash/pixels were different. No cache disabling,
+request interception, audio-listening claim or physical rotation was used.
+Local checks: 97 Flutter tests, 56 backend tests plus 20 subtests, targeted Dart
+analysis and the disposable-preview release web build passed.

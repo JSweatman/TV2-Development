@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
 import 'private_media_widgets.dart';
+import 'private_video_load.dart';
 
 class LocalMediaApi implements PreviewMediaApi {
   LocalMediaApi(this.identity);
@@ -136,8 +137,8 @@ void main() {
           selectedPreview: (clip) => SelectedClipPreview(clip: clip),
           player: () => PrivatePreviewPlayer(
               create: () => VideoPlayerController.networkUrl(
-                  Uri.parse(
-                      '${Uri.base.origin}/private/listings/$identity/video'),
+                  privateVideoLoadUri(Uri.parse(
+                      '${Uri.base.origin}/private/listings/$identity/video')),
                   videoPlayerOptions:
                       VideoPlayerOptions(allowBackgroundPlayback: true))))));
 }

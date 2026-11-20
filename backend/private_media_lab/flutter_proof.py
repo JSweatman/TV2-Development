@@ -236,8 +236,19 @@ def run_flutter_proof(secret,output,web):
         p1.get_by_text('Published for allowed viewers.',exact=True).first.wait_for()
         assert digest(BASE)==hashlib.sha256(updated.read_bytes()).hexdigest()
         assert digest(second_base)==original_second
-        v1=login(viewer,accounts[1])
-        v1.get_by_role('button',name='Load private video',exact=True).click()
+        # Reuse the already-playing viewer page with ordinary caching enabled.
+        # A fresh tab hid stale same-URL browser media buffers in earlier proof.
+        v1=vp
+        old_source=v1.locator('video').evaluate('(v)=>v.currentSrc')
+        v1.get_by_role('button',name='Dismiss private video',exact=True).click()
+        with v1.expect_response(lambda r: '/private/listings/' in r.url and '/video' in r.url) as media:
+            v1.get_by_role('button',name='Load private video',exact=True).click()
+        assert media.value.status==206
+        assert media.value.headers['cache-control']=='no-store'
+        assert hashlib.sha256(media.value.body()).hexdigest()==hashlib.sha256(updated.read_bytes()).hexdigest()
+        v1.get_by_role('button',name='Play private video',exact=True).wait_for()
+        assert v1.locator('video').evaluate('(v)=>v.currentSrc')!=old_source
+        assert v1.locator('video').evaluate('(v)=>v.paused')
         v1.get_by_role('button',name='Play private video',exact=True).click()
         v1.wait_for_function('document.querySelector("video").currentTime>0.2')
         assert v1.locator('video').evaluate('(v)=>v.videoWidth===160 && v.videoHeight===90')
@@ -246,6 +257,7 @@ def run_flutter_proof(secret,output,web):
         result['cross_owner_upload_and_publish_denied']=True
         result['viewer_plays_both_listings']=True
         result['updating_first_preserves_second_bytes']=True
+        result['same_viewer_reload_fetches_current_publication']=True
         result['unpublished_replacement_preserves_current_video']=True
         other.close()
         result.update({'browser':browser.version,'viewport':[320,640],'real_gotrue':True,'real_private_storage':True,'browser_token_storage':False,'request_interception':False,'physical_devices':0})
