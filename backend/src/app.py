@@ -9,7 +9,7 @@ import logging
 import os
 from typing import Any
 from urllib.parse import urlsplit
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -20,6 +20,12 @@ logger = logging.getLogger("tv2-resolver")
 app = FastAPI(title="List Number TV2 Resolver", version="0.4.1")
 MAX_PREFIX_RESULTS = 20
 repository: ResolverRepository = build_repository()
+
+
+def get_repository() -> ResolverRepository:
+    """Dependency seam for isolated tests; deployed repository choice is unchanged."""
+    return repository
+
 
 def approved_web_origins(value: str) -> list[str]:
     """An explicit list of preview origins; do not open CORS globally.
@@ -177,7 +183,7 @@ def root():
 
 
 @app.get("/v1/countries", response_model=list[CountryNamespace])
-def countries():
+def countries(repo: Any = Depends(get_repository)):
     return [
         {
             "iso2": row.iso2,
@@ -185,7 +191,7 @@ def countries():
             "nid": row.nid,
             "default_language_tag": row.default_language_tag,
         }
-        for row in repository.countries()
+        for row in repo.countries()
     ]
 
 
@@ -205,9 +211,10 @@ def ready():
 def resolve(
     input: str = Query(min_length=1, max_length=64),
     country: str | None = Query(default=None, min_length=1, max_length=32),
+    repo: Any = Depends(get_repository),
 ):
     identity = _strict_identity(input, country)
-    listing = repository.get_listing(identity.country_code, identity.base, identity.tldx)
+    listing = repo.get_listing(identity.country_code, identity.base, identity.tldx)
     return {
         "status": "resolved" if listing else "not_found",
         "country_context": identity.country_code,
@@ -221,9 +228,10 @@ def prefix(
     input: str = Query(min_length=1, max_length=64),
     country: str | None = Query(default=None, min_length=1, max_length=32),
     limit: int = Query(default=10, ge=1, le=MAX_PREFIX_RESULTS),
+    repo: Any = Depends(get_repository),
 ):
     identity = _prefix_identity(input, country)
-    rows = repository.prefix(identity.country_code, identity.base, identity.tldx, limit)
+    rows = repo.prefix(identity.country_code, identity.base, identity.tldx, limit)
     matches = [
         {
             "country_code": row.country_code,

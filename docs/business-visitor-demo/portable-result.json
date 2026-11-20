@@ -1,0 +1,48 @@
+{
+  "browser": "156.0.8078.79",
+  "package_root": "www",
+  "viewport": [
+    390,
+    844
+  ],
+  "guide_to_app": true,
+  "account_free": true,
+  "immediate_enter": true,
+  "fill_only_selection": true,
+  "website_popup_return": true,
+  "country_retained_on_refresh": true,
+  "unknown_retry": true,
+  "rotation": {
+    "landscape": {
+      "same": true,
+      "time": 0.5403,
+      "paused": false,
+      "width": 608,
+      "height": 342,
+      "sourceWidth": 160,
+      "sourceHeight": 90
+    },
+    "paused_rotation_stays_inline": true,
+    "portrait_return_same_element": true,
+    "explicit_exit": true,
+    "browser_fullscreen_not_requested": true
+  },
+  "http": {
+    "/:GET": 200,
+    "/media/sample.mp4:HEAD": 200,
+    "/owner:GET": 404,
+    "/v1/resolve:GET": 404,
+    "/media/sample.mp4:PUT": 405,
+    "/:POST": 405,
+    "range": {
+      "status": 206,
+      "range": "bytes 0-15/93094",
+      "bytes": 16
+    }
+  },
+  "all_requests_same_origin": true,
+  "no_autoplay": true,
+  "no_media_before_opt_in": true,
+  "no_request_interception": true,
+  "http_guard_blocks_app": true
+}
