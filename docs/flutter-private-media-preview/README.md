@@ -128,3 +128,31 @@ BOTTOM are upright and entirely visible with Pause/Dismiss, after ordinary
 listing scroll. [Result](evidence/portrait/result.json) and
 [viewer frame](evidence/portrait/flutter-viewer.png) contain only synthetic data.
 The local runner removed its containers, volumes and identity database afterward.
+
+## Upload validation guidance (November 20)
+
+The preview HTTP adapter carries status codes only, never backend response text.
+Upload 413 explains the byte limit; 415 requests MP4; 422 explains H.264, optional
+AAC, duration, bytes and portrait/landscape dimension limits. A 401 asks for a new
+session; 403 states permission denied without assuming expiration. Other failures
+use a fixed retry message. Publish failures cannot receive upload-format guidance.
+The picker, server rules, publication and cancellation controls are unchanged.
+
+Fresh local release preview: a generated MPEG-4 Part 2 video in an MP4 container
+returned 422 while signed in. The actual Flutter UI showed validation guidance;
+the owner selected the valid upright H.264 portrait replacement, uploaded and
+explicitly published without another sign-in. A separate allowed viewer played
+720×1280 inline. Invalid owner session showed the distinct session message;
+viewer upload remained 403; cancellation never published and no autoplay occurred.
+[Result](evidence/validation-guidance/result.json),
+[validation guidance](evidence/validation-guidance/invalid-clip-guidance.png),
+[replacement playback](evidence/validation-guidance/flutter-viewer.png).
+
+94 Flutter tests passed, including replacement/session retention, fixed status
+messages, non-echoing generic errors, late cancelled failures, and 320×568 at 2×
+text. Backend: 56 tests and 20 subtests passed. This pass built the preview afresh:
+for this executor, `env -u HOME XDG_CONFIG_HOME=/workspace/config
+PUB_CACHE=/workspace/pub-cache flutter ...` avoids analytics initialization in the
+read-only home directory. No filesystem permission or browser trust change.
+No HEVC/MOV support added; rotation metadata and physical phones remain untested.
+Both fresh preview and default PWA release builds passed locally.

@@ -6,10 +6,12 @@ import '../tool/private_media_widgets.dart';
 
 class FakeApi implements PreviewMediaApi {
   bool owner = true, deny = false;
-  int uploads = 0, publishes = 0, cancels = 0;
+  int uploads = 0, publishes = 0, cancels = 0, signIns = 0;
+  Object? uploadError;
   Completer<String>? pending;
   @override
   Future<bool> signIn(String e, String p) async {
+    signIns++;
     if (deny) throw StateError('denied');
     return owner;
   }
@@ -17,6 +19,7 @@ class FakeApi implements PreviewMediaApi {
   @override
   Future<String> upload(Uint8List b) async {
     uploads++;
+    if (uploadError != null) throw uploadError!;
     if (deny) throw StateError('denied');
     return pending?.future ?? Future.value('draft');
   }
@@ -66,6 +69,111 @@ Future<void> launch(WidgetTester t, FakeApi api,
 }
 
 void main() {
+  test('fixed status guidance is upload-specific and never echoes errors', () {
+    for (final entry in {
+      413: '5 MiB',
+      415: 'MOV',
+      422: 'H.264',
+      401: 'Session unavailable',
+      403: 'Permission denied',
+    }.entries) {
+      expect(
+        previewActionFailure(PreviewMediaFailure(entry.key), upload: true),
+        contains(entry.value),
+      );
+    }
+    expect(
+      previewActionFailure(const PreviewMediaFailure(422), upload: false),
+      startsWith('Action failed.'),
+    );
+    expect(
+      previewActionFailure(StateError('private response'), upload: true),
+      isNot(contains('private response')),
+    );
+    expect(
+      previewActionFailure(const PreviewMediaFailure(503), upload: true),
+      startsWith('Action failed.'),
+    );
+  });
+  testWidgets(
+    'invalid upload replacement keeps session and requires explicit publish',
+    (t) async {
+      final api = FakeApi()..uploadError = const PreviewMediaFailure(422);
+      await launch(t, api, clip: PreviewClip('synthetic.mp4', Uint8List(12)));
+      await enter(t);
+      await t.tap(find.text('Choose synthetic MP4'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Upload private draft'));
+      await t.pumpAndSettle();
+      expect(
+        find.textContaining('This clip could not be validated'),
+        findsOneWidget,
+      );
+      expect(api.publishes, 0);
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Publish listing video'),
+            )
+            .onPressed,
+        isNull,
+      );
+      api.uploadError = null;
+      await t.tap(find.text('Choose synthetic MP4'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Upload private draft'));
+      await t.pumpAndSettle();
+      expect(api.signIns, 1);
+      expect(api.publishes, 0);
+      await t.tap(find.text('Publish listing video'));
+      await t.pumpAndSettle();
+      expect(api.publishes, 1);
+    },
+  );
+  testWidgets('validation guidance is reachable at 320 wide and enlarged text', (t) async {
+    t.view.physicalSize = const Size(320, 568);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    final api = FakeApi()..uploadError = const PreviewMediaFailure(422);
+    await launch(t, api, scale: 2, clip: PreviewClip('synthetic.mp4', Uint8List(12)));
+    await enter(t);
+    final scroll = find.byType(Scrollable).first;
+    await Scrollable.ensureVisible(t.element(find.text('Choose synthetic MP4')), alignment: 0.5);
+    await t.pumpAndSettle();
+    await t.tap(find.text('Choose synthetic MP4'));
+    await t.pumpAndSettle();
+    await Scrollable.ensureVisible(t.element(find.text('Upload private draft')), alignment: 0.5);
+    await t.pumpAndSettle();
+    await t.tap(find.text('Upload private draft'));
+    await t.pumpAndSettle();
+    await t.scrollUntilVisible(find.textContaining('This clip could not be validated'), 100, scrollable: scroll);
+    expect(find.textContaining('H.264'), findsOneWidget);
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('cancelled late validation failure cannot replace status', (
+    t,
+  ) async {
+    final api = FakeApi()..pending = Completer<String>();
+    await launch(t, api, clip: PreviewClip('synthetic.mp4', Uint8List(12)));
+    await enter(t);
+    await t.tap(find.text('Choose synthetic MP4'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Upload private draft'));
+    await t.pump();
+    await t.tap(find.text('Cancel action'));
+    api.pending!.completeError(const PreviewMediaFailure(422));
+    await t.pumpAndSettle();
+    expect(
+      find.textContaining('Cancelled. Nothing was published'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('This clip could not be validated'),
+      findsNothing,
+    );
+  });
+
   testWidgets(
       'owner upload then explicit publish, failure retry and clear password',
       (t) async {

@@ -19,6 +19,30 @@ abstract class PreviewMediaApi {
   Future<void> signOut();
 }
 
+// Carry only the HTTP status; never display a provider response body.
+class PreviewMediaFailure implements Exception {
+  const PreviewMediaFailure(this.statusCode);
+  final int statusCode;
+}
+
+String previewActionFailure(Object error, {required bool upload}) {
+  final code = error is PreviewMediaFailure ? error.statusCode : null;
+  if (code == 401) return 'Session unavailable. Sign out and sign in again.';
+  if (code == 403) {
+    return 'Permission denied for this listing. Check that this account is allowed to make this change.';
+  }
+  if (upload) {
+    if (code == 413)
+      return 'Choose an MP4 between 1 byte and 5 MiB, then upload again.';
+    if (code == 415)
+      return 'Choose an MP4 file, then upload again. MOV is not supported.';
+    if (code == 422) {
+      return 'This clip could not be validated. Choose an MP4 with one H.264 video track, optional AAC audio, up to 30 seconds and 5 MiB, with long side at most 1920 pixels and short side at most 1080 pixels. HEVC is not supported. Choose a replacement and upload again.';
+    }
+  }
+  return 'Action failed. Retry when ready. Nothing is published automatically.';
+}
+
 const privateListing = Listing(
     countryCode: '1',
     listNumber: '73141',
@@ -129,10 +153,9 @@ class _PreviewState extends State<PrivateMediaPreview> {
         setState(() => status = publish
             ? 'Published for allowed viewers.'
             : 'Private draft ready. Publish is a separate action.');
-    } catch (_) {
+    } catch (error) {
       if (mounted && run == generation)
-        setState(() => status =
-            'Action failed or session denied. Retry, or sign out and sign in again.');
+        setState(() => status = previewActionFailure(error, upload: !publish));
     } finally {
       if (mounted && run == generation) setState(() => busy = false);
     }

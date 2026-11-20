@@ -13,7 +13,7 @@ class LocalMediaApi implements PreviewMediaApi {
   http.Client client = http.Client();
   Uri uri(String path) => Uri.parse('${Uri.base.origin}$path');
   void check(http.Response r) {
-    if (r.statusCode != 200) throw StateError('Local action unavailable');
+    if (r.statusCode != 200) throw PreviewMediaFailure(r.statusCode);
   }
 
   @override

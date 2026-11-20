@@ -71,6 +71,20 @@ def run_flutter_proof(secret,output,web):
         page=login(owner,accounts[0]);page.get_by_role('button',name='Choose synthetic MP4').wait_for()
         assert page.evaluate('localStorage.length')==0
         assert all(c['httpOnly'] for c in owner.cookies())
+        # Genuine unsupported codec in a valid MP4, under the same signed-in session.
+        unsupported=output/'unsupported.mp4'
+        subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i',
+            'color=c=blue:s=160x90:d=1','-c:v','mpeg4',str(unsupported)],check=True)
+        with page.expect_file_chooser() as rejected:page.get_by_role('button',name='Choose synthetic MP4').click()
+        rejected.value.set_files(str(unsupported))
+        with page.expect_response(lambda r:r.url.endswith('/uploads')) as invalid:
+            page.get_by_role('button',name='Upload private draft',exact=True).click()
+        assert invalid.value.status==422
+        page.get_by_text('This clip could not be validated.',exact=False).first.wait_for()
+        assert page.get_by_role('button',name='Sign in to local preview',exact=True).count()==0
+        with connect(db) as con:assert con.execute('SELECT count(*) FROM publications').fetchone()[0]==0
+        page.screenshot(path=str(output/'invalid-clip-guidance.png'))
+        result['signed_in_invalid_clip_status']=422
         with page.expect_file_chooser() as chosen:page.get_by_role('button',name='Choose synthetic MP4').click()
         chosen.value.set_files(str(clip))
         page.get_by_text('Synthetic MP4 selected. Server validates content before publication.',exact=True).first.wait_for()
@@ -113,13 +127,14 @@ def run_flutter_proof(secret,output,web):
         result['portrait_playback']=dimensions
         result['rotation_metadata_exercised']=False
         vp.screenshot(path=str(output/'flutter-viewer.png'))
+        result['replacement_without_sign_in']=True
         result['actual_flutter_playback']=True
         result['no_autoplay']=True
         r=viewer.request.put(SERVICE+BASE+'/uploads',headers={'Origin':SERVICE,'Content-Type':'video/mp4'},data=clip.read_bytes());assert r.status==403;result['viewer_upload_denied']=r.status
         # Invalidate the server-side owner session without exposing a token to the UI.
         sid=owner.cookies()[0]['value'];app.state.preview_sessions[sid]='invalid'
         page.get_by_role('button',name='Upload private draft',exact=True).click()
-        page.get_by_text('Action failed or session denied. Retry, or sign out and sign in again.',exact=True).first.wait_for()
+        page.get_by_text('Session unavailable. Sign out and sign in again.',exact=True).first.wait_for()
         result['invalid_session_ui_denied']=True
         result.update({'browser':browser.version,'viewport':[320,640],'real_gotrue':True,'real_private_storage':True,'browser_token_storage':False,'request_interception':False,'physical_devices':0})
         owner.close();viewer.close();browser.close()
