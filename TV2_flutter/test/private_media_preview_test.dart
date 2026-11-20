@@ -68,7 +68,57 @@ Future<void> launch(WidgetTester t, FakeApi api,
           player: () => const Text('Private fixture player'))));
 }
 
+class PreviewProbe extends StatefulWidget {
+  const PreviewProbe({super.key, required this.onDispose});
+  final VoidCallback onDispose;
+  @override
+  State<PreviewProbe> createState() => _PreviewProbeState();
+}
+class _PreviewProbeState extends State<PreviewProbe> {
+  @override
+  void dispose() { widget.onDispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) => const Text('Local preview probe');
+}
+
 void main() {
+  testWidgets('replacement clears old draft and disposes local preview without writes', (t) async {
+    final api = FakeApi();
+    var disposed = 0;
+    var next = PreviewClip('first.mp4', Uint8List(12));
+    Completer<PreviewClip?>? picker;
+    await t.pumpWidget(MaterialApp(home: PrivateMediaPreview(
+      api: api, pick: () => picker?.future ?? Future.value(next),
+      player: () => const SizedBox(),
+      selectedPreview: (_) => PreviewProbe(onDispose: () => disposed++))));
+    await enter(t);
+    await t.tap(find.text('Choose synthetic MP4')); await t.pumpAndSettle();
+    expect(api.uploads, 0); expect(api.publishes, 0);
+    await t.tap(find.text('Upload private draft')); await t.pumpAndSettle();
+    picker = Completer<PreviewClip?>();
+    await t.tap(find.text('Choose synthetic MP4')); await t.pump();
+    expect(disposed, 1);
+    expect(t.widget<FilledButton>(find.widgetWithText(FilledButton, 'Publish listing video')).onPressed, isNull);
+    picker!.complete(next = PreviewClip('second.mp4', Uint8List(16)));
+    await t.pumpAndSettle();
+    expect(api.uploads, 1); expect(api.publishes, 0);
+    expect(t.widget<FilledButton>(find.widgetWithText(FilledButton, 'Publish listing video')).onPressed, isNull);
+    picker = Completer<PreviewClip?>();
+    await t.tap(find.text('Choose synthetic MP4')); await t.pump();
+    expect(disposed, 2);
+    await t.tap(find.text('Cancel action')); await t.pump();
+    picker!.complete(next); await t.pumpAndSettle();
+    expect(find.text('Local preview probe'), findsNothing);
+    picker = null;
+    await t.tap(find.text('Choose synthetic MP4')); await t.pumpAndSettle();
+    await t.tap(find.text('Sign out')); await t.pumpAndSettle();
+    expect(disposed, 3);
+    await enter(t);
+    await t.tap(find.text('Choose synthetic MP4')); await t.pumpAndSettle();
+    await t.pumpWidget(const SizedBox());
+    expect(disposed, 4);
+  });
+
   test('fixed status guidance is upload-specific and never echoes errors', () {
     for (final entry in {
       413: '5 MiB',

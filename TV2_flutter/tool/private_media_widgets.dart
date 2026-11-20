@@ -61,10 +61,11 @@ const privateListing = Listing(
 
 class PrivateMediaPreview extends StatefulWidget {
   const PrivateMediaPreview(
-      {super.key, required this.api, required this.pick, required this.player});
+      {super.key, required this.api, required this.pick, required this.player, this.selectedPreview});
   final PreviewMediaApi api;
   final Future<PreviewClip?> Function() pick;
   final Widget Function() player;
+  final Widget Function(PreviewClip clip)? selectedPreview;
   @override
   State<PrivateMediaPreview> createState() => _PreviewState();
 }
@@ -78,6 +79,7 @@ class _PreviewState extends State<PrivateMediaPreview> {
   String? draft;
   PreviewClip? clip;
   int generation = 0;
+  int previewGeneration = 0;
   @override
   void dispose() {
     generation++;
@@ -114,11 +116,18 @@ class _PreviewState extends State<PrivateMediaPreview> {
   }
 
   Future<void> choose() async {
-    final file = await widget.pick();
-    if (!mounted) return;
+    final run = ++generation;
     setState(() {
+      busy = true;
+      publishing = false;
       draft = null;
       clip = null;
+      status = 'Choosing a replacement…';
+    });
+    final file = await widget.pick();
+    if (!mounted || run != generation) return;
+    setState(() {
+      busy = false;
       if (file == null) {
         status = 'Selection cancelled.';
         return;
@@ -167,6 +176,7 @@ class _PreviewState extends State<PrivateMediaPreview> {
     setState(() {
       busy = false;
       draft = null;
+      previewGeneration++;
       status =
           'Cancelled. Nothing was published; a private draft may need cleanup.';
     });
@@ -175,6 +185,11 @@ class _PreviewState extends State<PrivateMediaPreview> {
   Future<void> signOut() async {
     generation++;
     widget.api.cancel();
+    setState(() {
+      busy = true;
+      clip = null;
+      draft = null;
+    });
     await widget.api.signOut();
     if (!mounted) return;
     setState(() {
@@ -259,6 +274,10 @@ class _PreviewState extends State<PrivateMediaPreview> {
                           child: const Text('Sign out')),
                     ]),
                   ],
+                  if (owner == true && clip != null && widget.selectedPreview != null)
+                    KeyedSubtree(
+                        key: ValueKey((clip, previewGeneration)),
+                        child: widget.selectedPreview!(clip!)),
                   if (busy) const LinearProgressIndicator(),
                   Semantics(liveRegion: true, child: Text(status)),
                 ]))));
@@ -266,8 +285,11 @@ class _PreviewState extends State<PrivateMediaPreview> {
 }
 
 class PrivatePreviewPlayer extends StatefulWidget {
-  const PrivatePreviewPlayer({super.key, required this.create});
+  const PrivatePreviewPlayer({super.key, required this.create,
+    this.onRelease, this.local = false});
   final VideoPlayerController Function() create;
+  final VoidCallback? onRelease;
+  final bool local;
   @override
   State<PrivatePreviewPlayer> createState() => _PlayerState();
 }
@@ -296,6 +318,7 @@ class _PlayerState extends State<PrivatePreviewPlayer>
       old.pause().catchError((Object _) {});
       old.dispose().catchError((Object _) {});
     }
+    widget.onRelease?.call();
   }
 
   Future<void> load() async {
@@ -361,15 +384,16 @@ class _PlayerState extends State<PrivatePreviewPlayer>
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Private listing video'),
+                  Text(widget.local ? 'Browser-local preview only. Server validation is still required.' : 'Private listing video'),
                   if (ready)
                     AspectRatio(
                         aspectRatio: c!.value.aspectRatio,
                         child: VideoPlayer(c)),
                   if (loading) const LinearProgressIndicator(),
                   if (failed || c?.value.hasError == true)
-                    const Text(
-                        'Video unavailable or session denied. Retry or sign in again.'),
+                    Text(widget.local
+                        ? 'This browser cannot preview this clip. Choose a supported MP4; server validation is still required.'
+                        : 'Video unavailable or session denied. Retry or sign in again.'),
                   Wrap(spacing: 8, children: [
                     FilledButton(
                         onPressed: loading
@@ -379,9 +403,9 @@ class _PlayerState extends State<PrivatePreviewPlayer>
                                 : load,
                         child: Text(ready
                             ? (c!.value.isPlaying
-                                ? 'Pause private video'
-                                : 'Play private video')
-                            : 'Load private video')),
+                                ? (widget.local ? 'Pause selected clip' : 'Pause private video')
+                                : (widget.local ? 'Play selected clip' : 'Play private video'))
+                            : (widget.local ? 'Load selected preview' : 'Load private video'))),
                     TextButton(
                         onPressed: () {
                           release();
@@ -390,7 +414,7 @@ class _PlayerState extends State<PrivatePreviewPlayer>
                             failed = false;
                           });
                         },
-                        child: const Text('Dismiss private video'))
+                        child: Text(widget.local ? 'Dismiss selected preview' : 'Dismiss private video'))
                   ]),
                 ])));
   }

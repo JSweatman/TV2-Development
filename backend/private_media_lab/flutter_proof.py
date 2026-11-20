@@ -1,6 +1,7 @@
 """Actual Flutter web preview against disposable GoTrue and Storage."""
 import asyncio
 import json
+import hashlib
 import secrets
 import subprocess
 import threading
@@ -68,6 +69,8 @@ def run_flutter_proof(secret,output,web):
                 print('Field lengths:',len(page.get_by_role('textbox',name='Test account',exact=True).input_value()),len(page.get_by_role('textbox',name='Test password',exact=True).input_value()))
                 raise
             return page
+        writes=[]
+        owner.on('request',lambda r: writes.append(r.url) if '/uploads' in r.url or '/publish/' in r.url else None)
         page=login(owner,accounts[0]);page.get_by_role('button',name='Choose synthetic MP4').wait_for()
         assert page.evaluate('localStorage.length')==0
         assert all(c['httpOnly'] for c in owner.cookies())
@@ -85,21 +88,62 @@ def run_flutter_proof(secret,output,web):
         with connect(db) as con:assert con.execute('SELECT count(*) FROM publications').fetchone()[0]==0
         page.screenshot(path=str(output/'invalid-clip-guidance.png'))
         result['signed_in_invalid_clip_status']=422
+        first=output/'first.mp4'
+        subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i',
+            'color=c=orange:s=320x180:d=3','-vf',
+            "drawtext=text='FIRST':fontcolor=black:fontsize=48:x=(w-tw)/2:y=(h-th)/2",
+            '-c:v','libx264','-pix_fmt','yuv420p',str(first)],check=True)
+        baseline=len(writes)
+        with page.expect_file_chooser() as selected:page.get_by_role('button',name='Choose synthetic MP4').click()
+        selected.value.set_files(str(first))
+        page.get_by_role('button',name='Load selected preview',exact=True).click()
+        page.get_by_role('button',name='Play selected clip',exact=True).wait_for()
+        assert page.locator('video').evaluate('(v)=>v.paused')
+        page.mouse.wheel(0,250)
+        page.get_by_role('button',name='Play selected clip',exact=True).click()
+        page.wait_for_function('document.querySelector("video").currentTime > 0.2')
+        first_url=page.locator('video').evaluate('(v)=>v.src')
+        assert first_url.startswith('blob:')
+        page.locator('video').screenshot(path=str(output/'owner-first.png'))
+        page.mouse.wheel(0,-1200);page.wait_for_timeout(300)
         with page.expect_file_chooser() as chosen:page.get_by_role('button',name='Choose synthetic MP4').click()
         chosen.value.set_files(str(clip))
         page.get_by_text('Synthetic MP4 selected. Server validates content before publication.',exact=True).first.wait_for()
+        assert page.locator('video').count()==0
+        assert page.evaluate('(u)=>fetch(u).then(()=>false,()=>true)',first_url)
+        page.get_by_role('button',name='Load selected preview',exact=True).click()
+        page.get_by_role('button',name='Play selected clip',exact=True).wait_for()
+        page.mouse.wheel(0,400);page.wait_for_timeout(300)
+        page.get_by_role('button',name='Play selected clip',exact=True).click()
+        page.wait_for_function('document.querySelector("video").currentTime > 0.2')
+        second_url=page.locator('video').evaluate('(v)=>v.src')
+        assert page.locator('video').evaluate('(v)=>v.videoWidth===720 && v.videoHeight===1280')
+        page.locator('video').screenshot(path=str(output/'owner-second.png'))
+        assert len(writes)==baseline
+        result['preview_and_reselection_no_writes']=True
+        result['replaced_blob_revoked']=True
+        page.mouse.wheel(0,-1500);page.wait_for_timeout(300)
         app.state.delay_upload=True
         page.get_by_role('button',name='Upload private draft',exact=True).click()
         page.get_by_role('button',name='Cancel action',exact=True).click()
         page.get_by_text('Cancelled. Nothing was published; a private draft may need cleanup.',exact=True).first.wait_for()
         with connect(db) as con:assert con.execute('SELECT count(*) FROM publications').fetchone()[0]==0
+        assert page.locator('video').count()==0
+        assert page.evaluate('(u)=>fetch(u).then(()=>false,()=>true)',second_url)
+        result['cancel_releases_blob']=True
         result['cancel_never_published']=True;app.state.delay_upload=False
         page.get_by_role('button',name='Upload private draft',exact=True).click()
         page.get_by_text('Private draft ready. Publish is a separate action.',exact=True).first.wait_for()
+        vp=login(viewer,accounts[1])
+        assert viewer.request.get(SERVICE+BASE+'/video').status==404
+        result['viewer_unavailable_before_publish']=True
         page.get_by_role('button',name='Publish listing video',exact=True).click()
         page.get_by_text('Published for allowed viewers.',exact=True).first.wait_for()
         page.screenshot(path=str(output/'flutter-owner.png'))
-        vp=login(viewer,accounts[1])
+        delivered=viewer.request.get(SERVICE+BASE+'/video')
+        assert delivered.status==200
+        assert hashlib.sha256(delivered.body()).digest()==hashlib.sha256(clip.read_bytes()).digest()
+        result['viewer_receives_second_clip_only']=True
         vp.screenshot(path=str(output/'viewer-after-signin.png'))
         try:
             vp.get_by_text('Local allowed-viewer preview',exact=True).first.wait_for(timeout=10000)
@@ -136,6 +180,14 @@ def run_flutter_proof(secret,output,web):
         page.get_by_role('button',name='Upload private draft',exact=True).click()
         page.get_by_text('Session unavailable. Sign out and sign in again.',exact=True).first.wait_for()
         result['invalid_session_ui_denied']=True
+        page.get_by_role('button',name='Load selected preview',exact=True).click()
+        page.get_by_role('button',name='Play selected clip',exact=True).wait_for()
+        logout_url=page.locator('video').evaluate('(v)=>v.src')
+        page.get_by_role('button',name='Sign out',exact=True).click()
+        page.get_by_role('button',name='Sign in to local preview',exact=True).wait_for()
+        assert page.locator('video').count()==0
+        assert page.evaluate('(u)=>fetch(u).then(()=>false,()=>true)',logout_url)
+        result['signout_releases_blob']=True
         result.update({'browser':browser.version,'viewport':[320,640],'real_gotrue':True,'real_private_storage':True,'browser_token_storage':False,'request_interception':False,'physical_devices':0})
         owner.close();viewer.close();browser.close()
         (output/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result))

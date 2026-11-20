@@ -87,6 +87,37 @@ Future<PreviewClip?> pick() async {
   return done.future;
 }
 
+// The URL belongs to this selection only; it never crosses the network API.
+class SelectedClipPreview extends StatefulWidget {
+  const SelectedClipPreview({super.key, required this.clip});
+  final PreviewClip clip;
+  @override
+  State<SelectedClipPreview> createState() => _SelectedClipPreviewState();
+}
+
+class _SelectedClipPreviewState extends State<SelectedClipPreview> {
+  String? url;
+  void release() {
+    if (url != null) html.Url.revokeObjectUrl(url!);
+    url = null;
+  }
+  @override
+  void dispose() {
+    release();
+    super.dispose();
+  }
+  @override
+  Widget build(BuildContext context) => PrivatePreviewPlayer(
+    local: true,
+    onRelease: release,
+    create: () {
+      release();
+      url = html.Url.createObjectUrlFromBlob(html.Blob([widget.clip.bytes], 'video/mp4'));
+      return VideoPlayerController.networkUrl(Uri.parse(url!),
+        videoPlayerOptions: VideoPlayerOptions(allowBackgroundPlayback: true));
+    });
+}
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   if (Uri.base.host != '127.0.0.1' ||
@@ -96,6 +127,7 @@ void main() {
       home: PrivateMediaPreview(
           api: LocalMediaApi(),
           pick: pick,
+          selectedPreview: (clip) => SelectedClipPreview(clip: clip),
           player: () => PrivatePreviewPlayer(
               create: () => VideoPlayerController.networkUrl(
                   Uri.parse(

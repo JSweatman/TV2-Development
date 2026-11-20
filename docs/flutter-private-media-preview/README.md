@@ -156,3 +156,38 @@ PUB_CACHE=/workspace/pub-cache flutter ...` avoids analytics initialization in t
 read-only home directory. No filesystem permission or browser trust change.
 No HEVC/MOV support added; rotation metadata and physical phones remain untested.
 Both fresh preview and default PWA release builds passed locally.
+
+## Manual selected-file preview (November 20)
+
+Only the disposable web owner entrypoint supplies the selected-clip player.
+Selecting a valid-size MP4 exposes **Load selected preview**, then **Play selected
+clip**; it never autoplays. The browser-local blob is not uploaded, and playback
+is explicitly not server validation. Browser decoding failure has local guidance;
+server rejection retains the existing fixed validation messages.
+
+Starting a replacement immediately removes the old player and uploaded draft,
+including while the picker is pending. A cancelled/late picker cannot restore it.
+Replacement, cancellation, sign-out, dismissal and disposal release the controller
+and revoke its object URL. Cancelling an upload retains the file for an explicit
+retry but resets its local player; it never restores a publishable draft. Upload
+and Publish remain separate actions, with existing access and limits unchanged.
+
+Fresh Chromium 156 at 320×640 played the orange FIRST clip, then the distinct
+upright 720×1280 portrait selection. Request observation found **zero upload or
+publish requests during preview/reselection**. Fetching the old blob URL failed
+after replacement and cancellation; the final blob was revoked on sign-out.
+Only the second valid clip was explicitly uploaded/published. An independent
+allowed viewer received 404 before publication, then bytes whose SHA-256 matched
+that second clip and played it inline. Existing unsupported-upload 422,
+no-autoplay, cancellation, viewer-upload 403 and invalid-session checks also passed.
+No request interception or hosted provider was used; disposable services and
+identity metadata were removed. [Result](evidence/selected-preview/result.json),
+[first local preview](evidence/selected-preview/owner-first.png),
+[second local preview](evidence/selected-preview/owner-second.png),
+[allowed viewer](evidence/selected-preview/flutter-viewer.png).
+
+95 Flutter tests passed, including old-draft invalidation and preview lifecycle;
+56 backend tests + 20 subtests passed. Fresh preview web release build passed.
+This remains browser-only, with no physical-device or rotation-metadata evidence,
+no HEVC/MOV expansion, and no production owner controls.
+The fresh default PWA release build also passed; normal startup is unchanged.
