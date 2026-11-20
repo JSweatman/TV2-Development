@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>List Number — AI Index widget preview</title>
+<style>body{background:#eef1f5;color:#222;font:16px system-ui,sans-serif;margin:2rem auto;max-width:500px;padding:0 1rem}label{display:block;margin:1rem 0}</style>
+</head><body>
+<h1>Optional landing-page widget</h1>
+<p>Owner preference demo. This browser-only checkbox stores a preview preference; production must persist the choice in the landing-page owner's settings.</p>
+<label><input type="checkbox" id="enabled"> Show AI World Takeover Probability Index</label>
+<ai-takeover-index id="index"></ai-takeover-index>
+<script src="./ai-takeover-index.js"></script>
+<script>
+const toggle=document.querySelector('#enabled');
+const widget=document.querySelector('#index');
+toggle.checked=localStorage.getItem('ai-index-demo-enabled')==='true';
+function sync(){widget.setAttribute('enabled',String(toggle.checked));localStorage.setItem('ai-index-demo-enabled',String(toggle.checked));}
+toggle.addEventListener('change',sync);sync();
+</script>
+<p>Publish this directory with a static web server; open <code>demo.html</code> via HTTP(S), not file://. Live use must use the published data URL and an owner-saved opt-in setting.</p>
+</body></html>
