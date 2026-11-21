@@ -1,0 +1,101 @@
+name: ios-device-release-compile
+
+# Compilation evidence only: no signing, distribution or artifact upload.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ios-device-release-compile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-device-compile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unsigned-iphoneos-release:
+    runs-on: macos-15
+    timeout-minutes: 35
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    defaults:
+      run:
+        working-directory: TV2_flutter
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Require Xcode 26 and device SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -d "$DEVELOPER_DIR" ]] || {
+            echo '::error::Required runner toolchain /Applications/Xcode_26.3.app is unavailable.'
+            exit 1
+          }
+          xcode_version="$(xcodebuild -version)"
+          printf '%s\n' "$xcode_version"
+          grep -Eq '^Xcode 26\.' <<< "$xcode_version" || {
+            echo '::error::Selected Xcode is not version 26.x.'; exit 1;
+          }
+          sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
+          [[ "$sdk" == 26.* ]] || {
+            echo "::error::Expected iphoneos 26.x SDK; found $sdk"; exit 1;
+          }
+          echo "iphoneos SDK: $sdk"
+          xcrun --sdk iphoneos --show-sdk-path
+          git rev-parse HEAD
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate existing isolated iOS runner
+        run: bash ../scripts/prepare_ios_simulator_preview.sh
+      - name: Resolve dependencies and run shared checks
+        run: |
+          flutter --version
+          flutter pub get
+          flutter test
+      - name: Compile unsigned generic iOS device release
+        run: flutter build ios --release --no-codesign
+      - name: Verify device binary and record evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          app=build/ios/iphoneos/Runner.app
+          plist="$app/Info.plist"
+          [[ -f "$plist" ]] || { echo '::error::iphoneos app missing'; exit 1; }
+          read_plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$plist"; }
+          [[ "$(read_plist DTPlatformName)" == iphoneos ]]
+          [[ "$(read_plist CFBundleSupportedPlatforms:0)" == iPhoneOS ]]
+          [[ "$(read_plist CFBundleIdentifier)" == com.sundara.preview.tv2 ]]
+          [[ ! -e "$app/embedded.mobileprovision" ]]
+          binary="$app/$(read_plist CFBundleExecutable)"
+          [[ "$(lipo -archs "$binary")" == arm64 ]]
+          file "$binary"
+          # arm64 alone is insufficient: simulators can also use that architecture.
+          # Inspect the Mach-O platform in the executable and release Dart framework.
+          for image in "$binary" "$app/Frameworks/App.framework/App"; do
+            xcrun vtool -show-build "$image" | tee /tmp/tv2-device-platform.txt
+            grep -Eq 'platform[[:space:]]+IOS$' /tmp/tv2-device-platform.txt
+            ! grep -q IOSSIMULATOR /tmp/tv2-device-platform.txt
+          done
+          if codesign -dv "$app" 2>/tmp/tv2-signature.txt; then
+            echo '::error::Unexpected signed app; this workflow must remain unsigned.'
+            exit 1
+          fi
+          grep -q 'not signed at all' /tmp/tv2-signature.txt
+          {
+            echo '### Unsigned generic iOS device release compile'
+            echo 'Compile only. No artifact uploaded, installation, TestFlight or device test.'
+            echo "Source SHA: $(git rev-parse HEAD)"
+            xcodebuild -version
+            echo "iphoneos SDK: $(xcrun --sdk iphoneos --show-sdk-version)"
+            echo "Bundle SDK: $(read_plist DTSDKName)"
+            echo "Deployment target (MinimumOSVersion): $(read_plist MinimumOSVersion)"
+            flutter --version
+            echo 'Executable: arm64; Mach-O platform IOS (not IOSSIMULATOR); unsigned.'
+            shasum -a 256 "$binary"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
