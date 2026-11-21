@@ -35,8 +35,9 @@ jobs:
             echo '::error::Required runner toolchain /Applications/Xcode_26.3.app is unavailable.'
             exit 1
           }
-          xcodebuild -version
-          xcodebuild -version | grep -Eq '^Xcode 26\.' || {
+          xcode_version="$(xcodebuild -version)"
+          printf '%s\n' "$xcode_version"
+          grep -Eq '^Xcode 26\.' <<< "$xcode_version" || {
             echo '::error::Selected Xcode is not version 26.x.'; exit 1;
           }
           sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
