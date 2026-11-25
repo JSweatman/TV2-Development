@@ -49,7 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Listing? exactListing;
   String? errorMessage;
   bool loading = false;
-  bool _enterPending = false;
+  // Only the current generation owns ENTER suppression. An edit invalidates
+  // that ownership even if its obsolete network request has not completed.
+  int? _enterGeneration;
   bool hasMore = false;
   // Selection hides suggestions until input or namespace is edited.
   // The qualified lookup still runs, including normal error reporting.
@@ -348,7 +350,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool get _canEnter =>
-      countryCode != null && input.isNotEmpty && !_enterPending;
+      countryCode != null &&
+      input.isNotEmpty &&
+      _enterGeneration != _requestGeneration;
 
   Future<void> _enter() async {
     if (!_canEnter) return;
@@ -357,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final requestedInput = input;
     final requestedCountry = countryCode!;
     setState(() {
-      _enterPending = true;
+      _enterGeneration = generation;
       loading = true;
       exactListing = null;
       errorMessage = null;
@@ -398,7 +402,9 @@ class _HomeScreenState extends State<HomeScreen> {
             : 'Unable to check this listing. ENTER retries.';
       });
     } finally {
-      if (mounted) setState(() => _enterPending = false);
+      if (mounted && _enterGeneration == generation) {
+        setState(() => _enterGeneration = null);
+      }
     }
 
   }
