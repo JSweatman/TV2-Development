@@ -4,6 +4,7 @@ COPY src/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY src /app/src
 COPY fixtures /app/fixtures
+COPY data /app/data
 ENV PYTHONPATH=/app/src
 WORKDIR /app/src
 EXPOSE 8000

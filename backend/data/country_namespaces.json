@@ -1,0 +1,1394 @@
+[
+  {
+    "iso2": "AF",
+    "country_name": "Afghanistan",
+    "nid": "93",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AL",
+    "country_name": "Albania",
+    "nid": "355",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "DZ",
+    "country_name": "Algeria",
+    "nid": "213",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AS",
+    "country_name": "American Samoa",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AD",
+    "country_name": "Andorra",
+    "nid": "376",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AO",
+    "country_name": "Angola",
+    "nid": "244",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AI",
+    "country_name": "Anguilla",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AG",
+    "country_name": "Antigua and Barbuda",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AR",
+    "country_name": "Argentina",
+    "nid": "54",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AM",
+    "country_name": "Armenia",
+    "nid": "374",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AW",
+    "country_name": "Aruba",
+    "nid": "297",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AC",
+    "country_name": "Ascension",
+    "nid": "247",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AU",
+    "country_name": "Australia",
+    "nid": "61",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AT",
+    "country_name": "Austria",
+    "nid": "43",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AZ",
+    "country_name": "Azerbaijan",
+    "nid": "994",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BS",
+    "country_name": "Bahamas",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BH",
+    "country_name": "Bahrain",
+    "nid": "973",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BD",
+    "country_name": "Bangladesh",
+    "nid": "880",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BB",
+    "country_name": "Barbados",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BY",
+    "country_name": "Belarus",
+    "nid": "375",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BE",
+    "country_name": "Belgium",
+    "nid": "32",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BZ",
+    "country_name": "Belize",
+    "nid": "501",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BJ",
+    "country_name": "Benin",
+    "nid": "229",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BM",
+    "country_name": "Bermuda",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BT",
+    "country_name": "Bhutan",
+    "nid": "975",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BO",
+    "country_name": "Bolivia (Plurinational State of)",
+    "nid": "591",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BQ",
+    "country_name": "Bonaire, Sint Eustatius and Saba",
+    "nid": "599",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BA",
+    "country_name": "Bosnia and Herzegovina",
+    "nid": "387",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BW",
+    "country_name": "Botswana",
+    "nid": "267",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BR",
+    "country_name": "Brazil",
+    "nid": "55",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "VG",
+    "country_name": "British Virgin Islands",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BN",
+    "country_name": "Brunei Darussalam",
+    "nid": "673",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BG",
+    "country_name": "Bulgaria",
+    "nid": "359",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BF",
+    "country_name": "Burkina Faso",
+    "nid": "226",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "BI",
+    "country_name": "Burundi",
+    "nid": "257",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CV",
+    "country_name": "Cabo Verde",
+    "nid": "238",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KH",
+    "country_name": "Cambodia",
+    "nid": "855",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CM",
+    "country_name": "Cameroon",
+    "nid": "237",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CA",
+    "country_name": "Canada",
+    "nid": "1",
+    "default_language_tag": "en-CA"
+  },
+  {
+    "iso2": "KY",
+    "country_name": "Cayman Islands",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CF",
+    "country_name": "Central African Rep.",
+    "nid": "236",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TD",
+    "country_name": "Chad",
+    "nid": "235",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CL",
+    "country_name": "Chile",
+    "nid": "56",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CN",
+    "country_name": "China",
+    "nid": "86",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CO",
+    "country_name": "Colombia",
+    "nid": "57",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KM",
+    "country_name": "Comoros",
+    "nid": "269",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CG",
+    "country_name": "Congo (Rep. of the)",
+    "nid": "242",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CK",
+    "country_name": "Cook Islands",
+    "nid": "682",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CR",
+    "country_name": "Costa Rica",
+    "nid": "506",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CI",
+    "country_name": "Côte d'Ivoire",
+    "nid": "225",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "HR",
+    "country_name": "Croatia",
+    "nid": "385",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CU",
+    "country_name": "Cuba",
+    "nid": "53",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CW",
+    "country_name": "Curaçao",
+    "nid": "599",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CY",
+    "country_name": "Cyprus",
+    "nid": "357",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CZ",
+    "country_name": "Czech Rep.",
+    "nid": "420",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KP",
+    "country_name": "Dem. People's Rep. of Korea",
+    "nid": "850",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CD",
+    "country_name": "Dem. Rep. of the Congo",
+    "nid": "243",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "DK",
+    "country_name": "Denmark",
+    "nid": "45",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IO",
+    "country_name": "Diego Garcia",
+    "nid": "246",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "DJ",
+    "country_name": "Djibouti",
+    "nid": "253",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "DM",
+    "country_name": "Dominica",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "DO",
+    "country_name": "Dominican Rep.",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "EC",
+    "country_name": "Ecuador",
+    "nid": "593",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "EG",
+    "country_name": "Egypt",
+    "nid": "20",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SV",
+    "country_name": "El Salvador",
+    "nid": "503",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GQ",
+    "country_name": "Equatorial Guinea",
+    "nid": "240",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ER",
+    "country_name": "Eritrea",
+    "nid": "291",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "EE",
+    "country_name": "Estonia",
+    "nid": "372",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SZ",
+    "country_name": "Eswatini",
+    "nid": "268",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ET",
+    "country_name": "Ethiopia",
+    "nid": "251",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "FK",
+    "country_name": "Falkland Islands (Malvinas)",
+    "nid": "500",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "FO",
+    "country_name": "Faroe Islands",
+    "nid": "298",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "FJ",
+    "country_name": "Fiji",
+    "nid": "679",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "FI",
+    "country_name": "Finland",
+    "nid": "358",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "FR",
+    "country_name": "France",
+    "nid": "33",
+    "default_language_tag": "fr-FR"
+  },
+  {
+    "iso2": "RE",
+    "country_name": "French Departments and Territories in the Indian Ocean",
+    "nid": "262",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GF",
+    "country_name": "French Guiana",
+    "nid": "594",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PF",
+    "country_name": "French Polynesia",
+    "nid": "689",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GA",
+    "country_name": "Gabon",
+    "nid": "241",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GM",
+    "country_name": "Gambia",
+    "nid": "220",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GE",
+    "country_name": "Georgia",
+    "nid": "995",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "DE",
+    "country_name": "Germany",
+    "nid": "49",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GH",
+    "country_name": "Ghana",
+    "nid": "233",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GI",
+    "country_name": "Gibraltar",
+    "nid": "350",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GR",
+    "country_name": "Greece",
+    "nid": "30",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GL",
+    "country_name": "Greenland",
+    "nid": "299",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GD",
+    "country_name": "Grenada",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GP",
+    "country_name": "Guadeloupe",
+    "nid": "590",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GU",
+    "country_name": "Guam",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GT",
+    "country_name": "Guatemala",
+    "nid": "502",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GN",
+    "country_name": "Guinea",
+    "nid": "224",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GW",
+    "country_name": "Guinea-Bissau",
+    "nid": "245",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GY",
+    "country_name": "Guyana",
+    "nid": "592",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "HT",
+    "country_name": "Haiti",
+    "nid": "509",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "HN",
+    "country_name": "Honduras",
+    "nid": "504",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "HK",
+    "country_name": "Hong Kong, China",
+    "nid": "852",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "HU",
+    "country_name": "Hungary",
+    "nid": "36",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IS",
+    "country_name": "Iceland",
+    "nid": "354",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IN",
+    "country_name": "India",
+    "nid": "91",
+    "default_language_tag": "en-IN"
+  },
+  {
+    "iso2": "ID",
+    "country_name": "Indonesia",
+    "nid": "62",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IR",
+    "country_name": "Iran (Islamic Republic of)",
+    "nid": "98",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IQ",
+    "country_name": "Iraq",
+    "nid": "964",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IE",
+    "country_name": "Ireland",
+    "nid": "353",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IL",
+    "country_name": "Israel",
+    "nid": "972",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "IT",
+    "country_name": "Italy",
+    "nid": "39",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "JM",
+    "country_name": "Jamaica",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "JP",
+    "country_name": "Japan",
+    "nid": "81",
+    "default_language_tag": "ja-JP"
+  },
+  {
+    "iso2": "JO",
+    "country_name": "Jordan",
+    "nid": "962",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KZ",
+    "country_name": "Kazakhstan",
+    "nid": "7",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KE",
+    "country_name": "Kenya",
+    "nid": "254",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KI",
+    "country_name": "Kiribati",
+    "nid": "686",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KR",
+    "country_name": "Korea (Rep. of)",
+    "nid": "82",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "XK",
+    "country_name": "Kosovo",
+    "nid": "383",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KW",
+    "country_name": "Kuwait",
+    "nid": "965",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KG",
+    "country_name": "Kyrgyzstan",
+    "nid": "996",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LA",
+    "country_name": "Lao P.D.R.",
+    "nid": "856",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LV",
+    "country_name": "Latvia",
+    "nid": "371",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LB",
+    "country_name": "Lebanon",
+    "nid": "961",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LS",
+    "country_name": "Lesotho",
+    "nid": "266",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LR",
+    "country_name": "Liberia",
+    "nid": "231",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LY",
+    "country_name": "Libya",
+    "nid": "218",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LI",
+    "country_name": "Liechtenstein",
+    "nid": "423",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LT",
+    "country_name": "Lithuania",
+    "nid": "370",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LU",
+    "country_name": "Luxembourg",
+    "nid": "352",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MO",
+    "country_name": "Macao, China",
+    "nid": "853",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MG",
+    "country_name": "Madagascar",
+    "nid": "261",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MW",
+    "country_name": "Malawi",
+    "nid": "265",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MY",
+    "country_name": "Malaysia",
+    "nid": "60",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MV",
+    "country_name": "Maldives",
+    "nid": "960",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ML",
+    "country_name": "Mali",
+    "nid": "223",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MT",
+    "country_name": "Malta",
+    "nid": "356",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MH",
+    "country_name": "Marshall Islands",
+    "nid": "692",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MQ",
+    "country_name": "Martinique",
+    "nid": "596",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MR",
+    "country_name": "Mauritania",
+    "nid": "222",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MU",
+    "country_name": "Mauritius",
+    "nid": "230",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MX",
+    "country_name": "Mexico",
+    "nid": "52",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "FM",
+    "country_name": "Micronesia",
+    "nid": "691",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MD",
+    "country_name": "Moldova",
+    "nid": "373",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MC",
+    "country_name": "Monaco",
+    "nid": "377",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MN",
+    "country_name": "Mongolia",
+    "nid": "976",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ME",
+    "country_name": "Montenegro",
+    "nid": "382",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MS",
+    "country_name": "Montserrat",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MA",
+    "country_name": "Morocco",
+    "nid": "212",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MZ",
+    "country_name": "Mozambique",
+    "nid": "258",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MM",
+    "country_name": "Myanmar",
+    "nid": "95",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NA",
+    "country_name": "Namibia",
+    "nid": "264",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NR",
+    "country_name": "Nauru",
+    "nid": "674",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NP",
+    "country_name": "Nepal",
+    "nid": "977",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NL",
+    "country_name": "Netherlands",
+    "nid": "31",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NC",
+    "country_name": "New Caledonia",
+    "nid": "687",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NZ",
+    "country_name": "New Zealand",
+    "nid": "64",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NI",
+    "country_name": "Nicaragua",
+    "nid": "505",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NE",
+    "country_name": "Niger",
+    "nid": "227",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NG",
+    "country_name": "Nigeria",
+    "nid": "234",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NU",
+    "country_name": "Niue",
+    "nid": "683",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NF",
+    "country_name": "Norfolk Island",
+    "nid": "672",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MK",
+    "country_name": "North Macedonia",
+    "nid": "389",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MP",
+    "country_name": "Northern Mariana Islands",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "NO",
+    "country_name": "Norway",
+    "nid": "47",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "OM",
+    "country_name": "Oman",
+    "nid": "968",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PK",
+    "country_name": "Pakistan",
+    "nid": "92",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PW",
+    "country_name": "Palau",
+    "nid": "680",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PS",
+    "country_name": "Palestine, State of",
+    "nid": "970",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PA",
+    "country_name": "Panama",
+    "nid": "507",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PG",
+    "country_name": "Papua New Guinea",
+    "nid": "675",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PY",
+    "country_name": "Paraguay",
+    "nid": "595",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PE",
+    "country_name": "Peru",
+    "nid": "51",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PH",
+    "country_name": "Philippines",
+    "nid": "63",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PL",
+    "country_name": "Poland",
+    "nid": "48",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PT",
+    "country_name": "Portugal",
+    "nid": "351",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PR",
+    "country_name": "Puerto Rico",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "QA",
+    "country_name": "Qatar",
+    "nid": "974",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "RO",
+    "country_name": "Romania",
+    "nid": "40",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "RU",
+    "country_name": "Russian Federation",
+    "nid": "7",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "RW",
+    "country_name": "Rwanda",
+    "nid": "250",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SH",
+    "country_name": "Saint Helena and Tristan da Cunha",
+    "nid": "290",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "KN",
+    "country_name": "Saint Kitts and Nevis",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LC",
+    "country_name": "Saint Lucia",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "PM",
+    "country_name": "Saint Pierre and Miquelon",
+    "nid": "508",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "VC",
+    "country_name": "Saint Vincent and the Grenadines",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "WS",
+    "country_name": "Samoa",
+    "nid": "685",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SM",
+    "country_name": "San Marino",
+    "nid": "378",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ST",
+    "country_name": "Sao Tome and Principe",
+    "nid": "239",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SA",
+    "country_name": "Saudi Arabia",
+    "nid": "966",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SN",
+    "country_name": "Senegal",
+    "nid": "221",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "RS",
+    "country_name": "Serbia",
+    "nid": "381",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SC",
+    "country_name": "Seychelles",
+    "nid": "248",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SL",
+    "country_name": "Sierra Leone",
+    "nid": "232",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SG",
+    "country_name": "Singapore",
+    "nid": "65",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SX",
+    "country_name": "Sint Maarten (Dutch part)",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SK",
+    "country_name": "Slovakia",
+    "nid": "421",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SI",
+    "country_name": "Slovenia",
+    "nid": "386",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SB",
+    "country_name": "Solomon Islands",
+    "nid": "677",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SO",
+    "country_name": "Somalia",
+    "nid": "252",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ZA",
+    "country_name": "South Africa",
+    "nid": "27",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SS",
+    "country_name": "South Sudan",
+    "nid": "211",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ES",
+    "country_name": "Spain",
+    "nid": "34",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "LK",
+    "country_name": "Sri Lanka",
+    "nid": "94",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SD",
+    "country_name": "Sudan",
+    "nid": "249",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SR",
+    "country_name": "Suriname",
+    "nid": "597",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SE",
+    "country_name": "Sweden",
+    "nid": "46",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CH",
+    "country_name": "Switzerland",
+    "nid": "41",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "SY",
+    "country_name": "Syrian Arab Republic",
+    "nid": "963",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TW",
+    "country_name": "Taiwan, China",
+    "nid": "886",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TJ",
+    "country_name": "Tajikistan",
+    "nid": "992",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TZ",
+    "country_name": "Tanzania",
+    "nid": "255",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TH",
+    "country_name": "Thailand",
+    "nid": "66",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TL",
+    "country_name": "Timor-Leste",
+    "nid": "670",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TG",
+    "country_name": "Togo",
+    "nid": "228",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TK",
+    "country_name": "Tokelau",
+    "nid": "690",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TO",
+    "country_name": "Tonga",
+    "nid": "676",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TT",
+    "country_name": "Trinidad and Tobago",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TN",
+    "country_name": "Tunisia",
+    "nid": "216",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TR",
+    "country_name": "Türkiye",
+    "nid": "90",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TM",
+    "country_name": "Turkmenistan",
+    "nid": "993",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TC",
+    "country_name": "Turks and Caicos",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TV",
+    "country_name": "Tuvalu",
+    "nid": "688",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "UG",
+    "country_name": "Uganda",
+    "nid": "256",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "UA",
+    "country_name": "Ukraine",
+    "nid": "380",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AE",
+    "country_name": "United Arab Emirates",
+    "nid": "971",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "GB",
+    "country_name": "United Kingdom",
+    "nid": "44",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "US",
+    "country_name": "United States",
+    "nid": "1",
+    "default_language_tag": "en-US"
+  },
+  {
+    "iso2": "VI",
+    "country_name": "United States Virgin Islands",
+    "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "UY",
+    "country_name": "Uruguay",
+    "nid": "598",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "UZ",
+    "country_name": "Uzbekistan",
+    "nid": "998",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "VU",
+    "country_name": "Vanuatu",
+    "nid": "678",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "VE",
+    "country_name": "Venezuela",
+    "nid": "58",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "VN",
+    "country_name": "Viet Nam",
+    "nid": "84",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "WF",
+    "country_name": "Wallis and Futuna",
+    "nid": "681",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "YE",
+    "country_name": "Yemen",
+    "nid": "967",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ZM",
+    "country_name": "Zambia",
+    "nid": "260",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "ZW",
+    "country_name": "Zimbabwe",
+    "nid": "263",
+    "default_language_tag": null
+  }
+]

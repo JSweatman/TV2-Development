@@ -121,13 +121,10 @@ class FixtureRepository:
         return [PrefixRecord(r.country_code, r.list_number, r.tldx, r.display_name, r.entity_type) for r in rows[: limit + 1]]
 
     def countries(self) -> list[CountryNamespaceRecord]:
-        return [
-            CountryNamespaceRecord("US", "United States", "1", "en-US"),
-            CountryNamespaceRecord("CA", "Canada", "1", "en-CA"),
-            CountryNamespaceRecord("FR", "France", "33", "fr-FR"),
-            CountryNamespaceRecord("JP", "Japan", "81", "ja-JP"),
-            CountryNamespaceRecord("IN", "India", "91", "en-IN"),
-        ]
+        catalog = Path(__file__).resolve().parents[1] / "data" / "country_namespaces.json"
+        return [CountryNamespaceRecord(**row)
+                for row in json.loads(catalog.read_text(encoding="utf-8"))]
+
 
     def health(self) -> bool:
         return True
