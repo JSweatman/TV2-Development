@@ -4,14 +4,11 @@ name: pwa-ios-safari-simulator-smoke
 # Separate from the native iOS Simulator app compilation / TestFlight path.
 # This is a simulator smoke test, not physical-iPhone acceptance.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/pwa-ios-safari-simulator-smoke.yml'
   push:
-    branches: [main]
+    branches: [test/safari-xcui-feasibility-20261125]
     paths:
       - '.github/workflows/pwa-ios-safari-simulator-smoke.yml'
-  workflow_dispatch:
+      - 'scripts/safari_xcui/**'
 
 permissions:
   contents: read
@@ -19,7 +16,7 @@ permissions:
 jobs:
   safari-iphone-simulator:
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -65,30 +62,29 @@ jobs:
           xcrun simctl bootstatus "$TV2_SIM_UDID" -b
           xcrun simctl status_bar "$TV2_SIM_UDID" override --time '9:41' || true
 
-      - name: Open the hosted TV2 PWA in iOS Simulator Safari
+      - name: Generate standalone XCUI test runner
+        run: ruby scripts/safari_xcui/project.rb
+
+      - name: Open Safari and exercise visible TV2 controls
+        timeout-minutes: 10
         shell: bash
         run: |
           set -euo pipefail
-          site='https://tv2-pwa-sundara-preview.onrender.com'
-          curl --fail --silent --show-error --location --max-time 30 "$site/" -o "${RUNNER_TEMP}/tv2-hosted-index.html"
-          grep -Eiq '<html' "${RUNNER_TEMP}/tv2-hosted-index.html"
-          xcrun simctl openurl "$TV2_SIM_UDID" "$site/"
-          sleep 18
           mkdir -p ios-pwa-evidence
-          xcrun simctl io "$TV2_SIM_UDID" screenshot ios-pwa-evidence/TV2-PWA-iPhone-Safari.png
-          test -s ios-pwa-evidence/TV2-PWA-iPhone-Safari.png
-          sips -g pixelWidth -g pixelHeight ios-pwa-evidence/TV2-PWA-iPhone-Safari.png | tee ios-pwa-evidence/screenshot_dimensions.txt
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          text = Path('ios-pwa-evidence/screenshot_dimensions.txt').read_text()
-          width = re.search(r'pixelWidth: (\d+)', text)
-          height = re.search(r'pixelHeight: (\d+)', text)
-          if not width or not height or int(width.group(1)) < 300 or int(height.group(1)) < 500:
-              raise SystemExit('Invalid or missing iOS Simulator screenshot')
-          print('PASS: Safari URL opening, simulator screenshot and dimensions')
-          print('Screenshot requires separate visual inspection; this step does not prove Flutter controls are usable.')
-          PY
+          xcrun simctl openurl "$TV2_SIM_UDID" 'https://tv2-pwa-sundara-preview.onrender.com/'
+          xcodebuild test -project TV2Safari.xcodeproj -scheme TV2Safari \
+            -destination "platform=iOS Simulator,id=$TV2_SIM_UDID" \
+            -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 \
+            -derivedDataPath "$RUNNER_TEMP/tv2-xcui-build" \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee ios-pwa-evidence/xcui.log
+
+      - name: Collect limited screenshots
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ios-pwa-evidence
+          find "$HOME/Library/Developer/CoreSimulator/Devices/$TV2_SIM_UDID/data/Containers" \
+            -path '*/tmp/tv2-evidence/*.png' -exec cp {} ios-pwa-evidence/ \;
 
       - name: Record iOS Safari browser smoke provenance
         if: always()
@@ -103,8 +99,9 @@ jobs:
             printf 'Source commit: %s\n' "$TV2_SOURCE_SHA"
             printf 'Workflow run: %s\n' "$GITHUB_RUN_ID"
             printf 'Simulator: %s (%s)\n' "${TV2_SIM_NAME:-unknown}" "${TV2_SIM_RUNTIME:-unknown}"
-            echo 'Evidence: Safari openurl command and screenshot, NOT a real iPhone.'
-            echo 'Screenshot is not equivalent to tested keypad interaction, accessibility, installability or real-device acceptance.'
+            echo 'Evidence: stages in xcui.log distinguish opening, control activation and lookup; NOT a real iPhone.'
+            echo 'Deployed PWA source SHA: unknown; workflow SHA does not identify hosted content.'
+            echo 'No contact actions. No full listing screenshot or xcresult upload. Failures remain evidence, not a pass.'
             echo 'Native TV2 iOS .app compilation is verified separately; not executed in this browser test.'
           } | tee ios-pwa-evidence/PROVENANCE.txt
 
