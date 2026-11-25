@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:tv2/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tv2/home_screen.dart';
@@ -35,9 +35,9 @@ void main() {
       SharedPreferences.setMockInitialValues(
           saved ? {'tv2_selected_nid': '1'} : {});
       final api = RetryDirectoryApi();
-      await t.pumpWidget(MaterialApp(home: HomeScreen(api: api)));
+      await t.pumpWidget(TV2App(api: api));
       for (final digit in '529'.split('')) {
-        await tapVisible(t, find.widgetWithText(FilledButton, digit));
+        await tapVisible(t, find.text(digit));
         await t.pump();
       }
       if (failsFirst) {
@@ -74,12 +74,12 @@ void main() {
       (t) async {
     SharedPreferences.setMockInitialValues({'tv2_selected_nid': '1'});
     final api = RetryDirectoryApi()..holdPreview = true;
-    await t.pumpWidget(MaterialApp(home: HomeScreen(api: api)));
+    await t.pumpWidget(TV2App(api: api));
     api.first.completeError(
         const ResolverApiException('Synthetic directory failure'));
     await t.pumpAndSettle();
     for (final digit in '529'.split('')) {
-      await tapVisible(t, find.widgetWithText(FilledButton, digit));
+      await tapVisible(t, find.text(digit));
       await t.pump();
     }
     await t.pump(const Duration(milliseconds: 300));
