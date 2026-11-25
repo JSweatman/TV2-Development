@@ -81,11 +81,32 @@ Representative caption and transcript screenshots were visually inspected.
 This is desktop browser evidence, not staging, native-device or screen-reader
 acceptance. The release harness and test clip are outside the shipped build.
 
-## Local integration compatibility observation (not published)
+## Single-line build transport
 
-At the #63/#43 local integration on 2026-11-25, literal multiline JSON values
-crashed the installed SDK's dart2js command-line parser. This local candidate
-also accepts literal backslash-n in TV2_TUTORIAL_CAPTIONS_VTT, converting those
-sequences to newlines at the normal main.dart entrypoint. In the JSON file use
-`\\n` for each line break. The escaped configuration compiled successfully.
-This is a local integration adjustment, not a change to either published draft.
+For SDKs whose compiler rejects multiline `-D` values, supply
+`TV2_TUTORIAL_CAPTIONS_VTT_BASE64`: standard Base64 of the UTF-8 WebVTT file.
+This is encoding, not encryption; never include secrets in client defines.
+Raw `TV2_TUTORIAL_CAPTIONS_VTT` remains unchanged and takes precedence when
+nonempty. Literal backslash-n text is not converted. Do not set both forms.
+Invalid encoding/UTF-8 or excessive size produces the existing sanitized caption
+error on opt-in; it cannot prevent video or keypad use. No URL still disables
+all tutorial UI. No caption network request is introduced.
+
+Example local config generation (approved files only, outside the repository):
+
+```python
+import base64, json
+from pathlib import Path
+config = {
+    "TV2_API_BASE_URL": "https://your-approved-resolver.example",
+    "TV2_TUTORIAL_URL": "https://your-approved-media.example/tutorial.mp4",
+    "TV2_TUTORIAL_CAPTIONS_VTT_BASE64": base64.b64encode(
+        Path("approved.vtt").read_bytes()).decode("ascii"),
+}
+Path("tutorial-defines.json").write_text(json.dumps(config))
+```
+
+Build the normal entrypoint with `flutter build web --release
+--dart-define-from-file=tutorial-defines.json -t lib/main.dart`.
+Do not commit that configuration or media. The unconfigured build retains its
+noninteractive placeholder and makes no tutorial request.
