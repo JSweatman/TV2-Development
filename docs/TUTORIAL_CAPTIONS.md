@@ -80,3 +80,12 @@ The transcript was exposed as readable text rather than a disabled text field.
 Representative caption and transcript screenshots were visually inspected.
 This is desktop browser evidence, not staging, native-device or screen-reader
 acceptance. The release harness and test clip are outside the shipped build.
+
+## Local integration compatibility observation (not published)
+
+At the #63/#43 local integration on 2026-11-25, literal multiline JSON values
+crashed the installed SDK's dart2js command-line parser. This local candidate
+also accepts literal backslash-n in TV2_TUTORIAL_CAPTIONS_VTT, converting those
+sequences to newlines at the normal main.dart entrypoint. In the JSON file use
+`\\n` for each line break. The escaped configuration compiled successfully.
+This is a local integration adjustment, not a change to either published draft.
