@@ -264,6 +264,18 @@
     "default_language_tag": null
   },
   {
+    "iso2": "CX",
+    "country_name": "Christmas Island",
+    "nid": "61",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CC",
+    "country_name": "Cocos (Keeling) Islands",
+    "nid": "61",
+    "default_language_tag": null
+  },
+  {
     "iso2": "CO",
     "country_name": "Colombia",
     "nid": "57",
@@ -294,12 +306,6 @@
     "default_language_tag": null
   },
   {
-    "iso2": "CI",
-    "country_name": "Côte d'Ivoire",
-    "nid": "225",
-    "default_language_tag": null
-  },
-  {
     "iso2": "HR",
     "country_name": "Croatia",
     "nid": "385",
@@ -327,6 +333,12 @@
     "iso2": "CZ",
     "country_name": "Czech Rep.",
     "nid": "420",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "CI",
+    "country_name": "Côte d'Ivoire",
+    "nid": "225",
     "default_language_tag": null
   },
   {
@@ -540,6 +552,12 @@
     "default_language_tag": null
   },
   {
+    "iso2": "GG",
+    "country_name": "Guernsey",
+    "nid": "44",
+    "default_language_tag": null
+  },
+  {
     "iso2": "GN",
     "country_name": "Guinea",
     "nid": "224",
@@ -618,6 +636,12 @@
     "default_language_tag": null
   },
   {
+    "iso2": "IM",
+    "country_name": "Isle of Man",
+    "nid": "44",
+    "default_language_tag": null
+  },
+  {
     "iso2": "IL",
     "country_name": "Israel",
     "nid": "972",
@@ -640,6 +664,12 @@
     "country_name": "Japan",
     "nid": "81",
     "default_language_tag": "ja-JP"
+  },
+  {
+    "iso2": "JE",
+    "country_name": "Jersey",
+    "nid": "44",
+    "default_language_tag": null
   },
   {
     "iso2": "JO",
@@ -807,6 +837,12 @@
     "iso2": "MU",
     "country_name": "Mauritius",
     "nid": "230",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "YT",
+    "country_name": "Mayotte",
+    "nid": "262",
     "default_language_tag": null
   },
   {
@@ -1050,6 +1086,12 @@
     "default_language_tag": null
   },
   {
+    "iso2": "BL",
+    "country_name": "Saint Barthélemy",
+    "nid": "590",
+    "default_language_tag": null
+  },
+  {
     "iso2": "SH",
     "country_name": "Saint Helena and Tristan da Cunha",
     "nid": "290",
@@ -1065,6 +1107,12 @@
     "iso2": "LC",
     "country_name": "Saint Lucia",
     "nid": "1",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "MF",
+    "country_name": "Saint Martin (France)",
+    "nid": "590",
     "default_language_tag": null
   },
   {
@@ -1200,6 +1248,12 @@
     "default_language_tag": null
   },
   {
+    "iso2": "SJ",
+    "country_name": "Svalbard",
+    "nid": "47",
+    "default_language_tag": null
+  },
+  {
     "iso2": "SE",
     "country_name": "Sweden",
     "nid": "46",
@@ -1278,12 +1332,6 @@
     "default_language_tag": null
   },
   {
-    "iso2": "TR",
-    "country_name": "Türkiye",
-    "nid": "90",
-    "default_language_tag": null
-  },
-  {
     "iso2": "TM",
     "country_name": "Turkmenistan",
     "nid": "993",
@@ -1299,6 +1347,12 @@
     "iso2": "TV",
     "country_name": "Tuvalu",
     "nid": "688",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "TR",
+    "country_name": "Türkiye",
+    "nid": "90",
     "default_language_tag": null
   },
   {
@@ -1356,6 +1410,12 @@
     "default_language_tag": null
   },
   {
+    "iso2": "VA",
+    "country_name": "Vatican City State (Holy See)",
+    "nid": "39",
+    "default_language_tag": null
+  },
+  {
     "iso2": "VE",
     "country_name": "Venezuela",
     "nid": "58",
@@ -1389,6 +1449,12 @@
     "iso2": "ZW",
     "country_name": "Zimbabwe",
     "nid": "263",
+    "default_language_tag": null
+  },
+  {
+    "iso2": "AX",
+    "country_name": "Åland",
+    "nid": "358",
     "default_language_tag": null
   }
 ]

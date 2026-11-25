@@ -1,0 +1,281 @@
+row,label,workbook_nid,iso2,nid,status
+1,Afghanistan,93,AF,93,mapped
+2,Åland,358 18,AX,358,mapped
+3,Albania,355,AL,355,mapped
+4,Algeria,213,DZ,213,mapped
+5,American Samoa,1 684,AS,1,mapped
+6,Andorra,376,AD,376,mapped
+7,Angola,244,AO,244,mapped
+8,Anguilla,1 264,AI,1,mapped
+9,Antigua and Barbuda,1 268,AG,1,mapped
+10,Argentina,54,AR,54,mapped
+11,Armenia,374,AM,374,mapped
+12,Artsakh,"374 47, 374 97",,,review
+13,Aruba,297,AW,297,mapped
+14,Ascension,247,AC,247,mapped
+15,Australia,61,AU,61,mapped
+16,Australian Antarctic Territory,672 1,,,review
+17,Australian External Territories,672,,,review
+18,Austria,43,AT,43,mapped
+19,Azerbaijan,994,AZ,994,mapped
+20,Bahamas,1 242,BS,1,mapped
+21,Bahrain,973,BH,973,mapped
+22,Bangladesh,880,BD,880,mapped
+23,Barbados,1 246,BB,1,mapped
+24,Barbuda,1 268,AG,1,mapped
+25,Belarus,375,BY,375,mapped
+26,Belgium,32,BE,32,mapped
+27,Belize,501,BZ,501,mapped
+28,Benin,229,BJ,229,mapped
+29,Bermuda,1 441,BM,1,mapped
+30,Bhutan,975,BT,975,mapped
+31,Bolivia,591,BO,591,mapped
+32,Bonaire,599 7,BQ,599,mapped
+33,Bosnia and Herzegovina,387,BA,387,mapped
+34,Botswana,267,BW,267,mapped
+35,Brazil,55,BR,55,mapped
+36,British Indian Ocean Territory,246,IO,246,mapped
+37,British Virgin Islands,1 284,VG,1,mapped
+38,Brunei Darussalam,673,BN,673,mapped
+39,Bulgaria,359,BG,359,mapped
+40,Burkina Faso,226,BF,226,mapped
+41,Burundi,257,BI,257,mapped
+42,Cambodia,855,KH,855,mapped
+43,Cameroon,237,CM,237,mapped
+44,Canada,1,CA,1,mapped
+45,Cape Verde,238,CV,238,mapped
+46,Caribbean Netherlands,"599 3, 599 4, 599 7",BQ,599,mapped
+47,Cayman Islands,1 345,KY,1,mapped
+48,Central African Republic,236,CF,236,mapped
+49,Chad,235,TD,235,mapped
+50,"Chatham Island, New Zealand",64,NZ,64,mapped
+51,Chile,56,CL,56,mapped
+52,China,86,CN,86,mapped
+53,Christmas Island,61 89164,CX,61,mapped
+54,Cocos (Keeling) Islands,61 89162,CC,61,mapped
+55,Colombia,57,CO,57,mapped
+56,Comoros,269,KM,269,mapped
+57,Congo,242,CG,242,mapped
+58,"Congo, Democratic Republic of the",243,CD,243,mapped
+59,Cook Islands,682,CK,682,mapped
+60,Costa Rica,506,CR,506,mapped
+61,Croatia,385,HR,385,mapped
+62,Cuba,53,CU,53,mapped
+63,Curaçao,599 9,CW,599,mapped
+64,Cyprus,357,CY,357,mapped
+65,Czech Republic,420,CZ,420,mapped
+66,Denmark,45,DK,45,mapped
+67,Diego Garcia,246,IO,246,mapped
+68,Djibouti,253,DJ,253,mapped
+69,Dominica,1 767,DM,1,mapped
+70,Dominican Republic,"1 809, 1 829, 1 849",DO,1,mapped
+71,East Timor (Timor-Leste),670,TL,670,mapped
+72,Easter Island,56,CL,56,mapped
+73,Ecuador,593,EC,593,mapped
+74,Egypt,20,EG,20,mapped
+75,El Salvador,503,SV,503,mapped
+76,Ellipso (Mobile Satellite service),"881 2, 881 3",,,excluded-service
+77,EMSAT (Mobile Satellite service),882 13,,,excluded-service
+78,Equatorial Guinea,240,GQ,240,mapped
+79,Eritrea,291,ER,291,mapped
+80,Estonia,372,EE,372,mapped
+81,Eswatini,268,SZ,268,mapped
+82,Ethiopia,251,ET,251,mapped
+83,Falkland Islands,500,FK,500,mapped
+84,Faroe Islands,298,FO,298,mapped
+85,Fiji,679,FJ,679,mapped
+86,Finland,358,FI,358,mapped
+87,France,33,FR,33,mapped
+88,French Antilles,596,,,review
+89,French Guiana,594,GF,594,mapped
+90,French Polynesia,689,PF,689,mapped
+91,Gabon,241,GA,241,mapped
+92,Gambia,220,GM,220,mapped
+93,Georgia,995,GE,995,mapped
+94,Germany,49,DE,49,mapped
+95,Ghana,233,GH,233,mapped
+96,Gibraltar,350,GI,350,mapped
+97,Global Mobile Satellite System (GMSS),881,,,excluded-service
+98,Globalstar (Mobile Satellite Service),"881 8, 881 9",,,excluded-service
+99,Greece,30,GR,30,mapped
+100,Greenland,299,GL,299,mapped
+101,Grenada,1 473,GD,1,mapped
+102,Guadeloupe,590,GP,590,mapped
+103,Guam,1 671,GU,1,mapped
+104,Guatemala,502,GT,502,mapped
+105,Guernsey,"44 1481, 44 7781, 44 7839, 44 7911",GG,44,mapped
+106,Guinea,224,GN,224,mapped
+107,Guinea-Bissau,245,GW,245,mapped
+108,Guyana,592,GY,592,mapped
+109,Haiti,509,HT,509,mapped
+110,Honduras,504,HN,504,mapped
+111,Hong Kong,852,HK,852,mapped
+112,Hungary,36,HU,36,mapped
+113,Iceland,354,IS,354,mapped
+114,ICO Global (Mobile Satellite Service),"881 0, 881 1",,,excluded-service
+115,India,91,IN,91,mapped
+116,Indonesia,62,ID,62,mapped
+117,Inmarsat SNAC,870,,,excluded-service
+118,International Freephone Service (UIFN),800,,,excluded-service
+119,International Networks,"882, 883",,,excluded-service
+120,International Premium Rate Service,979,,,excluded-service
+121,International Shared Cost Service (ISCS),808,,,excluded-service
+122,Iran,98,IR,98,mapped
+123,Iraq,964,IQ,964,mapped
+124,Ireland,353,IE,353,mapped
+125,Iridium (Mobile Satellite service),"881 6, 881 7",,,excluded-service
+126,Isle of Man,"44 1624, 44 7524, 44 7624, 44 7924",IM,44,mapped
+127,Israel,972,IL,972,mapped
+128,Italy,39,IT,39,mapped
+129,Ivory Coast (Côte d'Ivoire),225,CI,225,mapped
+130,Jamaica,"1 658, 1 876",JM,1,mapped
+131,Jan Mayen,47 79,SJ,47,mapped
+132,Japan,81,JP,81,mapped
+133,Jersey,44 1534,JE,44,mapped
+134,Jordan,962,JO,962,mapped
+135,Kazakhstan,997 (also 7 until 2025),KZ,7,corrected-to-ITU-7
+136,Kenya,254,KE,254,mapped
+137,Kiribati,686,KI,686,mapped
+138,"Korea, North",850,KP,850,mapped
+139,"Korea, South",82,KR,82,mapped
+140,Kosovo,383,XK,383,mapped
+141,Kuwait,965,KW,965,mapped
+142,Kyrgyzstan,996,KG,996,mapped
+143,Laos,856,LA,856,mapped
+144,Latvia,371,LV,371,mapped
+145,Lebanon,961,LB,961,mapped
+146,Lesotho,266,LS,266,mapped
+147,Liberia,231,LR,231,mapped
+148,Libya,218,LY,218,mapped
+149,Liechtenstein,423,LI,423,mapped
+150,Lithuania,370,LT,370,mapped
+151,Luxembourg,352,LU,352,mapped
+152,Macau,853,MO,853,mapped
+153,Madagascar,261,MG,261,mapped
+154,Malawi,265,MW,265,mapped
+155,Malaysia,60,MY,60,mapped
+156,Maldives,960,MV,960,mapped
+157,Mali,223,ML,223,mapped
+158,Malta,356,MT,356,mapped
+159,Marshall Islands,692,MH,692,mapped
+160,Martinique,596,MQ,596,mapped
+161,Mauritania,222,MR,222,mapped
+162,Mauritius,230,MU,230,mapped
+163,Mayotte,"262 269, 262 639",YT,262,mapped
+164,Mexico,52,MX,52,mapped
+165,"Micronesia, Federated States of",691,FM,691,mapped
+166,"Midway Island, USA",1 808,US,1,mapped
+167,Moldova,373,MD,373,mapped
+168,Monaco,377,MC,377,mapped
+169,Mongolia,976,MN,976,mapped
+170,Montenegro,382,ME,382,mapped
+171,Montserrat,1 664,MS,1,mapped
+172,Morocco,212,MA,212,mapped
+173,Mozambique,258,MZ,258,mapped
+174,Myanmar,95,MM,95,mapped
+175,Namibia,264,NA,264,mapped
+176,Nauru,674,NR,674,mapped
+177,Nepal,977,NP,977,mapped
+178,Netherlands,31,NL,31,mapped
+179,Nevis,1 869,KN,1,mapped
+180,New Caledonia,687,NC,687,mapped
+181,New Zealand,64,NZ,64,mapped
+182,Nicaragua,505,NI,505,mapped
+183,Niger,227,NE,227,mapped
+184,Nigeria,234,NG,234,mapped
+185,Niue,683,NU,683,mapped
+186,Norfolk Island,672 3,NF,672,mapped
+187,North Macedonia,389,MK,389,mapped
+188,Northern Cyprus,90 392,,,review
+189,Northern Ireland,44 28,GB,44,mapped
+190,Northern Mariana Islands,1 670,MP,1,mapped
+191,Norway,47,NO,47,mapped
+192,Oman,968,OM,968,mapped
+193,Pakistan,92,PK,92,mapped
+194,Palau,680,PW,680,mapped
+195,"Palestine, State of",970,PS,970,mapped
+196,Panama,507,PA,507,mapped
+197,Papua New Guinea,675,PG,675,mapped
+198,Paraguay,595,PY,595,mapped
+199,Peru,51,PE,51,mapped
+200,Philippines,63,PH,63,mapped
+201,Pitcairn Islands,64,,,review
+202,Poland,48,PL,48,mapped
+203,Portugal,351,PT,351,mapped
+204,Puerto Rico,"1 787, 1 939",PR,1,mapped
+205,Qatar,974,QA,974,mapped
+206,Réunion,262,RE,262,mapped
+207,Romania,40,RO,40,mapped
+208,Russia,7,RU,7,mapped
+209,Rwanda,250,RW,250,mapped
+210,Saba,599 4,BQ,599,mapped
+211,Saint Barthélemy,590,BL,590,mapped
+212,Saint Helena,290,SH,290,mapped
+213,Saint Kitts and Nevis,1 869,KN,1,mapped
+214,Saint Lucia,1 758,LC,1,mapped
+215,Saint Martin (France),590,MF,590,mapped
+216,Saint Pierre and Miquelon,508,PM,508,mapped
+217,Saint Vincent and the Grenadines,1 784,VC,1,mapped
+218,Samoa,685,WS,685,mapped
+219,San Marino,378,SM,378,mapped
+220,São Tomé and Príncipe,239,ST,239,mapped
+221,Saudi Arabia,966,SA,966,mapped
+222,Senegal,221,SN,221,mapped
+223,Serbia,381,RS,381,mapped
+224,Seychelles,248,SC,248,mapped
+225,Sierra Leone,232,SL,232,mapped
+226,Singapore,65,SG,65,mapped
+227,Sint Eustatius,599 3,BQ,599,mapped
+228,Sint Maarten (Netherlands),1 721,SX,1,mapped
+229,Slovakia,421,SK,421,mapped
+230,Slovenia,386,SI,386,mapped
+231,Solomon Islands,677,SB,677,mapped
+232,Somalia,252,SO,252,mapped
+233,South Africa,27,ZA,27,mapped
+234,South Georgia and the South Sandwich Islands,500,GS,,review
+235,South Ossetia,995 34,,,review
+236,South Sudan,211,SS,211,mapped
+237,Spain,34,ES,34,mapped
+238,Sri Lanka,94,LK,94,mapped
+239,Sudan,249,SD,249,mapped
+240,Suriname,597,SR,597,mapped
+241,Svalbard,47 79,SJ,47,mapped
+242,Sweden,46,SE,46,mapped
+243,Switzerland,41,CH,41,mapped
+244,Syria,963,SY,963,mapped
+245,Taiwan,886,TW,886,mapped
+246,Tajikistan,992,TJ,992,mapped
+247,Tanzania,255,TZ,255,mapped
+248,Telecommunications for Disaster Relief by OCHA,was 888,,,excluded-service
+249,Thailand,66,TH,66,mapped
+250,Thuraya (Mobile Satellite service),882 16,,,excluded-service
+251,Togo,228,TG,228,mapped
+252,Tokelau,690,TK,690,mapped
+253,Tonga,676,TO,676,mapped
+254,Transnistria,"373 2, 373 5",,,review
+255,Trinidad and Tobago,1 868,TT,1,mapped
+256,Tristan da Cunha,290 8,SH,290,mapped
+257,Tunisia,216,TN,216,mapped
+258,Turkey,90,TR,90,mapped
+259,Turkmenistan,993,TM,993,mapped
+260,Turks and Caicos Islands,1 649,TC,1,mapped
+261,Tuvalu,688,TV,688,mapped
+262,Uganda,256,UG,256,mapped
+263,Ukraine,380,UA,380,mapped
+264,United Arab Emirates,971,AE,971,mapped
+265,United Kingdom,44,GB,44,mapped
+266,United States,1,US,1,mapped
+267,Universal Personal Telecommunications (UPT),878,,,excluded-service
+268,Uruguay,598,UY,598,mapped
+269,US Virgin Islands,1 340,VI,1,mapped
+270,Uzbekistan,998,UZ,998,mapped
+271,Vanuatu,678,VU,678,mapped
+272,Vatican City State (Holy See),"39 06 698, assigned 379",VA,39,mapped
+273,Venezuela,58,VE,58,mapped
+274,Vietnam,84,VN,84,mapped
+275,"Wake Island, USA",1 808,US,1,mapped
+276,Wallis and Futuna,681,WF,681,mapped
+277,Yemen,967,YE,967,mapped
+278,Zambia,260,ZM,260,mapped
+279,Zanzibar,255 24,TZ,255,mapped
+280,Zimbabwe,263,ZW,263,mapped

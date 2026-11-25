@@ -1,0 +1,1776 @@
+{
+  "purpose": "Founder workbook reference only; not a default language, locale, or OPERATOR capability",
+  "countries": {
+    "AF": [
+      {
+        "workbook_row": 1,
+        "label": "Afghanistan",
+        "languages": "Dari, Pashto, Uzbek"
+      }
+    ],
+    "AX": [
+      {
+        "workbook_row": 2,
+        "label": "Åland",
+        "languages": "Swedish"
+      }
+    ],
+    "AL": [
+      {
+        "workbook_row": 3,
+        "label": "Albania",
+        "languages": "Albanian"
+      }
+    ],
+    "DZ": [
+      {
+        "workbook_row": 4,
+        "label": "Algeria",
+        "languages": "Arabic, Tamazight, French"
+      }
+    ],
+    "AS": [
+      {
+        "workbook_row": 5,
+        "label": "American Samoa",
+        "languages": "Samoan, English"
+      }
+    ],
+    "AD": [
+      {
+        "workbook_row": 6,
+        "label": "Andorra",
+        "languages": "Catalan, Spanish, French"
+      }
+    ],
+    "AO": [
+      {
+        "workbook_row": 7,
+        "label": "Angola",
+        "languages": "Portuguese, Umbundu, Kimbundu"
+      }
+    ],
+    "AI": [
+      {
+        "workbook_row": 8,
+        "label": "Anguilla",
+        "languages": "English"
+      }
+    ],
+    "AG": [
+      {
+        "workbook_row": 9,
+        "label": "Antigua and Barbuda",
+        "languages": "English, Antiguan Creole"
+      },
+      {
+        "workbook_row": 24,
+        "label": "Barbuda",
+        "languages": "English, Antiguan Creole"
+      }
+    ],
+    "AR": [
+      {
+        "workbook_row": 10,
+        "label": "Argentina",
+        "languages": "Spanish"
+      }
+    ],
+    "AM": [
+      {
+        "workbook_row": 11,
+        "label": "Armenia",
+        "languages": "Armenian"
+      }
+    ],
+    "AW": [
+      {
+        "workbook_row": 13,
+        "label": "Aruba",
+        "languages": "Papiamento, Dutch, English"
+      }
+    ],
+    "AC": [
+      {
+        "workbook_row": 14,
+        "label": "Ascension",
+        "languages": "English"
+      }
+    ],
+    "AU": [
+      {
+        "workbook_row": 15,
+        "label": "Australia",
+        "languages": "English"
+      }
+    ],
+    "AT": [
+      {
+        "workbook_row": 18,
+        "label": "Austria",
+        "languages": "German"
+      }
+    ],
+    "AZ": [
+      {
+        "workbook_row": 19,
+        "label": "Azerbaijan",
+        "languages": "Azerbaijani"
+      }
+    ],
+    "BS": [
+      {
+        "workbook_row": 20,
+        "label": "Bahamas",
+        "languages": "English"
+      }
+    ],
+    "BH": [
+      {
+        "workbook_row": 21,
+        "label": "Bahrain",
+        "languages": "Arabic, English"
+      }
+    ],
+    "BD": [
+      {
+        "workbook_row": 22,
+        "label": "Bangladesh",
+        "languages": "Bengali"
+      }
+    ],
+    "BB": [
+      {
+        "workbook_row": 23,
+        "label": "Barbados",
+        "languages": "English, Bajan Creole"
+      }
+    ],
+    "BY": [
+      {
+        "workbook_row": 25,
+        "label": "Belarus",
+        "languages": "Russian, Belarusian"
+      }
+    ],
+    "BE": [
+      {
+        "workbook_row": 26,
+        "label": "Belgium",
+        "languages": "Dutch, French, German"
+      }
+    ],
+    "BZ": [
+      {
+        "workbook_row": 27,
+        "label": "Belize",
+        "languages": "English, Spanish, Belizean Creole"
+      }
+    ],
+    "BJ": [
+      {
+        "workbook_row": 28,
+        "label": "Benin",
+        "languages": "French, Fon, Yoruba"
+      }
+    ],
+    "BM": [
+      {
+        "workbook_row": 29,
+        "label": "Bermuda",
+        "languages": "English"
+      }
+    ],
+    "BT": [
+      {
+        "workbook_row": 30,
+        "label": "Bhutan",
+        "languages": "Dzongkha, Nepali, Sharchop"
+      }
+    ],
+    "BO": [
+      {
+        "workbook_row": 31,
+        "label": "Bolivia",
+        "languages": "Spanish, Quechua, Aymara"
+      }
+    ],
+    "BQ": [
+      {
+        "workbook_row": 32,
+        "label": "Bonaire",
+        "languages": "Papiamento, Dutch"
+      },
+      {
+        "workbook_row": 46,
+        "label": "Caribbean Netherlands",
+        "languages": "Papiamento, Dutch, English"
+      },
+      {
+        "workbook_row": 210,
+        "label": "Saba",
+        "languages": "English, Dutch, Papiamento"
+      },
+      {
+        "workbook_row": 227,
+        "label": "Sint Eustatius",
+        "languages": "English, Dutch, Papiamento"
+      }
+    ],
+    "BA": [
+      {
+        "workbook_row": 33,
+        "label": "Bosnia and Herzegovina",
+        "languages": "Bosnian, Serbian, Croatian"
+      }
+    ],
+    "BW": [
+      {
+        "workbook_row": 34,
+        "label": "Botswana",
+        "languages": "Setswana, English"
+      }
+    ],
+    "BR": [
+      {
+        "workbook_row": 35,
+        "label": "Brazil",
+        "languages": "Portuguese"
+      }
+    ],
+    "IO": [
+      {
+        "workbook_row": 36,
+        "label": "British Indian Ocean Territory",
+        "languages": "English"
+      },
+      {
+        "workbook_row": 67,
+        "label": "Diego Garcia",
+        "languages": "English"
+      }
+    ],
+    "VG": [
+      {
+        "workbook_row": 37,
+        "label": "British Virgin Islands",
+        "languages": "English"
+      }
+    ],
+    "BN": [
+      {
+        "workbook_row": 38,
+        "label": "Brunei Darussalam",
+        "languages": "Malay"
+      }
+    ],
+    "BG": [
+      {
+        "workbook_row": 39,
+        "label": "Bulgaria",
+        "languages": "Bulgarian"
+      }
+    ],
+    "BF": [
+      {
+        "workbook_row": 40,
+        "label": "Burkina Faso",
+        "languages": "Mooré, Dyula, Fulfulde"
+      }
+    ],
+    "BI": [
+      {
+        "workbook_row": 41,
+        "label": "Burundi",
+        "languages": "Kirundi, French, Swahili"
+      }
+    ],
+    "KH": [
+      {
+        "workbook_row": 42,
+        "label": "Cambodia",
+        "languages": "Khmer"
+      }
+    ],
+    "CM": [
+      {
+        "workbook_row": 43,
+        "label": "Cameroon",
+        "languages": "French, English, Fulfulde"
+      }
+    ],
+    "CA": [
+      {
+        "workbook_row": 44,
+        "label": "Canada",
+        "languages": "English, French"
+      }
+    ],
+    "CV": [
+      {
+        "workbook_row": 45,
+        "label": "Cape Verde",
+        "languages": "Portuguese, Cape Verdean Creole"
+      }
+    ],
+    "KY": [
+      {
+        "workbook_row": 47,
+        "label": "Cayman Islands",
+        "languages": "English"
+      }
+    ],
+    "CF": [
+      {
+        "workbook_row": 48,
+        "label": "Central African Republic",
+        "languages": "Sango, French"
+      }
+    ],
+    "TD": [
+      {
+        "workbook_row": 49,
+        "label": "Chad",
+        "languages": "Arabic, French"
+      }
+    ],
+    "NZ": [
+      {
+        "workbook_row": 50,
+        "label": "Chatham Island, New Zealand",
+        "languages": "English, Māori"
+      },
+      {
+        "workbook_row": 181,
+        "label": "New Zealand",
+        "languages": "English, Māori"
+      }
+    ],
+    "CL": [
+      {
+        "workbook_row": 51,
+        "label": "Chile",
+        "languages": "Spanish"
+      },
+      {
+        "workbook_row": 72,
+        "label": "Easter Island",
+        "languages": "Spanish, Rapa Nui"
+      }
+    ],
+    "CN": [
+      {
+        "workbook_row": 52,
+        "label": "China",
+        "languages": "Mandarin Chinese, Cantonese, Wu Chinese"
+      }
+    ],
+    "CX": [
+      {
+        "workbook_row": 53,
+        "label": "Christmas Island",
+        "languages": "English, Malay"
+      }
+    ],
+    "CC": [
+      {
+        "workbook_row": 54,
+        "label": "Cocos (Keeling) Islands",
+        "languages": "English, Malay"
+      }
+    ],
+    "CO": [
+      {
+        "workbook_row": 55,
+        "label": "Colombia",
+        "languages": "Spanish"
+      }
+    ],
+    "KM": [
+      {
+        "workbook_row": 56,
+        "label": "Comoros",
+        "languages": "Comorian, Arabic, French"
+      }
+    ],
+    "CG": [
+      {
+        "workbook_row": 57,
+        "label": "Congo",
+        "languages": "French, Kituba, Lingala"
+      }
+    ],
+    "CD": [
+      {
+        "workbook_row": 58,
+        "label": "Congo, Democratic Republic of the",
+        "languages": "French, Lingala, Swahili"
+      }
+    ],
+    "CK": [
+      {
+        "workbook_row": 59,
+        "label": "Cook Islands",
+        "languages": "Cook Islands Māori, English"
+      }
+    ],
+    "CR": [
+      {
+        "workbook_row": 60,
+        "label": "Costa Rica",
+        "languages": "Spanish"
+      }
+    ],
+    "HR": [
+      {
+        "workbook_row": 61,
+        "label": "Croatia",
+        "languages": "Croatian"
+      }
+    ],
+    "CU": [
+      {
+        "workbook_row": 62,
+        "label": "Cuba",
+        "languages": "Spanish"
+      }
+    ],
+    "CW": [
+      {
+        "workbook_row": 63,
+        "label": "Curaçao",
+        "languages": "Papiamento, Dutch, English"
+      }
+    ],
+    "CY": [
+      {
+        "workbook_row": 64,
+        "label": "Cyprus",
+        "languages": "Greek, Turkish"
+      }
+    ],
+    "CZ": [
+      {
+        "workbook_row": 65,
+        "label": "Czech Republic",
+        "languages": "Czech"
+      }
+    ],
+    "DK": [
+      {
+        "workbook_row": 66,
+        "label": "Denmark",
+        "languages": "Danish"
+      }
+    ],
+    "DJ": [
+      {
+        "workbook_row": 68,
+        "label": "Djibouti",
+        "languages": "Somali, Afar, Arabic"
+      }
+    ],
+    "DM": [
+      {
+        "workbook_row": 69,
+        "label": "Dominica",
+        "languages": "English, Dominican Creole"
+      }
+    ],
+    "DO": [
+      {
+        "workbook_row": 70,
+        "label": "Dominican Republic",
+        "languages": "Spanish"
+      }
+    ],
+    "TL": [
+      {
+        "workbook_row": 71,
+        "label": "East Timor (Timor-Leste)",
+        "languages": "Tetum, Portuguese, Indonesian"
+      }
+    ],
+    "EC": [
+      {
+        "workbook_row": 73,
+        "label": "Ecuador",
+        "languages": "Spanish, Quechua, Shuar"
+      }
+    ],
+    "EG": [
+      {
+        "workbook_row": 74,
+        "label": "Egypt",
+        "languages": "Arabic"
+      }
+    ],
+    "SV": [
+      {
+        "workbook_row": 75,
+        "label": "El Salvador",
+        "languages": "Spanish"
+      }
+    ],
+    "GQ": [
+      {
+        "workbook_row": 78,
+        "label": "Equatorial Guinea",
+        "languages": "Spanish, Fang, Bubi"
+      }
+    ],
+    "ER": [
+      {
+        "workbook_row": 79,
+        "label": "Eritrea",
+        "languages": "Tigrinya, Arabic, Tigre"
+      }
+    ],
+    "EE": [
+      {
+        "workbook_row": 80,
+        "label": "Estonia",
+        "languages": "Estonian, Russian"
+      }
+    ],
+    "SZ": [
+      {
+        "workbook_row": 81,
+        "label": "Eswatini",
+        "languages": "Swazi, English"
+      }
+    ],
+    "ET": [
+      {
+        "workbook_row": 82,
+        "label": "Ethiopia",
+        "languages": "Amharic, Oromo, Somali"
+      }
+    ],
+    "FK": [
+      {
+        "workbook_row": 83,
+        "label": "Falkland Islands",
+        "languages": "English"
+      }
+    ],
+    "FO": [
+      {
+        "workbook_row": 84,
+        "label": "Faroe Islands",
+        "languages": "Faroese, Danish"
+      }
+    ],
+    "FJ": [
+      {
+        "workbook_row": 85,
+        "label": "Fiji",
+        "languages": "Fijian, Fiji Hindi, English"
+      }
+    ],
+    "FI": [
+      {
+        "workbook_row": 86,
+        "label": "Finland",
+        "languages": "Finnish, Swedish"
+      }
+    ],
+    "FR": [
+      {
+        "workbook_row": 87,
+        "label": "France",
+        "languages": "French"
+      }
+    ],
+    "GF": [
+      {
+        "workbook_row": 89,
+        "label": "French Guiana",
+        "languages": "French, French Guianese Creole"
+      }
+    ],
+    "PF": [
+      {
+        "workbook_row": 90,
+        "label": "French Polynesia",
+        "languages": "French, Tahitian"
+      }
+    ],
+    "GA": [
+      {
+        "workbook_row": 91,
+        "label": "Gabon",
+        "languages": "French, Fang"
+      }
+    ],
+    "GM": [
+      {
+        "workbook_row": 92,
+        "label": "Gambia",
+        "languages": "English, Mandinka, Wolof"
+      }
+    ],
+    "GE": [
+      {
+        "workbook_row": 93,
+        "label": "Georgia",
+        "languages": "Georgian"
+      }
+    ],
+    "DE": [
+      {
+        "workbook_row": 94,
+        "label": "Germany",
+        "languages": "German"
+      }
+    ],
+    "GH": [
+      {
+        "workbook_row": 95,
+        "label": "Ghana",
+        "languages": "English, Akan, Ewe"
+      }
+    ],
+    "GI": [
+      {
+        "workbook_row": 96,
+        "label": "Gibraltar",
+        "languages": "English, Spanish"
+      }
+    ],
+    "GR": [
+      {
+        "workbook_row": 99,
+        "label": "Greece",
+        "languages": "Greek"
+      }
+    ],
+    "GL": [
+      {
+        "workbook_row": 100,
+        "label": "Greenland",
+        "languages": "Greenlandic, Danish"
+      }
+    ],
+    "GD": [
+      {
+        "workbook_row": 101,
+        "label": "Grenada",
+        "languages": "English, Grenadian Creole"
+      }
+    ],
+    "GP": [
+      {
+        "workbook_row": 102,
+        "label": "Guadeloupe",
+        "languages": "French, Guadeloupean Creole"
+      }
+    ],
+    "GU": [
+      {
+        "workbook_row": 103,
+        "label": "Guam",
+        "languages": "English, Chamorro"
+      }
+    ],
+    "GT": [
+      {
+        "workbook_row": 104,
+        "label": "Guatemala",
+        "languages": "Spanish, Kʼicheʼ, Qʼeqchiʼ"
+      }
+    ],
+    "GG": [
+      {
+        "workbook_row": 105,
+        "label": "Guernsey",
+        "languages": "English, French"
+      }
+    ],
+    "GN": [
+      {
+        "workbook_row": 106,
+        "label": "Guinea",
+        "languages": "French, Pular, Maninka"
+      }
+    ],
+    "GW": [
+      {
+        "workbook_row": 107,
+        "label": "Guinea-Bissau",
+        "languages": "Portuguese, Guinea-Bissau Creole, Balanta"
+      }
+    ],
+    "GY": [
+      {
+        "workbook_row": 108,
+        "label": "Guyana",
+        "languages": "English, Guyanese Creole"
+      }
+    ],
+    "HT": [
+      {
+        "workbook_row": 109,
+        "label": "Haiti",
+        "languages": "Haitian Creole, French"
+      }
+    ],
+    "HN": [
+      {
+        "workbook_row": 110,
+        "label": "Honduras",
+        "languages": "Spanish"
+      }
+    ],
+    "HK": [
+      {
+        "workbook_row": 111,
+        "label": "Hong Kong",
+        "languages": "Cantonese, English, Mandarin Chinese"
+      }
+    ],
+    "HU": [
+      {
+        "workbook_row": 112,
+        "label": "Hungary",
+        "languages": "Hungarian"
+      }
+    ],
+    "IS": [
+      {
+        "workbook_row": 113,
+        "label": "Iceland",
+        "languages": "Icelandic"
+      }
+    ],
+    "IN": [
+      {
+        "workbook_row": 115,
+        "label": "India",
+        "languages": "Hindi, Bengali, Marathi"
+      }
+    ],
+    "ID": [
+      {
+        "workbook_row": 116,
+        "label": "Indonesia",
+        "languages": "Indonesian, Javanese, Sundanese"
+      }
+    ],
+    "IR": [
+      {
+        "workbook_row": 122,
+        "label": "Iran",
+        "languages": "Persian, Azerbaijani, Kurdish"
+      }
+    ],
+    "IQ": [
+      {
+        "workbook_row": 123,
+        "label": "Iraq",
+        "languages": "Arabic, Kurdish"
+      }
+    ],
+    "IE": [
+      {
+        "workbook_row": 124,
+        "label": "Ireland",
+        "languages": "English, Irish"
+      }
+    ],
+    "IM": [
+      {
+        "workbook_row": 126,
+        "label": "Isle of Man",
+        "languages": "English, Manx"
+      }
+    ],
+    "IL": [
+      {
+        "workbook_row": 127,
+        "label": "Israel",
+        "languages": "Hebrew, Arabic, Russian"
+      }
+    ],
+    "IT": [
+      {
+        "workbook_row": 128,
+        "label": "Italy",
+        "languages": "Italian"
+      }
+    ],
+    "CI": [
+      {
+        "workbook_row": 129,
+        "label": "Ivory Coast (Côte d'Ivoire)",
+        "languages": "French, Baoulé, Dyula"
+      }
+    ],
+    "JM": [
+      {
+        "workbook_row": 130,
+        "label": "Jamaica",
+        "languages": "English, Jamaican Patois"
+      }
+    ],
+    "SJ": [
+      {
+        "workbook_row": 131,
+        "label": "Jan Mayen",
+        "languages": "Norwegian"
+      },
+      {
+        "workbook_row": 241,
+        "label": "Svalbard",
+        "languages": "Norwegian"
+      }
+    ],
+    "JP": [
+      {
+        "workbook_row": 132,
+        "label": "Japan",
+        "languages": "Japanese"
+      }
+    ],
+    "JE": [
+      {
+        "workbook_row": 133,
+        "label": "Jersey",
+        "languages": "English, French"
+      }
+    ],
+    "JO": [
+      {
+        "workbook_row": 134,
+        "label": "Jordan",
+        "languages": "Arabic"
+      }
+    ],
+    "KZ": [
+      {
+        "workbook_row": 135,
+        "label": "Kazakhstan",
+        "languages": "Kazakh, Russian"
+      }
+    ],
+    "KE": [
+      {
+        "workbook_row": 136,
+        "label": "Kenya",
+        "languages": "Swahili, English, Kikuyu"
+      }
+    ],
+    "KI": [
+      {
+        "workbook_row": 137,
+        "label": "Kiribati",
+        "languages": "Gilbertese, English"
+      }
+    ],
+    "KP": [
+      {
+        "workbook_row": 138,
+        "label": "Korea, North",
+        "languages": "Korean"
+      }
+    ],
+    "KR": [
+      {
+        "workbook_row": 139,
+        "label": "Korea, South",
+        "languages": "Korean"
+      }
+    ],
+    "XK": [
+      {
+        "workbook_row": 140,
+        "label": "Kosovo",
+        "languages": "Albanian, Serbian"
+      }
+    ],
+    "KW": [
+      {
+        "workbook_row": 141,
+        "label": "Kuwait",
+        "languages": "Arabic, English"
+      }
+    ],
+    "KG": [
+      {
+        "workbook_row": 142,
+        "label": "Kyrgyzstan",
+        "languages": "Kyrgyz, Russian, Uzbek"
+      }
+    ],
+    "LA": [
+      {
+        "workbook_row": 143,
+        "label": "Laos",
+        "languages": "Lao"
+      }
+    ],
+    "LV": [
+      {
+        "workbook_row": 144,
+        "label": "Latvia",
+        "languages": "Latvian, Russian"
+      }
+    ],
+    "LB": [
+      {
+        "workbook_row": 145,
+        "label": "Lebanon",
+        "languages": "Arabic, French, English"
+      }
+    ],
+    "LS": [
+      {
+        "workbook_row": 146,
+        "label": "Lesotho",
+        "languages": "Sesotho, English"
+      }
+    ],
+    "LR": [
+      {
+        "workbook_row": 147,
+        "label": "Liberia",
+        "languages": "English, Kpelle, Bassa"
+      }
+    ],
+    "LY": [
+      {
+        "workbook_row": 148,
+        "label": "Libya",
+        "languages": "Arabic"
+      }
+    ],
+    "LI": [
+      {
+        "workbook_row": 149,
+        "label": "Liechtenstein",
+        "languages": "German"
+      }
+    ],
+    "LT": [
+      {
+        "workbook_row": 150,
+        "label": "Lithuania",
+        "languages": "Lithuanian, Russian"
+      }
+    ],
+    "LU": [
+      {
+        "workbook_row": 151,
+        "label": "Luxembourg",
+        "languages": "Luxembourgish, French, German"
+      }
+    ],
+    "MO": [
+      {
+        "workbook_row": 152,
+        "label": "Macau",
+        "languages": "Cantonese, Mandarin Chinese, Portuguese"
+      }
+    ],
+    "MG": [
+      {
+        "workbook_row": 153,
+        "label": "Madagascar",
+        "languages": "Malagasy, French"
+      }
+    ],
+    "MW": [
+      {
+        "workbook_row": 154,
+        "label": "Malawi",
+        "languages": "Chichewa, English, Tumbuka"
+      }
+    ],
+    "MY": [
+      {
+        "workbook_row": 155,
+        "label": "Malaysia",
+        "languages": "Malay, Mandarin Chinese, Tamil"
+      }
+    ],
+    "MV": [
+      {
+        "workbook_row": 156,
+        "label": "Maldives",
+        "languages": "Dhivehi"
+      }
+    ],
+    "ML": [
+      {
+        "workbook_row": 157,
+        "label": "Mali",
+        "languages": "Bambara, French, Fulfulde"
+      }
+    ],
+    "MT": [
+      {
+        "workbook_row": 158,
+        "label": "Malta",
+        "languages": "Maltese, English"
+      }
+    ],
+    "MH": [
+      {
+        "workbook_row": 159,
+        "label": "Marshall Islands",
+        "languages": "Marshallese, English"
+      }
+    ],
+    "MQ": [
+      {
+        "workbook_row": 160,
+        "label": "Martinique",
+        "languages": "French, Martinican Creole"
+      }
+    ],
+    "MR": [
+      {
+        "workbook_row": 161,
+        "label": "Mauritania",
+        "languages": "Arabic, Pulaar, Soninke"
+      }
+    ],
+    "MU": [
+      {
+        "workbook_row": 162,
+        "label": "Mauritius",
+        "languages": "Mauritian Creole, French, English"
+      }
+    ],
+    "YT": [
+      {
+        "workbook_row": 163,
+        "label": "Mayotte",
+        "languages": "Shimaore, French, Kibushi"
+      }
+    ],
+    "MX": [
+      {
+        "workbook_row": 164,
+        "label": "Mexico",
+        "languages": "Spanish, Nahuatl, Maya"
+      }
+    ],
+    "FM": [
+      {
+        "workbook_row": 165,
+        "label": "Micronesia, Federated States of",
+        "languages": "English, Chuukese, Pohnpeian"
+      }
+    ],
+    "US": [
+      {
+        "workbook_row": 166,
+        "label": "Midway Island, USA",
+        "languages": "English"
+      },
+      {
+        "workbook_row": 266,
+        "label": "United States",
+        "languages": "English, Spanish"
+      },
+      {
+        "workbook_row": 275,
+        "label": "Wake Island, USA",
+        "languages": "English"
+      }
+    ],
+    "MD": [
+      {
+        "workbook_row": 167,
+        "label": "Moldova",
+        "languages": "Romanian, Russian, Gagauz"
+      }
+    ],
+    "MC": [
+      {
+        "workbook_row": 168,
+        "label": "Monaco",
+        "languages": "French, Italian"
+      }
+    ],
+    "MN": [
+      {
+        "workbook_row": 169,
+        "label": "Mongolia",
+        "languages": "Mongolian"
+      }
+    ],
+    "ME": [
+      {
+        "workbook_row": 170,
+        "label": "Montenegro",
+        "languages": "Montenegrin, Serbian, Bosnian"
+      }
+    ],
+    "MS": [
+      {
+        "workbook_row": 171,
+        "label": "Montserrat",
+        "languages": "English"
+      }
+    ],
+    "MA": [
+      {
+        "workbook_row": 172,
+        "label": "Morocco",
+        "languages": "Arabic, Tamazight, French"
+      }
+    ],
+    "MZ": [
+      {
+        "workbook_row": 173,
+        "label": "Mozambique",
+        "languages": "Portuguese, Makhuwa, Tsonga"
+      }
+    ],
+    "MM": [
+      {
+        "workbook_row": 174,
+        "label": "Myanmar",
+        "languages": "Burmese, Shan, Karen"
+      }
+    ],
+    "NA": [
+      {
+        "workbook_row": 175,
+        "label": "Namibia",
+        "languages": "English, Oshiwambo, Afrikaans"
+      }
+    ],
+    "NR": [
+      {
+        "workbook_row": 176,
+        "label": "Nauru",
+        "languages": "Nauruan, English"
+      }
+    ],
+    "NP": [
+      {
+        "workbook_row": 177,
+        "label": "Nepal",
+        "languages": "Nepali, Maithili, Bhojpuri"
+      }
+    ],
+    "NL": [
+      {
+        "workbook_row": 178,
+        "label": "Netherlands",
+        "languages": "Dutch, Frisian, English"
+      }
+    ],
+    "KN": [
+      {
+        "workbook_row": 179,
+        "label": "Nevis",
+        "languages": "English"
+      },
+      {
+        "workbook_row": 213,
+        "label": "Saint Kitts and Nevis",
+        "languages": "English, Saint Kitts Creole"
+      }
+    ],
+    "NC": [
+      {
+        "workbook_row": 180,
+        "label": "New Caledonia",
+        "languages": "French, Kanak languages"
+      }
+    ],
+    "NI": [
+      {
+        "workbook_row": 182,
+        "label": "Nicaragua",
+        "languages": "Spanish, Miskito"
+      }
+    ],
+    "NE": [
+      {
+        "workbook_row": 183,
+        "label": "Niger",
+        "languages": "Hausa, Zarma, French"
+      }
+    ],
+    "NG": [
+      {
+        "workbook_row": 184,
+        "label": "Nigeria",
+        "languages": "Hausa, Yoruba, Igbo"
+      }
+    ],
+    "NU": [
+      {
+        "workbook_row": 185,
+        "label": "Niue",
+        "languages": "Niuean, English"
+      }
+    ],
+    "NF": [
+      {
+        "workbook_row": 186,
+        "label": "Norfolk Island",
+        "languages": "English, Norfolk"
+      }
+    ],
+    "MK": [
+      {
+        "workbook_row": 187,
+        "label": "North Macedonia",
+        "languages": "Macedonian, Albanian"
+      }
+    ],
+    "GB": [
+      {
+        "workbook_row": 189,
+        "label": "Northern Ireland",
+        "languages": "English, Irish"
+      },
+      {
+        "workbook_row": 265,
+        "label": "United Kingdom",
+        "languages": "English, Welsh, Scots"
+      }
+    ],
+    "MP": [
+      {
+        "workbook_row": 190,
+        "label": "Northern Mariana Islands",
+        "languages": "English, Chamorro, Carolinian"
+      }
+    ],
+    "NO": [
+      {
+        "workbook_row": 191,
+        "label": "Norway",
+        "languages": "Norwegian"
+      }
+    ],
+    "OM": [
+      {
+        "workbook_row": 192,
+        "label": "Oman",
+        "languages": "Arabic, English"
+      }
+    ],
+    "PK": [
+      {
+        "workbook_row": 193,
+        "label": "Pakistan",
+        "languages": "Punjabi, Pashto, Sindhi"
+      }
+    ],
+    "PW": [
+      {
+        "workbook_row": 194,
+        "label": "Palau",
+        "languages": "Palauan, English"
+      }
+    ],
+    "PS": [
+      {
+        "workbook_row": 195,
+        "label": "Palestine, State of",
+        "languages": "Arabic, Hebrew"
+      }
+    ],
+    "PA": [
+      {
+        "workbook_row": 196,
+        "label": "Panama",
+        "languages": "Spanish, Ngäbere"
+      }
+    ],
+    "PG": [
+      {
+        "workbook_row": 197,
+        "label": "Papua New Guinea",
+        "languages": "Tok Pisin, English, Hiri Motu"
+      }
+    ],
+    "PY": [
+      {
+        "workbook_row": 198,
+        "label": "Paraguay",
+        "languages": "Spanish, Guaraní"
+      }
+    ],
+    "PE": [
+      {
+        "workbook_row": 199,
+        "label": "Peru",
+        "languages": "Spanish, Quechua, Aymara"
+      }
+    ],
+    "PH": [
+      {
+        "workbook_row": 200,
+        "label": "Philippines",
+        "languages": "Filipino, English, Cebuano"
+      }
+    ],
+    "PL": [
+      {
+        "workbook_row": 202,
+        "label": "Poland",
+        "languages": "Polish"
+      }
+    ],
+    "PT": [
+      {
+        "workbook_row": 203,
+        "label": "Portugal",
+        "languages": "Portuguese"
+      }
+    ],
+    "PR": [
+      {
+        "workbook_row": 204,
+        "label": "Puerto Rico",
+        "languages": "Spanish, English"
+      }
+    ],
+    "QA": [
+      {
+        "workbook_row": 205,
+        "label": "Qatar",
+        "languages": "Arabic, English"
+      }
+    ],
+    "RE": [
+      {
+        "workbook_row": 206,
+        "label": "Réunion",
+        "languages": "French, Réunion Creole"
+      }
+    ],
+    "RO": [
+      {
+        "workbook_row": 207,
+        "label": "Romania",
+        "languages": "Romanian, Hungarian"
+      }
+    ],
+    "RU": [
+      {
+        "workbook_row": 208,
+        "label": "Russia",
+        "languages": "Russian"
+      }
+    ],
+    "RW": [
+      {
+        "workbook_row": 209,
+        "label": "Rwanda",
+        "languages": "Kinyarwanda, English, French"
+      }
+    ],
+    "BL": [
+      {
+        "workbook_row": 211,
+        "label": "Saint Barthélemy",
+        "languages": "French"
+      }
+    ],
+    "SH": [
+      {
+        "workbook_row": 212,
+        "label": "Saint Helena",
+        "languages": "English"
+      },
+      {
+        "workbook_row": 256,
+        "label": "Tristan da Cunha",
+        "languages": "English"
+      }
+    ],
+    "LC": [
+      {
+        "workbook_row": 214,
+        "label": "Saint Lucia",
+        "languages": "English, Saint Lucian Creole"
+      }
+    ],
+    "MF": [
+      {
+        "workbook_row": 215,
+        "label": "Saint Martin (France)",
+        "languages": "French, Saint Martin Creole"
+      }
+    ],
+    "PM": [
+      {
+        "workbook_row": 216,
+        "label": "Saint Pierre and Miquelon",
+        "languages": "French"
+      }
+    ],
+    "VC": [
+      {
+        "workbook_row": 217,
+        "label": "Saint Vincent and the Grenadines",
+        "languages": "English, Vincentian Creole"
+      }
+    ],
+    "WS": [
+      {
+        "workbook_row": 218,
+        "label": "Samoa",
+        "languages": "Samoan, English"
+      }
+    ],
+    "SM": [
+      {
+        "workbook_row": 219,
+        "label": "San Marino",
+        "languages": "Italian"
+      }
+    ],
+    "ST": [
+      {
+        "workbook_row": 220,
+        "label": "São Tomé and Príncipe",
+        "languages": "Portuguese, Forro"
+      }
+    ],
+    "SA": [
+      {
+        "workbook_row": 221,
+        "label": "Saudi Arabia",
+        "languages": "Arabic"
+      }
+    ],
+    "SN": [
+      {
+        "workbook_row": 222,
+        "label": "Senegal",
+        "languages": "Wolof, French, Pulaar"
+      }
+    ],
+    "RS": [
+      {
+        "workbook_row": 223,
+        "label": "Serbia",
+        "languages": "Serbian, Hungarian"
+      }
+    ],
+    "SC": [
+      {
+        "workbook_row": 224,
+        "label": "Seychelles",
+        "languages": "Seychellois Creole, English, French"
+      }
+    ],
+    "SL": [
+      {
+        "workbook_row": 225,
+        "label": "Sierra Leone",
+        "languages": "Krio, English, Mende"
+      }
+    ],
+    "SG": [
+      {
+        "workbook_row": 226,
+        "label": "Singapore",
+        "languages": "English, Mandarin Chinese, Malay"
+      }
+    ],
+    "SX": [
+      {
+        "workbook_row": 228,
+        "label": "Sint Maarten (Netherlands)",
+        "languages": "English, Dutch, Spanish"
+      }
+    ],
+    "SK": [
+      {
+        "workbook_row": 229,
+        "label": "Slovakia",
+        "languages": "Slovak"
+      }
+    ],
+    "SI": [
+      {
+        "workbook_row": 230,
+        "label": "Slovenia",
+        "languages": "Slovene"
+      }
+    ],
+    "SB": [
+      {
+        "workbook_row": 231,
+        "label": "Solomon Islands",
+        "languages": "Pijin, English"
+      }
+    ],
+    "SO": [
+      {
+        "workbook_row": 232,
+        "label": "Somalia",
+        "languages": "Somali, Arabic"
+      }
+    ],
+    "ZA": [
+      {
+        "workbook_row": 233,
+        "label": "South Africa",
+        "languages": "Zulu, Xhosa, Afrikaans"
+      }
+    ],
+    "SS": [
+      {
+        "workbook_row": 236,
+        "label": "South Sudan",
+        "languages": "Juba Arabic, Dinka, Nuer"
+      }
+    ],
+    "ES": [
+      {
+        "workbook_row": 237,
+        "label": "Spain",
+        "languages": "Spanish, Catalan, Galician"
+      }
+    ],
+    "LK": [
+      {
+        "workbook_row": 238,
+        "label": "Sri Lanka",
+        "languages": "Sinhala, Tamil, English"
+      }
+    ],
+    "SD": [
+      {
+        "workbook_row": 239,
+        "label": "Sudan",
+        "languages": "Arabic, English"
+      }
+    ],
+    "SR": [
+      {
+        "workbook_row": 240,
+        "label": "Suriname",
+        "languages": "Dutch, Sranan Tongo, Sarnami Hindustani"
+      }
+    ],
+    "SE": [
+      {
+        "workbook_row": 242,
+        "label": "Sweden",
+        "languages": "Swedish"
+      }
+    ],
+    "CH": [
+      {
+        "workbook_row": 243,
+        "label": "Switzerland",
+        "languages": "German, French, Italian"
+      }
+    ],
+    "SY": [
+      {
+        "workbook_row": 244,
+        "label": "Syria",
+        "languages": "Arabic, Kurdish"
+      }
+    ],
+    "TW": [
+      {
+        "workbook_row": 245,
+        "label": "Taiwan",
+        "languages": "Mandarin Chinese, Taiwanese Hokkien, Hakka"
+      }
+    ],
+    "TJ": [
+      {
+        "workbook_row": 246,
+        "label": "Tajikistan",
+        "languages": "Tajik, Uzbek, Russian"
+      }
+    ],
+    "TZ": [
+      {
+        "workbook_row": 247,
+        "label": "Tanzania",
+        "languages": "Swahili, Sukuma, English"
+      },
+      {
+        "workbook_row": 279,
+        "label": "Zanzibar",
+        "languages": "Swahili, Arabic, English"
+      }
+    ],
+    "TH": [
+      {
+        "workbook_row": 249,
+        "label": "Thailand",
+        "languages": "Thai, Isan, Northern Thai"
+      }
+    ],
+    "TG": [
+      {
+        "workbook_row": 251,
+        "label": "Togo",
+        "languages": "Ewe, Kabiyè, French"
+      }
+    ],
+    "TK": [
+      {
+        "workbook_row": 252,
+        "label": "Tokelau",
+        "languages": "Tokelauan, English"
+      }
+    ],
+    "TO": [
+      {
+        "workbook_row": 253,
+        "label": "Tonga",
+        "languages": "Tongan, English"
+      }
+    ],
+    "TT": [
+      {
+        "workbook_row": 255,
+        "label": "Trinidad and Tobago",
+        "languages": "English, Trinidadian Creole, Hindi"
+      }
+    ],
+    "TN": [
+      {
+        "workbook_row": 257,
+        "label": "Tunisia",
+        "languages": "Arabic, French"
+      }
+    ],
+    "TR": [
+      {
+        "workbook_row": 258,
+        "label": "Turkey",
+        "languages": "Turkish, Kurdish"
+      }
+    ],
+    "TM": [
+      {
+        "workbook_row": 259,
+        "label": "Turkmenistan",
+        "languages": "Turkmen, Russian"
+      }
+    ],
+    "TC": [
+      {
+        "workbook_row": 260,
+        "label": "Turks and Caicos Islands",
+        "languages": "English, Turks and Caicos Creole"
+      }
+    ],
+    "TV": [
+      {
+        "workbook_row": 261,
+        "label": "Tuvalu",
+        "languages": "Tuvaluan, English"
+      }
+    ],
+    "UG": [
+      {
+        "workbook_row": 262,
+        "label": "Uganda",
+        "languages": "English, Luganda, Swahili"
+      }
+    ],
+    "UA": [
+      {
+        "workbook_row": 263,
+        "label": "Ukraine",
+        "languages": "Ukrainian, Russian"
+      }
+    ],
+    "AE": [
+      {
+        "workbook_row": 264,
+        "label": "United Arab Emirates",
+        "languages": "Arabic, English, Hindi"
+      }
+    ],
+    "UY": [
+      {
+        "workbook_row": 268,
+        "label": "Uruguay",
+        "languages": "Spanish"
+      }
+    ],
+    "VI": [
+      {
+        "workbook_row": 269,
+        "label": "US Virgin Islands",
+        "languages": "English, Virgin Islands Creole"
+      }
+    ],
+    "UZ": [
+      {
+        "workbook_row": 270,
+        "label": "Uzbekistan",
+        "languages": "Uzbek, Russian, Tajik"
+      }
+    ],
+    "VU": [
+      {
+        "workbook_row": 271,
+        "label": "Vanuatu",
+        "languages": "Bislama, English, French"
+      }
+    ],
+    "VA": [
+      {
+        "workbook_row": 272,
+        "label": "Vatican City State (Holy See)",
+        "languages": "Italian, Latin"
+      }
+    ],
+    "VE": [
+      {
+        "workbook_row": 273,
+        "label": "Venezuela",
+        "languages": "Spanish"
+      }
+    ],
+    "VN": [
+      {
+        "workbook_row": 274,
+        "label": "Vietnam",
+        "languages": "Vietnamese"
+      }
+    ],
+    "WF": [
+      {
+        "workbook_row": 276,
+        "label": "Wallis and Futuna",
+        "languages": "French, Wallisian, Futunan"
+      }
+    ],
+    "YE": [
+      {
+        "workbook_row": 277,
+        "label": "Yemen",
+        "languages": "Arabic"
+      }
+    ],
+    "ZM": [
+      {
+        "workbook_row": 278,
+        "label": "Zambia",
+        "languages": "English, Bemba, Nyanja"
+      }
+    ],
+    "ZW": [
+      {
+        "workbook_row": 280,
+        "label": "Zimbabwe",
+        "languages": "Shona, Ndebele, English"
+      }
+    ]
+  }
+}
