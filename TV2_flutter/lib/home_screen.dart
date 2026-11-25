@@ -110,6 +110,11 @@ class _HomeScreenState extends State<HomeScreen> {
         countryLoading = false;
       });
 
+      // Digits may have been entered before the directory became available.
+      // Restoring a saved namespace must refresh that preview just as a manual
+      // namespace selection does, invalidating any obsolete lookup generation.
+      if (selected != null && input.isNotEmpty) _setInput(input);
+
       if (selected == null && widget.initialCountry == null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _editCountry(requireSelection: true);
