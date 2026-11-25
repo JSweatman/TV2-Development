@@ -93,9 +93,10 @@ The first navigation tutorial must be approved and stay within the issue's
 60-second limit. No approved tutorial/audio is bundled or enabled. The local
 silent blue test clip is test-only; the previous review cut is not included.
 
-Captions/transcript UI, accessible content validation, language selection and
-caption metadata are deferred and must be addressed before tutorial-content
-acceptance. The plugin offers caption primitives, but they are not wired here.
+The follow-up [caption/transcript slice](TUTORIAL_CAPTIONS.md) provides one
+optional build-owned WebVTT track and a readable transcript. Accessible content
+validation, language selection and approved caption metadata still require
+content acceptance. No tutorial content is enabled by these foundations.
 The optional three-video sequence, next/skip choices, and per-video metadata are
 also deferred; this slice only replays/dismisses one clip. Do not enable a free
 account/personalization tutorial before those features exist or are explicitly

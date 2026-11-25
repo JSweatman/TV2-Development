@@ -13,3 +13,7 @@ production entry point, or approved tutorial content. Widget tests fake platform
 events and verify controller commands; they do not decode video. A separate local
 web harness can point the real controller to this clip for codec/playback checks.
 No tutorial review cut, narration, phone capture or personal data is included.
+
+`tutorial_captions.vtt` contains two original synthetic cue labels for caption
+boundary tests against the same one-second pattern. It is test-only, not an
+approved tutorial transcript, and is not declared in Flutter assets.

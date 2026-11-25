@@ -16,6 +16,7 @@ void main() {
       api: api,
       tutorial: TutorialVideo.fromUrl(
         const String.fromEnvironment('TV2_TUTORIAL_URL'),
+        captionsVtt: const String.fromEnvironment('TV2_TUTORIAL_CAPTIONS_VTT'),
       )));
 }
 
