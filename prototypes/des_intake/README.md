@@ -76,3 +76,54 @@ Inspect network bodies to confirm no challenge value or external requests.
 Before any real use: separately approved identity/owner authorization, verified
 phone workflow, reviewed RTA product/legal text, canonical write contract,
 hosted access and retention design are required. None is simulated as completed.
+
+## HTTP follow-up and private-route decision
+
+Follow-up starts from 7373bdade9c15b73e3f4d62bd6ee4c28f9dc7c94.
+Eight tests now pass (five repository + three real HTTP integration tests).
+`test_http.py` runs the actual server handler on an OS-assigned loopback port for
+assertions only, then shuts it down. This is not an alternative preview server,
+port exposure, browser transport or relay bypass.
+
+Observed HTTP: worksheet markup and local JS/CSS delivered; no-store and CSP
+restrict connect to self, disable media/frames/images and form submission;
+complete qualified identity checks; duplicate/draft/expired occupation;
+10E/RTA-No/phone/approval failures; distinct country saves; pending verification;
+8 KiB request cap; malformed JSON/type/unknown fields rejected; foreign Origin
+rejected; no publishing endpoint. Sent challenge-marker field is rejected and
+absent from the DB and request logs. JS source builds payloads without the PIN
+and clears it on check. These source/HTTP assertions do not establish actual
+browser CSP enforcement, network trace, keyboard operation or challenge lifetime.
+
+Managed diagnostic follow-up: `sites-preview status` still reports stopped.
+`sites-preview --help` exposes start/status/stop only. There is no new recovery
+signal, so no retry was made after the prior relay readiness failure. Browser
+end-to-end QA remains a handoff gate.
+
+### Recommended candidate route, conditional — no resources created
+
+For an eventual synthetic-only owner review, use a NEW owner-private Sites Worker
+and dedicated D1 database, not an existing TV2 Site or shared resolver database.
+The Sites skill supports Worker ESM and per-Site D1 bindings; private access is
+owned by Sites and must be verified before release. Require identity/owner access
+for every API operation, no public write endpoint, no app connectors or tunnels.
+Keep demo challenge explicitly non-authenticating behind that real access gate.
+
+Required adaptation (NOT implemented here): a separately labeled JavaScript
+sandbox adapter with the same validation and tuple-key uniqueness in D1, schema
+migration + synthetic seed, parity tests against this Python reference, restart
+persistence and owner-only denied-access tests. This is a review sandbox only:
+Python/Postgres remains the actual product architecture and no code is swapped
+into its normal app/resolver. A static mockup is not an acceptable substitute.
+The current Python stdlib server/SQLite file cannot simply be uploaded and run
+as a Sites Worker; do not claim portable hosting without that adaptation.
+
+Official included-use documentation:
+https://help.openai.com/en/articles/20001339-creating-and-using-chatgpt-sites
+states hosting is currently included with Plus/Pro, Enterprise hosting charges
+are currently waived, and usage/storage limits apply. This does not verify this
+account's plan, current allowance or Business billing terms. Confirm the actual
+account's included allowance and owner-private access before any create/publish;
+stop if extra cost or uncertain entitlement. Building also consumes Codex usage.
+No deployment, Site creation, D1 provisioning, live data, shared grants, existing
+Render change or owner link has occurred.

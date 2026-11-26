@@ -58,7 +58,7 @@ class Intake:
     def rows(self):
         with self.connect() as db:return [dict(number=n,state=s,name=json.loads(p).get('name','Reserved fixture')) for n,s,p in db.execute('SELECT number,state,payload FROM intake ORDER BY number')]
 
-def serve(path,port):
+def make_server(path,port):
     store=Intake(path)
     class Handler(BaseHTTPRequestHandler):
         def log_message(self,*args): pass
@@ -85,8 +85,8 @@ def serve(path,port):
             if self.path=='/api/validate':return self.send(200,{'errors':store.validate(data)})
             if self.path=='/api/save':return self.send(*store.save(data))
             self.send(404,{'error':'No publishing or verification endpoint exists.'})
-    ThreadingHTTPServer(('127.0.0.1',port),Handler).serve_forever()
+    return ThreadingHTTPServer(('127.0.0.1',port),Handler)
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--host',choices=['127.0.0.1'],default='127.0.0.1');p.add_argument('--strictPort',action='store_true');p.add_argument('--port',type=int,default=int(os.environ.get('PORT','5173')));p.add_argument('--db',default=None);a=p.parse_args()
     # Default is isolated ephemeral state; an explicit path supports controlled restart tests.
-    with tempfile.TemporaryDirectory(prefix='des-synthetic-') as temp:serve(a.db or str(Path(temp)/'intake.sqlite'),a.port)
+    with tempfile.TemporaryDirectory(prefix='des-synthetic-') as temp:make_server(a.db or str(Path(temp)/'intake.sqlite'),a.port).serve_forever()
