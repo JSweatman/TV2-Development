@@ -4,6 +4,7 @@ import 'home_screen.dart';
 import 'device_handoff.dart';
 import 'resolver_api.dart';
 import 'tutorial_panel.dart';
+import 'tutorial_caption_config.dart';
 
 const _apiBase = String.fromEnvironment(
   'TV2_API_BASE_URL',
@@ -16,6 +17,11 @@ void main() {
       api: api,
       tutorial: TutorialVideo.fromUrl(
         const String.fromEnvironment('TV2_TUTORIAL_URL'),
+        captionsVtt: tutorialCaptionText(
+          raw: const String.fromEnvironment('TV2_TUTORIAL_CAPTIONS_VTT'),
+          base64Text:
+              const String.fromEnvironment('TV2_TUTORIAL_CAPTIONS_VTT_BASE64'),
+        ),
       )));
 }
 
