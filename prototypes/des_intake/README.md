@@ -127,3 +127,15 @@ account's included allowance and owner-private access before any create/publish;
 stop if extra cost or uncertain entitlement. Building also consumes Codex usage.
 No deployment, Site creation, D1 provisioning, live data, shared grants, existing
 Render change or owner link has occurred.
+
+## Delayed feedback regression
+
+`node --test prototypes/des_intake/test_events.cjs` executes the actual app.js
+with a minimal DOM/event fixture and controlled fetch completions. It is not a
+real browser. The regressions failed on d44adf0 before the correction.
+Input now invalidates pending feedback immediately (before blur/change), clears
+obsolete field errors and resets simulated approval. A separate edit revision
+prevents old save errors from marking/focusing newer input. Save outcomes still
+identify the submitted number, successful rows still refresh, and current edits
+are retained. A failed worksheet refresh after successful save is reported as
+saved, not an unknown save. Atomic server validation/uniqueness is unchanged.

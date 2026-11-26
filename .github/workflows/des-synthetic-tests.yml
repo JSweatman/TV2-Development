@@ -21,3 +21,5 @@ jobs:
         run: python -m pytest -q prototypes/des_intake
       - name: Check browser script syntax
         run: node --check prototypes/des_intake/web/app.js
+      - name: Test delayed feedback using actual browser script
+        run: node --test prototypes/des_intake/test_events.cjs
