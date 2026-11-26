@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,7 +37,7 @@ class SavedBookmark {
   final String ownerTitle;
   final String? alias;
 
-  String get displayTitle => alias?.trim().isNotEmpty == true ? alias!.trim() : ownerTitle;
+  String get displayTitle => alias?.trim().isNotEmpty == true ? alias!.trim() : (ownerTitle.isEmpty ? 'Listing unavailable' : ownerTitle);
 
   factory SavedBookmark.fromJson(Map<String, dynamic> json) => SavedBookmark(
         folderId: json['folder_id'] as String,
@@ -57,6 +58,8 @@ class SavedBookmark {
 
 class SavedCollections {
   SavedCollections._(this._prefs);
+
+  static final changes = ChangeNotifier();
 
   /// Legacy folder/bookmark records without a kind remain Bookmarks.
   /// A contact can also be a bookmark, without exposing a social graph.
@@ -175,6 +178,23 @@ class SavedCollections {
     await _write(folders, records);
   }
 
+  /// A definitive exact lookup is evidence only for this full saved identity.
+  /// Remove publisher-supplied text, retaining private labels and organization.
+  Future<void> forgetPublisherTitle(String qualifiedIdentity) async {
+    final doc = _read();
+    final records = bookmarksFromDoc(doc);
+    if (!records.any((item) => item.qualifiedIdentity == qualifiedIdentity &&
+        item.ownerTitle.isNotEmpty)) return;
+    await _write(foldersFromDoc(doc), [
+      for (final item in records)
+        if (item.qualifiedIdentity == qualifiedIdentity)
+          SavedBookmark(folderId: item.folderId,
+            qualifiedIdentity: item.qualifiedIdentity, kind: item.kind,
+            ownerTitle: '', alias: item.alias)
+        else item,
+    ]);
+  }
+
   Future<void> remove({required String folderId, required String qualifiedIdentity}) async {
     final doc = _read();
     final folders = foldersFromDoc(doc);
@@ -202,5 +222,6 @@ class SavedCollections {
       'bookmarks': [for (final bookmark in bookmarks) bookmark.toJson()],
     }));
     if (!ok) throw StateError('Unable to save bookmarks on this device.');
+    changes.notifyListeners();
   }
 }

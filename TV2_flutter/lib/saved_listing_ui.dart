@@ -221,7 +221,14 @@ class _SavedFoldersScreenState extends State<SavedFoldersScreen> {
   @override
   void initState() {
     super.initState();
+    SavedCollections.changes.addListener(_refresh);
     _refresh();
+  }
+
+  @override
+  void dispose() {
+    SavedCollections.changes.removeListener(_refresh);
+    super.dispose();
   }
 
   Future<void> _refresh() async {
