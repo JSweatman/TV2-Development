@@ -13,6 +13,7 @@ import 'public_resource_launcher.dart';
 import 'saved_listing_ui.dart';
 import 'saved_collections.dart';
 import 'listing_video_panel.dart';
+import 'listing_availability_gate.dart';
 import 'landing_theme.dart';
 import 'device_handoff.dart';
 import 'tutorial_panel.dart';
@@ -391,8 +392,15 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       if (listing != null && ModalRoute.of(context)?.isCurrent == true) {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing,
-              deviceHandoff: widget.deviceHandoff, routeObserver: widget.tutorialRoutes)),
+          MaterialPageRoute(
+              builder: (_) => ListingAvailabilityGate(
+                  api: widget.api,
+                  listing: listing,
+                  builder: (fresh, authorize) => TemplateScreen(
+                      listing: fresh,
+                      authorizeAction: authorize,
+                      deviceHandoff: widget.deviceHandoff,
+                      routeObserver: widget.tutorialRoutes))),
         );
       }
     } catch (error) {
@@ -411,7 +419,6 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() => _enterGeneration = null);
       }
     }
-
   }
 
   Future<void> _openHome() async {
@@ -827,12 +834,14 @@ class TemplateScreen extends StatefulWidget {
   TemplateScreen({
     super.key,
     required this.listing,
+    this.authorizeAction,
     this.deviceHandoff,
     this.routeObserver,
   });
   final DeviceHandoff? deviceHandoff;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
+  final AuthorizeListingAction? authorizeAction;
 
   @override
   State<TemplateScreen> createState() => _TemplateScreenState();
@@ -886,8 +895,13 @@ class _TemplateScreenState extends State<TemplateScreen> {
                   ? 'Provider video is not supported in this build.'
                   : 'Provider video configuration is unavailable.')));
     }
-    return ListingVideoPanel(key: _videoKey, listing: listing, routeObserver: routeObserver,
-      expanded: _videoExpanded, onExpansionChanged: _expandVideo);
+    return ListingVideoPanel(
+        key: _videoKey,
+        listing: listing,
+        authorizeAction: widget.authorizeAction,
+        routeObserver: routeObserver,
+        expanded: _videoExpanded,
+        onExpansionChanged: _expandVideo);
   }
 
   bool _configured(ResourceRecord? resource) {
@@ -1032,6 +1046,20 @@ class _TemplateScreenState extends State<TemplateScreen> {
     BuildContext context,
     ResourceRecord resource,
   ) async {
+    final authorize = widget.authorizeAction;
+    if (authorize != null) {
+      _videoKey.currentState?.pauseForExternalHandoff();
+      await authorize(() {
+        final fresh = listing.resource(resource.key);
+        if (fresh != null) _performResourceAction(context, fresh);
+      });
+    } else {
+      await _performResourceAction(context, resource);
+    }
+  }
+
+  Future<void> _performResourceAction(
+      BuildContext context, ResourceRecord resource) async {
     if (resource.type == 'provider_embed' || resource.type == 'landing_theme') {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('This resource is unavailable in this build.')));

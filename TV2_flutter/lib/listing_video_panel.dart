@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import 'video_preview_placeholder.dart';
 
 import 'models.dart';
+import 'listing_availability_gate.dart';
 import 'public_resource_launcher.dart';
 
 Uri? listingVideoUri(Listing listing) {
@@ -27,6 +28,7 @@ class ListingVideoPanel extends StatefulWidget {
     super.key,
     required this.listing,
     this.controllerFactory,
+    this.authorizeAction,
     this.routeObserver,
     this.expanded = false,
     this.onExpansionChanged,
@@ -35,6 +37,7 @@ class ListingVideoPanel extends StatefulWidget {
   final bool expanded;
   final ValueChanged<bool>? onExpansionChanged;
   final ListingControllerFactory? controllerFactory;
+  final AuthorizeListingAction? authorizeAction;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
 
   @override
@@ -131,6 +134,32 @@ class ListingVideoPanelState extends State<ListingVideoPanel>
         unawaited(controller.pause().catchError((Object _) {}));
       }
       unawaited(controller.dispose().catchError((Object _) {}));
+    }
+  }
+
+  Future<void> _authorizeLoad() async {
+    final authorize = widget.authorizeAction;
+    if (authorize == null) {
+      await _load();
+    } else {
+      await authorize(() {
+        if (mounted) _load();
+      });
+    }
+  }
+
+  Future<void> _authorizeToggle() async {
+    if (_controller?.value.isPlaying ?? false) {
+      await _toggle();
+      return;
+    }
+    final authorize = widget.authorizeAction;
+    if (authorize == null) {
+      await _toggle();
+    } else {
+      await authorize(() {
+        if (mounted) _toggle();
+      });
     }
   }
 
@@ -266,7 +295,7 @@ class ListingVideoPanelState extends State<ListingVideoPanel>
                       runSpacing: 8,
                       children: [
                         FilledButton.tonal(
-                          onPressed: _toggle,
+                          onPressed: _authorizeToggle,
                           child: Text(
                             playing
                                 ? 'Pause listing video'
@@ -338,8 +367,8 @@ class ListingVideoPanelState extends State<ListingVideoPanel>
                   onPressed: _loading
                       ? null
                       : ready
-                          ? _toggle
-                          : _load,
+                          ? _authorizeToggle
+                          : _authorizeLoad,
                   child: Text(
                     error
                         ? 'Retry listing video'
