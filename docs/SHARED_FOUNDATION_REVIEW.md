@@ -89,3 +89,24 @@ Required next verification/approval:
    schema restoration. Resolve those before editor writes. Desiree Bodio (Des)
    is the named next-phase spreadsheet editor; no editor, PIN, phone verification,
    RTA or billing feature is implemented or published by this work.
+
+## Des data-integrity acceptance (local only)
+
+`test_disposable_bootstrap.py` now also runs `check_identity_reservation.py`.
+This adds nonduplicative acceptance coverage on the unchanged runtime from
+75086d8e9afe70b7afa1839b7b91964b4ac93bc1:
+- Actual parser: `1*529` and `81*529` both have `.canonical == '529'`, but
+  `(country_code, base, tldx)` is respectively `('1','529',None)` and
+  `('81','529',None)`. Use the whole tuple for identity, never canonical alone.
+- Actual prefix HTTP response formatter returns distinct `qualified_input`
+  values `1*529` and `81*529`; no replacement formatter is introduced.
+- Draft and expired synthetic rows are absent from exact/prefix discovery yet
+  duplicate insertion is rejected by the database: hiding does not release identity.
+- Two overlapping database transactions attempt the same whole identity. The
+  test observes the second waiting on a transaction-id lock, then one commit,
+  one SQLSTATE 23505 from `uq_listing_namespace_v2`, and exactly one stored row.
+
+Full disposable suite passed, including existing namespace/global/suffix rules.
+This is parser/HTTP formatter plus local DB evidence, not an editor, enrollment
+policy, hosted permission or browser/device test. The local test environment
+emits a Starlette TestClient/httpx deprecation warning; no dependencies changed.
