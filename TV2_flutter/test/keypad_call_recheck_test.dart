@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tv2/main.dart';
 import 'package:tv2/device_handoff.dart';
 import 'package:tv2/models.dart';
+import 'package:tv2/saved_collections.dart';
 import 'package:tv2/resolver_api.dart';
 import 'home_screen_test.dart' show FakeApi;
 import 'listing_media_handoff_test.dart' show tapVisible;
@@ -86,6 +87,11 @@ void main() {
     ]) {
       testWidgets('keypad CALL rechecks $country $outcome', (t) async {
         SharedPreferences.setMockInitialValues({});
+        final saved = await SavedCollections.open();
+        await saved.save(
+            newFolderName: 'Samples',
+            qualifiedIdentity: '${country ?? ''}*529',
+            ownerTitle: 'Synthetic');
         final api = CallApi(country);
         final opened = <Uri>[];
         await t.pumpWidget(TV2App(
@@ -120,6 +126,11 @@ void main() {
                   phone: outcome == 'removed' ? null : '+12025550102')));
         }
         await t.pumpAndSettle();
+        // Combined #72/#73: definitive CALL withdrawal clears only the
+        // publisher title; a transport failure does not imply withdrawal.
+        final row = (await SavedCollections.open()).bookmarks().single;
+        expect(row.ownerTitle, outcome == 'missing' ? '' : 'Synthetic');
+        expect(row.qualifiedIdentity, '${country ?? ''}*529');
         if (outcome == 'changed') {
           expect(find.textContaining('+12025550102'), findsOneWidget);
           expect(find.textContaining('+12025550101'), findsNothing);
