@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
 import 'resolver_api.dart';
+import 'resolver_config.dart';
 import 'tutorial_panel.dart';
 
-const _apiBase = String.fromEnvironment(
-  'TV2_API_BASE_URL',
-  defaultValue: 'https://tv2-development.onrender.com',
-);
-
 void main() {
-  final api = HttpResolverApi(baseUri: Uri.parse(_apiBase));
+  final api = HttpResolverApi(baseUri: configuredResolverOrigin());
   runApp(TV2App(
       api: api,
       tutorial: TutorialVideo.fromUrl(

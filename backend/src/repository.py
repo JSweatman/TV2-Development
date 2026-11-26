@@ -355,8 +355,11 @@ def _escape_like(value: str) -> str:
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
+CANONICAL_SUPABASE_URL = "https://wzfvdkcqpanekotfwcbm.supabase.co"
+
+
 def build_repository() -> ResolverRepository:
-    mode = os.getenv("TV2_REPOSITORY", "fixture").strip().lower()
+    mode = os.getenv("TV2_REPOSITORY", "supabase").strip().lower()
     if mode == "fixture":
         default = Path(__file__).resolve().parents[1] / "fixtures" / "resolver_records.json"
         path = os.getenv("TV2_FIXTURE_FILE", str(default))
@@ -366,6 +369,8 @@ def build_repository() -> ResolverRepository:
         publishable_key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
         if not base_url or not publishable_key:
             raise RuntimeError("SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required in supabase mode")
+        if base_url.rstrip("/") != CANONICAL_SUPABASE_URL:
+            raise RuntimeError("Supabase mode requires the canonical List Number TV2 project")
         return SupabaseResolverRepository(base_url, publishable_key)
     if mode == "postgres":
         database_url = os.getenv("DATABASE_URL", "").strip()
