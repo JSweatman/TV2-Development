@@ -112,7 +112,8 @@ class HttpResolverApi implements ResolverApi {
   }) async =>
       PrefixResponse.fromJson(await _getMap('/v1/prefix', {
         'input': input,
-        'country': country,
+        // Empty means no default namespace (explicit global uses *number).
+        if (country.isNotEmpty) 'country': country,
         'limit': '$limit',
       }));
 
@@ -123,6 +124,7 @@ class HttpResolverApi implements ResolverApi {
   }) async =>
       ResolveResponse.fromJson(await _getMap('/v1/resolve', {
         'input': input,
-        'country': country,
+        // Empty means no default namespace (explicit global uses *number).
+        if (country.isNotEmpty) 'country': country,
       }));
 }
