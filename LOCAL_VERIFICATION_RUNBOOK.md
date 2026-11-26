@@ -2,7 +2,7 @@
 
 This is the PM-level sequence for proving each layer without AWS.
 
-1. Run backend unit/contract tests: `cd backend && python -m pytest -q`.
+1. Run backend unit/contract tests: `cd backend && TV2_REPOSITORY=fixture python -m pytest -q`.
 2. Start fixture resolver: `TV2_REPOSITORY=fixture PYTHONPATH=src uvicorn app:app --host 127.0.0.1 --port 8000`.
 3. Check readiness: open `http://127.0.0.1:8000/ready`.
 4. Exercise progressive API: `/v1/prefix?country=1&input=529`.
