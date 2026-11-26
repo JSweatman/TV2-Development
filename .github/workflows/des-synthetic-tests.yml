@@ -8,7 +8,7 @@ permissions:
   contents: read
 jobs:
   synthetic-intake:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -23,3 +23,6 @@ jobs:
         run: node --check prototypes/des_intake/web/app.js
       - name: Test delayed feedback using actual browser script
         run: node --test prototypes/des_intake/test_events.cjs
+      - name: Verify actual worksheet in runner Chrome over loopback
+        timeout-minutes: 2
+        run: python prototypes/des_intake/ci_browser.py
