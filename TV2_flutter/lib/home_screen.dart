@@ -446,11 +446,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _call() {
-    final resources = exactListing?.resources.where((r) => r.type == 'call');
-    final resource =
-        resources == null || resources.isEmpty ? null : resources.first;
-    (widget.deviceHandoff ?? DeviceHandoff()).request(context, resource);
+  Future<void> _call() async {
+    final original = exactListing;
+    if (original == null || loading) return;
+    _debounce?.cancel();
+    final generation = ++_requestGeneration;
+    bool current() => mounted && generation == _requestGeneration;
+    setState(() { loading = true; errorMessage = null; });
+    try {
+      final response = await widget.api.resolve(
+          input: original.qualifiedIdentity, country: original.countryCode ?? '');
+      if (!current()) return;
+      final fresh = response.listing;
+      if (response.status == 'not_found') {
+        setState(() {
+          exactListing = null; matches = const []; hasMore = false;
+          errorMessage = 'This listing is no longer available.';
+        });
+        return;
+      }
+      if (response.status != 'resolved' || fresh == null ||
+          fresh.countryCode != original.countryCode ||
+          fresh.listNumber != original.listNumber || fresh.tldx != original.tldx) {
+        throw const ResolverApiException('Unable to verify this listing. Retry CALL.');
+      }
+      setState(() { exactListing = fresh; loading = false; });
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      final resources = fresh.resources.where((r) => r.type == 'call');
+      await (widget.deviceHandoff ?? DeviceHandoff()).request(
+          context, resources.isEmpty ? null : resources.first,
+          stillCurrent: current);
+    } catch (_) {
+      if (current()) setState(() {
+        errorMessage = 'Unable to verify this listing. Reconnect and retry CALL.';
+      });
+    } finally {
+      if (current()) setState(() => loading = false);
+    }
   }
 
   @override
@@ -599,7 +631,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onHome: _openHome,
                     onBack: _backspace,
                     onEnter: _enter,
-                    callEnabled: listing?.hasType('call') ?? false,
+                    callEnabled: !loading && (listing?.hasType('call') ?? false),
                     enterEnabled: _canEnter,
                   ),
                 ],
