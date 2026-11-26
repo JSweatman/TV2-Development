@@ -1,0 +1,41 @@
+:root{font-family:system-ui,sans-serif;color:#19352f;background:#f3f3eb;font-size:16px}
+*{box-sizing:border-box}
+body{margin:0}
+header{padding:20px 5vw;border-bottom:1px solid #c7d0c8;display:flex;gap:16px;justify-content:space-between;font-size:13px;letter-spacing:.07em}
+header strong{color:#74501a}
+main{max-width:1020px;margin:auto;padding:42px 24px}
+.heading{max-width:620px}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.08;font-weight:650;letter-spacing:-.04em;margin:12px 0 22px}
+.eyebrow{font-size:12px;letter-spacing:.16em}
+p{line-height:1.6}
+aside{border-left:4px solid #a87632;padding:14px 22px;background:#eae8d8;margin:26px 0}
+section{margin:28px 0}
+h2{font-size:18px}
+#fields{border:1px solid #bdc9c0;background:#fff}
+.cell{display:grid;grid-template-columns:220px 1fr;gap:8px 20px;padding:14px 18px;border-bottom:1px solid #dce2dc}
+.cell:last-child{border:0}
+.cell label{padding:10px 0;font-size:14px}
+.error{color:#9e2921;font-size:13px;grid-column:2;min-height:0}
+input,select,button{font:inherit;padding:11px;border:1px solid #9cab9f;border-radius:5px;min-width:0;min-height:44px;max-width:100%}
+input,select{background:#fbfcf8;color:#19352f}
+input[aria-invalid=true]{border:2px solid #9e2921}
+input[type=checkbox]{min-height:20px;width:20px;vertical-align:middle}
+button{background:#214e41;color:white;cursor:pointer;border-color:#214e41}
+button:disabled{opacity:.6}
+*:focus-visible{outline:3px solid #b56c10;outline-offset:3px}
+.notice{padding:18px;background:#e9eee5;margin-top:18px}
+.notice p,#pin-help{font-size:13px}
+.savebar{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.savebar span{font-size:12px}
+.records{border-top:1px solid #bbc7bd;padding-top:16px}
+.record{display:flex;justify-content:space-between;gap:16px;padding:16px 0;border-bottom:1px solid #cdd5ca;flex-wrap:wrap}
+.record span{color:#6c501d;font-size:14px}
+#status{font-weight:600;overflow-wrap:anywhere}
+code{overflow-wrap:anywhere}
+@media(max-width:600px){main{padding:24px 16px}
+.cell{grid-template-columns:1fr;padding:12px}
+.cell label{padding:0}
+.error{grid-column:1}
+header{flex-direction:column;gap:6px}
+.record{flex-direction:column;gap:4px}
+}
