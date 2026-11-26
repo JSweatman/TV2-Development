@@ -42,6 +42,15 @@ def main():
                 run('docker','exec','-i',name,'psql','-U','postgres','-d','tv2_bootstrap_proof',
                     '-v','ON_ERROR_STOP=1', input="DO $$ BEGIN ASSERT (SELECT count(*) FROM listings WHERE list_number='888888')=1, 'rerun lost preexisting synthetic row'; END $$;")
             print(f'PASS install/rerun {iteration}: uniqueness, exact/prefix, state, time, observed visibility, disabled resource')
+        for _ in range(2):
+            run('docker','exec','-i',name,'psql','-U','postgres','-d','tv2_bootstrap_proof',
+                '-v','ON_ERROR_STOP=1', input=(ROOT/'backend/review_sql/public_visibility.sql').read_text())
+        run('docker','exec','-i',name,'psql','-U','postgres','-d','tv2_bootstrap_proof',
+            '-v','ON_ERROR_STOP=1', input=(ROOT/'backend/review_sql/assert_public_visibility.sql').read_text())
+        print('PASS guarded public visibility change + rerun: nonpublic hidden; public/state/time semantics retained')
+        from check_postgres_visibility_queries import verify
+        verify(lambda text: run('docker','exec','-i',name,'psql','-U','postgres','-d','tv2_bootstrap_proof',
+            '-v','ON_ERROR_STOP=1', input=text))
         rejected = subprocess.run(['docker','exec','-i',name,'psql','-U','postgres','-d','postgres',
             '-v','ON_ERROR_STOP=1'], input=(ROOT/'backend/bootstrap/schema.sql').read_text(), text=True,capture_output=True)
         assert rejected.returncode != 0 and 'dedicated disposable proof database' in rejected.stderr
