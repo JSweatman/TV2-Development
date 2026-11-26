@@ -15,6 +15,16 @@ for(const id of [...fields.map(([id])=>id),'ack']){
  el(id).addEventListener('input',edited);
  el(id).addEventListener('change',()=>{edited();validate()});
 }
+// Independent browser-only demonstration, never an authorization result.
+function resetPhoneResult(){
+ el('phone-result').textContent='Possession not simulated. Line classification pending. Account eligibility pending; no 10E entitlement or activation.';
+}
+el('phone').addEventListener('input',resetPhoneResult);
+el('phone').addEventListener('change',resetPhoneResult);
+el('simulate-possession').onclick=()=>{
+ const classification=el('phone').value==='+12025550101'?'unknown':'unavailable';
+ el('phone-result').textContent='SIMULATED possession challenge passed for '+el('phone').value+'. Line classification: '+classification+'. Account eligibility pending; no 10E entitlement or activation. No real possession verified.';
+};
 el('approve').onclick=()=>{approved=el('pin').value==='2468';el('pin').value='';el('approval').textContent=approved?'Demo challenge passed. Permission and phone are still unverified.':'Demo challenge failed. Use only the displayed sample code.'};
 async function rows(){const r=await fetch('/api/rows');if(!r.ok)throw Error();const data=await r.json();el('rows').replaceChildren();for(const row of data){const d=document.createElement('div');d.className='record';const title=document.createElement('b');title.textContent=row.number+' · '+row.name;const state=document.createElement('span');state.textContent=row.state.replaceAll('_',' ');d.append(title,state);el('rows').append(d)}}
 el('sheet').onsubmit=async e=>{

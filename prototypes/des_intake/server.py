@@ -54,7 +54,7 @@ class Intake:
             with self.connect() as db:
                 db.execute('INSERT INTO intake VALUES(?,?,?,?)',(self.key(data['number']),data['number'].strip(),'phone_verification_required',json.dumps(payload)))
         except sqlite3.IntegrityError:return 409,{'errors':{'number':'Another save reserved this identity. Nothing was replaced.'}}
-        return 201,{'state':'phone_verification_required','message':'Synthetic draft saved. Phone verification and owner permission remain unverified. Nothing is published.'}
+        return 201,{'state':'phone_verification_required','phone_assessment':{'possession':'unverified','classification_fixture':'unknown' if data['phone']==PHONES[0] else 'unavailable','account_eligibility':'pending','grants_10e':False,'activates_listing':False},'message':'Synthetic draft saved. Phone verification and owner permission remain unverified. Nothing is published.'}
     def rows(self):
         with self.connect() as db:return [dict(number=n,state=s,name=json.loads(p).get('name','Reserved fixture')) for n,s,p in db.execute('SELECT number,state,payload FROM intake ORDER BY number')]
 

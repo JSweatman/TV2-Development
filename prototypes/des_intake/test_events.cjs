@@ -54,3 +54,19 @@ test('new validation wins even when old validation arrives last',async()=>{
  h.pending[0].reply(200,{errors:{number:'Old occupied result'}});await flush();
  assert.equal(h.get('error-number').textContent,'');assert.equal(h.get('error-name').textContent,'Current name error');
 });
+test('simulated possession is distinct from eligibility and invalidated by phone edit',async()=>{
+ const h=setup();h.get('phone').value='+12025550101';h.get('plan').value='10E';
+ h.get('simulate-possession').onclick();
+ assert.match(h.get('phone-result').textContent,/SIMULATED possession challenge passed/);
+ assert.match(h.get('phone-result').textContent,/classification: unknown/);
+ assert.match(h.get('phone-result').textContent,/eligibility pending; no 10E entitlement or activation/);
+ h.approve();h.get('phone').value='+12025550102';h.get('phone').emit('input');
+ assert.match(h.get('phone-result').textContent,/Possession not simulated/);
+ assert.match(h.get('approval').textContent,/not simulated/);
+ h.get('simulate-possession').onclick();assert.match(h.get('phone-result').textContent,/classification: unavailable/);
+ h.approve();const save=h.submit();
+ assert.equal(h.pending[0].body.phone,'+12025550102');
+ assert.equal(h.pending[0].body.possession,undefined);assert.equal(h.pending[0].body.pin,undefined);
+ h.pending[0].reply(201,{message:'Synthetic draft saved. Phone verification remains pending.'});await save;
+ assert.match(h.get('status').textContent,/pending/);
+});

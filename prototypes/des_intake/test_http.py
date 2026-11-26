@@ -69,3 +69,17 @@ def test_http_bounds_and_origin(http):
     assert request('/api/save',row(),headers={'Origin':'https://example.test'})[0]==403
     for change in ({'number':'1*'+'5'*16},{'name':'Sample '+'A'*46},{'website':'https://example.test/'+'a'*201},{'video':'https://outside.example/video'}):
         assert request('/api/save',row(**change))[0]==422
+
+def test_simulated_challenge_never_grants_eligibility(http):
+    request,path=http
+    for number,phone,classification in [('1*700003','+12025550101','unknown'),('81*700003','+12025550102','unavailable')]:
+        status,_,body=request('/api/save',row(number,phone=phone,plan='10E',simulated_approval=True))
+        assert status==201
+        result=json.loads(body)
+        assert result['state']=='phone_verification_required'
+        assert result['phone_assessment']==dict(possession='unverified',classification_fixture=classification,account_eligibility='pending',grants_10e=False,activates_listing=False)
+    assert request('/api/save',row('1*700004',possession='verified'))[0]==422
+    assert request('/api/save',row('1*700004',plan='10E',rta='Y'))[0]==422
+    assert request('/api/activate',row())[0]==404
+    assert all(r['state']!='active' for r in json.loads(request('/api/rows')[2]))
+    assert b'2468' not in path.read_bytes()

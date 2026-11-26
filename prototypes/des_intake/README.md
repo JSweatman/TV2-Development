@@ -139,3 +139,27 @@ prevents old save errors from marking/focusing newer input. Save outcomes still
 identify the submitted number, successful rows still refresh, and current edits
 are retained. A failed worksheet refresh after successful save is reported as
 saved, not an unknown save. Atomic server validation/uniqueness is unchanged.
+
+## Synthetic phone acceptance — no eligibility policy inferred
+
+The worksheet now explicitly separates (1) registration-number possession,
+(2) line classification, and (3) final account eligibility. An independent,
+clearly labeled browser-only button simulates a passed possession challenge.
+It does not send or store a PIN/OTP, call a provider, or supply authorization to
+the server. The existing demo approval challenge is still not real auth.
+Changing registration phone immediately clears both the possession simulation
+and stale simulated approval, including before a change/blur event.
+
+Reserved fixture 0101 maps to unknown classification; 0102 maps to unavailable.
+These are synthetic test outcomes, NOT claims about those telephone numbers.
+Both keep eligibility pending. Save responses explicitly say possession is
+unverified, account eligibility pending, grants_10e=false and
+activates_listing=false. Classification is marked classification_fixture.
+No successful eligibility outcome or line-type acceptance rule is invented.
+
+Coverage: actual-app event fixture checks simulated pass, unknown/unavailable,
+phone-edit invalidation and no possession/PIN request field. Actual HTTP checks
+show successful demo approval plus 10E selection only saves a verification-pending
+draft, injected verified-possession fields are rejected, 10E/RTA Yes remains
+rejected, and no activation endpoint exists. Browser rendering/interaction and
+an authorized private link remain separate unverified gates.
