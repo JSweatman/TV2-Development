@@ -6,6 +6,7 @@ addresses are deliberately excluded.
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -44,6 +45,10 @@ class ListingRecord:
     template_key: str
     resources: tuple[ResourceRecord, ...] = ()
     buttons: tuple[ButtonRecord, ...] = ()
+    visibility: str = "public"
+    resolution_state: str = "active"
+    starts_at: datetime | None = None
+    expires_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -92,11 +97,24 @@ class FixtureRepository:
                 template_key=item.get("template_key", "default"),
                 resources=resources,
                 buttons=buttons,
+                visibility=item.get("visibility", "public"),
+                resolution_state=item.get("resolution_state", "active"),
+                starts_at=datetime.fromisoformat(item["starts_at"].replace("Z", "+00:00")) if item.get("starts_at") else None,
+                expires_at=datetime.fromisoformat(item["expires_at"].replace("Z", "+00:00")) if item.get("expires_at") else None,
             ))
         return cls(listings)
 
+    @staticmethod
+    def _eligible(item: ListingRecord, now: datetime) -> bool:
+        return (item.visibility == "public" and item.resolution_state == "active"
+                and (item.starts_at is None or item.starts_at <= now)
+                and (item.expires_at is None or item.expires_at > now))
+
     def get_listing(self, country_code: str | None, base: str, tldx: str | None) -> ListingRecord | None:
+        now = datetime.now(timezone.utc)
         for item in self._listings:
+            if not self._eligible(item, now):
+                continue
             if (item.country_code, item.list_number, item.tldx) == (country_code, base, tldx):
                 return item
         return None
@@ -105,7 +123,10 @@ class FixtureRepository:
         if not base:
             return []
         rows: list[ListingRecord] = []
+        now = datetime.now(timezone.utc)
         for item in self._listings:
+            if not self._eligible(item, now):
+                continue
             if item.country_code != country_code or not item.list_number.startswith(base):
                 continue
             if tldx_prefix is not None:
@@ -270,7 +291,9 @@ class PostgresResolverRepository:
             cur.execute(
                 """SELECT id,country_code,list_number,tldx,display_name,entity_type,template_key
                    FROM listings
-                   WHERE resolution_state='active'
+                   WHERE resolution_state='active' AND visibility='public'
+                     AND (starts_at IS NULL OR starts_at <= statement_timestamp())
+                     AND (expires_at IS NULL OR expires_at > statement_timestamp())
                      AND country_code IS NOT DISTINCT FROM %s
                      AND list_number=%s
                      AND tldx IS NOT DISTINCT FROM %s
@@ -310,7 +333,9 @@ class PostgresResolverRepository:
                 cur.execute(
                     """SELECT country_code,list_number,tldx,display_name,entity_type
                        FROM listings
-                       WHERE resolution_state='active'
+                       WHERE resolution_state='active' AND visibility='public'
+                     AND (starts_at IS NULL OR starts_at <= statement_timestamp())
+                     AND (expires_at IS NULL OR expires_at > statement_timestamp())
                          AND country_code IS NOT DISTINCT FROM %s
                          AND list_number LIKE %s ESCAPE '\\'
                        ORDER BY (list_number=%s AND tldx IS NULL) DESC,
@@ -322,7 +347,9 @@ class PostgresResolverRepository:
                 cur.execute(
                     """SELECT country_code,list_number,tldx,display_name,entity_type
                        FROM listings
-                       WHERE resolution_state='active'
+                       WHERE resolution_state='active' AND visibility='public'
+                     AND (starts_at IS NULL OR starts_at <= statement_timestamp())
+                     AND (expires_at IS NULL OR expires_at > statement_timestamp())
                          AND country_code IS NOT DISTINCT FROM %s
                          AND list_number=%s
                          AND tldx LIKE %s ESCAPE '\\'
@@ -355,8 +382,11 @@ def _escape_like(value: str) -> str:
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
+CANONICAL_SUPABASE_URL = "https://wzfvdkcqpanekotfwcbm.supabase.co"
+
+
 def build_repository() -> ResolverRepository:
-    mode = os.getenv("TV2_REPOSITORY", "fixture").strip().lower()
+    mode = os.getenv("TV2_REPOSITORY", "supabase").strip().lower()
     if mode == "fixture":
         default = Path(__file__).resolve().parents[1] / "fixtures" / "resolver_records.json"
         path = os.getenv("TV2_FIXTURE_FILE", str(default))
@@ -366,6 +396,8 @@ def build_repository() -> ResolverRepository:
         publishable_key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
         if not base_url or not publishable_key:
             raise RuntimeError("SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required in supabase mode")
+        if base_url.rstrip("/") != CANONICAL_SUPABASE_URL:
+            raise RuntimeError("Supabase mode requires the canonical List Number TV2 project")
         return SupabaseResolverRepository(base_url, publishable_key)
     if mode == "postgres":
         database_url = os.getenv("DATABASE_URL", "").strip()

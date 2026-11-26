@@ -4,16 +4,12 @@ import 'home_screen.dart';
 import 'device_handoff.dart';
 import 'resolver_api.dart';
 import 'saved_title_resolver.dart';
+import 'resolver_config.dart';
 import 'tutorial_panel.dart';
 import 'tutorial_caption_config.dart';
 
-const _apiBase = String.fromEnvironment(
-  'TV2_API_BASE_URL',
-  defaultValue: 'https://tv2-development.onrender.com',
-);
-
 void main() {
-  final api = HttpResolverApi(baseUri: Uri.parse(_apiBase));
+  final api = HttpResolverApi(baseUri: configuredResolverOrigin());
   runApp(TV2App(
       api: api,
       tutorial: TutorialVideo.fromUrl(
