@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'device_handoff.dart';
 import 'resolver_api.dart';
+import 'saved_title_resolver.dart';
 import 'tutorial_panel.dart';
 import 'tutorial_caption_config.dart';
 
@@ -44,6 +45,14 @@ class TV2App extends StatefulWidget {
 }
 
 class _TV2AppState extends State<TV2App> {
+  late ResolverApi _savedTitleApi = SavedTitleResolver(widget.api);
+
+  @override
+  void didUpdateWidget(covariant TV2App oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.api != widget.api) _savedTitleApi = SavedTitleResolver(widget.api);
+  }
+
   final _tutorialRoutes = RouteObserver<ModalRoute<dynamic>>();
 
   @override
@@ -53,7 +62,7 @@ class _TV2AppState extends State<TV2App> {
         theme: ThemeData(useMaterial3: true),
         navigatorObservers: [_tutorialRoutes],
         home: HomeScreen(
-            api: widget.api,
+            api: _savedTitleApi,
             deviceHandoff: widget.deviceHandoff,
             initialCountry: widget.initialCountry,
             tutorial: widget.tutorial,
