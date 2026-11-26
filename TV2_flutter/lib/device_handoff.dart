@@ -21,7 +21,8 @@ class DeviceHandoff {
   static Future<bool> _launch(Uri uri) =>
       launchUrl(uri, mode: LaunchMode.externalApplication);
 
-  Future<void> request(BuildContext context, ResourceRecord? resource) async {
+  Future<void> request(BuildContext context, ResourceRecord? resource,
+      {bool Function()? stillCurrent}) async {
     final destination = resource == null ? null : deviceDestination(resource);
     if (destination == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -47,6 +48,10 @@ class DeviceHandoff {
                 TextButton(
                     onPressed: () async {
                       if (requested) return;
+                      if (stillCurrent != null && !stillCurrent()) {
+                        Navigator.pop(dialogContext);
+                        return;
+                      }
                       requested = true;
                       var opened = false;
                       try {
