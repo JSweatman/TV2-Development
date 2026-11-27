@@ -75,8 +75,11 @@ class SavedCollections {
   static const _key = 'tv2_saved_collections_v1';
   final SharedPreferences _prefs;
 
-  static Future<SavedCollections> open() async =>
-      SavedCollections._(await SharedPreferences.getInstance());
+  static Future<SavedCollections> open() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    return SavedCollections._(prefs);
+  }
 
   Map<String, dynamic> _read() {
     final raw = _prefs.getString(_key);
@@ -135,6 +138,9 @@ class SavedCollections {
       throw ArgumentError('A qualified List Number and owner title are required.');
     }
 
+    // Another tab may have completed a write since this instance opened.
+    // Refresh before modifying the document; this is not a cross-tab lock.
+    await _prefs.reload();
     final doc = _read();
     final folders = foldersFromDoc(doc);
     final records = bookmarksFromDoc(doc);
@@ -180,7 +186,12 @@ class SavedCollections {
 
   /// A definitive exact lookup is evidence only for this full saved identity.
   /// Remove publisher-supplied text, retaining private labels and organization.
-  Future<void> forgetPublisherTitle(String qualifiedIdentity) async {
+  Future<void> forgetPublisherTitle(String qualifiedIdentity,
+      {bool Function()? isCurrent}) async {
+    // Another tab may have completed a write since this instance opened.
+    // Refresh before modifying the document; this is not a cross-tab lock.
+    await _prefs.reload();
+    if (isCurrent != null && !isCurrent()) return;
     final doc = _read();
     final records = bookmarksFromDoc(doc);
     if (!records.any((item) => item.qualifiedIdentity == qualifiedIdentity &&
@@ -196,6 +207,9 @@ class SavedCollections {
   }
 
   Future<void> remove({required String folderId, required String qualifiedIdentity}) async {
+    // Another tab may have completed a write since this instance opened.
+    // Refresh before modifying the document; this is not a cross-tab lock.
+    await _prefs.reload();
     final doc = _read();
     final folders = foldersFromDoc(doc);
     final records = bookmarksFromDoc(doc)

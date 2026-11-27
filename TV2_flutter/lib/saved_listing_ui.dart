@@ -217,6 +217,7 @@ class _SavedFoldersScreenState extends State<SavedFoldersScreen> {
   List<SavedFolder> folders = const [];
   List<SavedBookmark> bookmarks = const [];
   String? error;
+  int _refreshGeneration = 0;
 
   @override
   void initState() {
@@ -232,11 +233,12 @@ class _SavedFoldersScreenState extends State<SavedFoldersScreen> {
   }
 
   Future<void> _refresh() async {
+    final generation = ++_refreshGeneration;
     try {
       final next = await SavedCollections.open();
       final nextFolders = next.folders(kind: widget.kind);
       final nextBookmarks = next.bookmarks(kind: widget.kind);
-      if (!mounted) return;
+      if (!mounted || generation != _refreshGeneration) return;
       setState(() {
         store = next;
         folders = nextFolders;
@@ -244,7 +246,7 @@ class _SavedFoldersScreenState extends State<SavedFoldersScreen> {
         error = null;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || generation != _refreshGeneration) return;
       setState(() => error = 'Saved folders could not be loaded from this device.');
     }
   }

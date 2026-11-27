@@ -38,7 +38,8 @@ class SavedTitleResolver implements ResolverApi {
         final store = await SavedCollections.open();
         if (_latest[identity] == ticket) {
           try {
-            await store.forgetPublisherTitle(identity);
+            await store.forgetPublisherTitle(identity,
+                isCurrent: () => _latest[identity] == ticket);
           } catch (_) {
             throw const ResolverApiException(
                 'Listing unavailable. Unable to update saved titles on this device.');
