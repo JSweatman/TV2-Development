@@ -1,0 +1,55 @@
+name: webkit-frozen-oneoff
+on:
+  push:
+    branches: [qa/webkit-frozen-20261127]
+    paths: ['qa/webkit_frozen/**', '.github/workflows/webkit-frozen-oneoff.yml']
+permissions:
+  contents: read
+jobs:
+  frozen-webkit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 8a76ac0fafd3601f806aa43a256f63cdd35befb4
+          path: frozen
+          persist-credentials: false
+      - name: Verify frozen source provenance
+        run: |
+          test "$(git -C frozen rev-parse HEAD)" = 8a76ac0fafd3601f806aa43a256f63cdd35befb4
+          test "$(git -C frozen rev-parse HEAD^{tree})" = b3b37564382aa85ff078d97d841770c2e11b53d4
+          git -C frozen rev-parse HEAD HEAD^{tree}
+          git -C harness rev-parse HEAD
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install official Playwright engine and system dependencies
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps webkit
+      - name: Existing Render recipe against frozen checkout
+        run: |
+          set -eu
+          git clone --depth 1 --branch 3.50.0 https://github.com/flutter/flutter.git /tmp/tv2-flutter-sdk
+          export PATH="/tmp/tv2-flutter-sdk/bin:$PATH"
+          flutter --version
+          cd frozen/TV2_flutter
+          flutter create --platforms=web --project-name tv2 .
+          flutter pub get
+          flutter build web --release --dart-define=TV2_API_BASE_URL=https://tv2-development.onrender.com
+      - name: Real WebKit root startup and synthetic ENTER
+        run: timeout 120 python harness/qa/webkit_frozen/check.py --web frozen/TV2_flutter/build/web
+      - name: Subdirectory build and WebKit startup
+        run: |
+          export PATH="/tmp/tv2-flutter-sdk/bin:$PATH"
+          cd frozen/TV2_flutter
+          flutter build web --release --base-href /app/ --dart-define=TV2_API_BASE_URL=https://tv2-development.onrender.com
+          cd ../..
+          timeout 120 python harness/qa/webkit_frozen/check.py --web frozen/TV2_flutter/build/web --mount /app/
+# Synthetic screenshots are encoded in ordinary logs for review. No artifact or
+# cache upload, paid storage, deployment, contacts, secrets, or dispatch/retry loop.
