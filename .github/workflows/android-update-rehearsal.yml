@@ -21,18 +21,31 @@ jobs:
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - name: Build two isolated test-only APKs with one disposable signer
         working-directory: TV2_flutter
+        env:
+          TV2_UPDATE_KEYSTORE: ${{ runner.temp }}/tv2-update-test.keystore
         run: |
           set -euo pipefail
           flutter create --platforms=android --project-name tv2 --org com.sundara.preview .
           python3 - <<'PY'
           from pathlib import Path
           p=Path('pubspec.yaml');s=p.read_text().replace('dev_dependencies:', 'dev_dependencies:\n  integration_test:\n    sdk: flutter');p.write_text(s)
+          p=Path('android/app/build.gradle.kts');s=p.read_text();s=s.replace('android {', '''android {
+              signingConfigs {
+                  create("updateTest") {
+                      storeFile = file(System.getenv("TV2_UPDATE_KEYSTORE"))
+                      storePassword = "android"
+                      keyAlias = "androiddebugkey"
+                      keyPassword = "android"
+                  }
+              }
+              buildTypes.getByName("debug") { signingConfig = signingConfigs.getByName("updateTest") }
+          ''',1);p.write_text(s)
           p=Path('android/app/src/main/AndroidManifest.xml');s=p.read_text().replace('android:label="tv2"','android:label="TV2 Update TEST ONLY"');p.write_text(s)
           PY
           mkdir -p integration_test "$HOME/.android"
           cp ../qa/android_update/update_test.dart integration_test/update_test.dart
-          rm -f "$HOME/.android/debug.keystore"
-          keytool -genkeypair -keystore "$HOME/.android/debug.keystore" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -validity 1 -dname 'CN=TV2 TEST ONLY' >/dev/null 2>&1
+          rm -f "$TV2_UPDATE_KEYSTORE"
+          keytool -genkeypair -keystore "$TV2_UPDATE_KEYSTORE" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -validity 365 -dname 'CN=TV2 TEST ONLY' >/dev/null 2>&1
           flutter pub get
           for phase in A B; do
             if [ "$phase" = A ]; then code=21; else code=22; fi
@@ -41,12 +54,13 @@ jobs:
           done
           tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           for phase in A B; do
-            "$tools/aapt" dump badging "$RUNNER_TEMP/$phase.apk" | head -1 | tee "$RUNNER_TEMP/$phase.identity"
+            "$tools/aapt" dump badging "$RUNNER_TEMP/$phase.apk" | sed -n '1p' | tee "$RUNNER_TEMP/$phase.identity"
             grep "package: name='com.sundara.preview.tv2'" "$RUNNER_TEMP/$phase.identity"
             "$tools/apksigner" verify --print-certs "$RUNNER_TEMP/$phase.apk" | grep 'certificate SHA-256 digest' > "$RUNNER_TEMP/$phase.cert"
             sha256sum "$RUNNER_TEMP/$phase.apk"
           done
-          diff "$RUNNER_TEMP/A.cert" "$RUNNER_TEMP/B.cert"
+          cmp -s "$RUNNER_TEMP/A.cert" "$RUNNER_TEMP/B.cert" || { echo "Signer mismatch; refusing installation"; exit 1; }
+          echo "Verified matching test-only signer"
           grep "versionCode='21'" "$RUNNER_TEMP/A.identity"
           grep "versionCode='22'" "$RUNNER_TEMP/B.identity"
       - name: Fresh AOSP emulator without account services or snapshots
@@ -75,9 +89,10 @@ jobs:
           grep 'Accounts: 0' accounts.txt
           test -z "$(adb shell pm list packages com.google.android.gms)"
           adb shell dumpsys backup > backup.txt
-          grep -E 'Backup Manager|enabled|provisioned|Current token|Ancestral token|restore|Restore' backup.txt || true
+          grep -E 'Backup Manager|enabled|provisioned|Current|Ancestral|restore|Restore' backup.txt || true
           # Fail closed unless no ancestral restore token is present.
           grep -Ei 'Ancestral: 0|Ancestral token: 0|Ancestral token=0' backup.txt
+          grep -Ei 'Current: 0|Current token: 0|Current token=0' backup.txt
           test -z "$(adb shell pm list packages com.example.tv2)"
       - name: Create through UI, replace in place, verify through UI
         run: |
@@ -105,5 +120,5 @@ jobs:
         if: always()
         run: |
           timeout 10 adb emu kill || true
-          rm -f "$RUNNER_TEMP/A.apk" "$RUNNER_TEMP/B.apk" "$HOME/.android/debug.keystore"
+          rm -f "$RUNNER_TEMP/A.apk" "$RUNNER_TEMP/B.apk" "$HOME/.android/debug.keystore" "$RUNNER_TEMP/tv2-update-test.keystore"
           rm -rf TV2_flutter/build
