@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
+import 'web_default_font.dart';
 import 'device_handoff.dart';
 import 'email_handoff.dart';
 import 'resolver_api.dart';
@@ -9,7 +10,9 @@ import 'resolver_config.dart';
 import 'tutorial_panel.dart';
 import 'tutorial_caption_config.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await loadWebDefaultFont();
   final api = HttpResolverApi(baseUri: configuredResolverOrigin());
   runApp(TV2App(
       api: api,

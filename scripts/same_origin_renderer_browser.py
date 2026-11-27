@@ -103,15 +103,21 @@ def main():
                 route.fulfill(status=r.status_code,content_type='application/json',body=r.content,headers={'access-control-allow-origin':'*'})
             context.route('https://tv2-development.onrender.com/**', resolver_route)
             result['canonical_api_intercepted_to_loopback']=True
+            local_fonts=[]
+            context.on('response',lambda r: local_fonts.append({'url':r.url,'status':r.status,'bytes':len(r.body())}) if '/assets/web_fonts/' in r.url else None)
             renderer_requests=[];renderer_responses=[];external_renderer=[];font_requests=[]
             def block_renderer(route):
                 external_renderer.append(route.request.url);route.abort()
             context.route('https://www.gstatic.com/flutter-canvaskit/**',block_renderer)
+            context.route('https://fonts.gstatic.com/**',lambda route: route.abort())
+            context.route('https://fonts.googleapis.com/**',lambda route: route.abort())
             context.on('request',lambda r: renderer_requests.append(r.url) if '/canvaskit/' in r.url else None)
             context.on('response',lambda r: renderer_responses.append({'url':r.url,'status':r.status}) if '/canvaskit/' in r.url else None)
             context.on('request',lambda r: font_requests.append(r.url) if 'fonts.gstatic.com' in r.url else None)
             page=context.new_page();page.on('requestfailed',lambda r: print('FAILED',r.url,r.failure,flush=True));page.on('pageerror',lambda e: print('PAGEERROR',str(e),flush=True));page.goto(ORIGIN+args.mount+'index.html');page.locator('flt-semantics-placeholder').evaluate('(e)=>e.click()')
+            page.screenshot(path=str(args.output/'picker.png'))
             page.get_by_role('button',name=re.compile(r'^\+1\s')).click()
+            page.screenshot(path=str(args.output/'keypad-empty.png'))
             result['cases']=[]
             for identity,nid,base,suffix,title,slug in cases:
                 page.get_by_role('button',name='Clear',exact=True).click()
@@ -164,6 +170,8 @@ def main():
             assert result['service_worker_registrations']==[] # pinned default does not register for a fresh visitor
             result['document_base']=page.evaluate('document.baseURI')
             result['mount']=args.mount
+            result['local_fonts']=local_fonts
+            assert len([f for f in local_fonts if f['url'].endswith('.ttf') and f['status']==200])==3
             browser.close()
         (args.output/'result.json').write_text(json.dumps(result,indent=2));print(json.dumps(result,indent=2))
     finally:
