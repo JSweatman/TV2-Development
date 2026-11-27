@@ -37,7 +37,12 @@ jobs:
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -accel-check
-          echo no | avdmanager create avd --name tv2fresh --package 'system-images;android-35;google_apis;x86_64' --device pixel_2 --force
+          export ANDROID_USER_HOME="$RUNNER_TEMP/tv2-android-user"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager create avd --name tv2fresh --package 'system-images;android-35;google_apis;x86_64' --device pixel_2 --path "$ANDROID_AVD_HOME/tv2fresh.avd" --force
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -x tv2fresh
           "$ANDROID_HOME/emulator/emulator" -avd tv2fresh -no-window -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect > emulator.log 2>&1 &
           timeout 240 adb wait-for-device
           for i in $(seq 1 120); do
@@ -79,7 +84,7 @@ jobs:
         if: failure()
         run: |
           tail -30 emulator.log 2>/dev/null || true
-          adb logcat -d -s AndroidRuntime:E flutter:E 2>/dev/null | tail -50 || true
+          timeout 10 adb logcat -d -s AndroidRuntime:E flutter:E 2>/dev/null | tail -50 || true
       - name: Stop disposable emulator
         if: always()
-        run: adb emu kill || true
+        run: timeout 10 adb emu kill || true
