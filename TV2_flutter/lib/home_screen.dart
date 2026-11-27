@@ -16,6 +16,7 @@ import 'listing_video_panel.dart';
 import 'listing_availability_gate.dart';
 import 'landing_theme.dart';
 import 'device_handoff.dart';
+import 'email_handoff.dart';
 import 'tutorial_panel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,10 +27,12 @@ class HomeScreen extends StatefulWidget {
     this.tutorial,
     this.tutorialRoutes,
     this.deviceHandoff,
+    this.emailHandoff,
   });
 
   final ResolverApi api;
   final DeviceHandoff? deviceHandoff;
+  final EmailHandoff? emailHandoff;
   final String? initialCountry;
   final TutorialVideo? tutorial;
   final RouteObserver<ModalRoute<dynamic>>? tutorialRoutes;
@@ -400,6 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       listing: fresh,
                       authorizeAction: authorize,
                       deviceHandoff: widget.deviceHandoff,
+                      emailHandoff: widget.emailHandoff,
                       routeObserver: widget.tutorialRoutes))),
         );
       }
@@ -868,9 +872,11 @@ class TemplateScreen extends StatefulWidget {
     required this.listing,
     this.authorizeAction,
     this.deviceHandoff,
+    this.emailHandoff,
     this.routeObserver,
   });
   final DeviceHandoff? deviceHandoff;
+  final EmailHandoff? emailHandoff;
   final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
   final AuthorizeListingAction? authorizeAction;
@@ -884,6 +890,7 @@ class _TemplateScreenState extends State<TemplateScreen> {
   bool _videoExpanded = false;
   Listing get listing => widget.listing;
   DeviceHandoff? get deviceHandoff => widget.deviceHandoff;
+  EmailHandoff? get emailHandoff => widget.emailHandoff;
   RouteObserver<ModalRoute<dynamic>>? get routeObserver => widget.routeObserver;
 
   void _expandVideo(bool expanded) {
@@ -938,6 +945,7 @@ class _TemplateScreenState extends State<TemplateScreen> {
 
   bool _configured(ResourceRecord? resource) {
     if (resource == null) return false;
+    if (resource.type == 'email') return emailDestination(resource) != null;
     if (resource.type == 'call' || resource.type == 'text')
       return deviceDestination(resource) != null;
     if (resource.type == 'provider_embed' ||
@@ -1095,6 +1103,10 @@ class _TemplateScreenState extends State<TemplateScreen> {
     if (resource.type == 'provider_embed' || resource.type == 'landing_theme') {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('This resource is unavailable in this build.')));
+      return;
+    }
+    if (resource.type == 'email') {
+      await (emailHandoff ?? EmailHandoff()).request(context, resource);
       return;
     }
     if (resource.type == 'call' || resource.type == 'text') {

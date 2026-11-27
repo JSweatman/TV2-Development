@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
 import 'device_handoff.dart';
+import 'email_handoff.dart';
 import 'resolver_api.dart';
 import 'saved_title_resolver.dart';
 import 'resolver_config.dart';
@@ -29,10 +30,12 @@ class TV2App extends StatefulWidget {
     this.initialCountry,
     this.tutorial,
     this.deviceHandoff,
+    this.emailHandoff,
   });
 
   final ResolverApi api;
   final DeviceHandoff? deviceHandoff;
+  final EmailHandoff? emailHandoff;
   final String? initialCountry;
   final TutorialVideo? tutorial;
 
@@ -60,6 +63,7 @@ class _TV2AppState extends State<TV2App> {
         home: HomeScreen(
             api: _savedTitleApi,
             deviceHandoff: widget.deviceHandoff,
+            emailHandoff: widget.emailHandoff,
             initialCountry: widget.initialCountry,
             tutorial: widget.tutorial,
             tutorialRoutes: _tutorialRoutes),
