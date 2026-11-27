@@ -6,11 +6,15 @@ on:
   pull_request:
     paths:
       - 'TV2_flutter/**'
+      - 'scripts/check_root_web_manifest.py'
+      - 'scripts/test_root_web_manifest.py'
       - '.github/workflows/pwa-preview-build.yml'
   push:
     branches: [main]
     paths:
       - 'TV2_flutter/**'
+      - 'scripts/check_root_web_manifest.py'
+      - 'scripts/test_root_web_manifest.py'
       - '.github/workflows/pwa-preview-build.yml'
   workflow_dispatch:
 
@@ -46,6 +50,8 @@ jobs:
           set -euo pipefail
           test -s build/web/index.html
           test -s build/web/manifest.json
+          python3 ../scripts/test_root_web_manifest.py
+          python3 ../scripts/check_root_web_manifest.py build/web
           test -d build/web/assets
           {
             echo 'TV2 WEB PREVIEW -- DEVELOPMENT ONLY'
