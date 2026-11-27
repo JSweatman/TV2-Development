@@ -3,6 +3,8 @@ Build with the unchanged Render command, then run with existing QA dependencies:
 python scripts/same_origin_renderer_browser.py --web /absolute/build/web --output /tmp/proof
 For a --base-href /app/ build, add --mount /app/.
 Blocks external renderer CDN; records/suppresses window.open, never OS handlers.
+Optional --fail-weight Bold/Medium injects a static404; --expect-blocked records
+the frozen startup regression without pretending the engine placeholder is UI.
 """
 import argparse
 import hashlib
@@ -32,6 +34,8 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--safari-ua',action='store_true')
     parser.add_argument('--mount',default='/')
+    parser.add_argument('--fail-weight',choices=['Bold','Medium'])
+    parser.add_argument('--expect-blocked',action='store_true')
     parser.add_argument('--web',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
@@ -114,7 +118,23 @@ def main():
             context.on('request',lambda r: renderer_requests.append(r.url) if '/canvaskit/' in r.url else None)
             context.on('response',lambda r: renderer_responses.append({'url':r.url,'status':r.status}) if '/canvaskit/' in r.url else None)
             context.on('request',lambda r: font_requests.append(r.url) if 'fonts.gstatic.com' in r.url else None)
-            page=context.new_page();page.on('requestfailed',lambda r: print('FAILED',r.url,r.failure,flush=True));page.on('pageerror',lambda e: print('PAGEERROR',str(e),flush=True));page.goto(ORIGIN+args.mount+'index.html');page.locator('flt-semantics-placeholder').evaluate('(e)=>e.click()')
+            failures=[]
+            if args.fail_weight:
+                def missing(route):
+                    failures.append(route.request.url)
+                    route.fulfill(status=404,body='Synthetic missing optional weight')
+                context.route('**/Roboto-'+args.fail_weight+'.ttf',missing)
+            page=context.new_page(); errors=[]
+            page.on('pageerror',lambda e: errors.append(str(e)))
+            page.goto(ORIGIN+args.mount+'index.html')
+            if args.expect_blocked:
+                page.wait_for_timeout(8000)
+                page.screenshot(path=str(args.output/'blocked.png'))
+                if page.locator('flt-semantics-placeholder').count(): page.locator('flt-semantics-placeholder').evaluate('(e)=>e.click()')
+                result.update(injected_requests=failures,errors=errors,body_text=page.locator('body').inner_text(),mounted=page.get_by_role('button',name=re.compile(r'^\+1\s')).count()>0,local_fonts=local_fonts)
+                assert failures and not result['mounted']
+                (args.output/'result.json').write_text(json.dumps(result,indent=2));return
+            page.locator('flt-semantics-placeholder').evaluate('(e)=>e.click()')
             page.screenshot(path=str(args.output/'picker.png'))
             page.get_by_role('button',name=re.compile(r'^\+1\s')).click()
             page.screenshot(path=str(args.output/'keypad-empty.png'))
@@ -171,7 +191,10 @@ def main():
             result['document_base']=page.evaluate('document.baseURI')
             result['mount']=args.mount
             result['local_fonts']=local_fonts
-            assert len([f for f in local_fonts if f['url'].endswith('.ttf') and f['status']==200])==3
+            assert len([f for f in local_fonts if f['url'].endswith('.ttf') and f['status']==200])==(2 if args.fail_weight else 3)
+            assert len(failures)==(1 if args.fail_weight else 0)
+            result['injected_requests']=failures;result['errors']=errors
+            assert not errors, errors
             browser.close()
         (args.output/'result.json').write_text(json.dumps(result,indent=2));print(json.dumps(result,indent=2))
     finally:
