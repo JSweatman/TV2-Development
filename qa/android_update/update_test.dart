@@ -18,7 +18,7 @@ void main() {
     await tap(find.byTooltip(row[0]));await wait(find.byType(TextField));
     await t.enterText(find.byType(TextField).at(0),row[1]);
     await t.enterText(find.byType(TextField).at(1),row[2]);
-    await tap(find.widgetWithText(TextButton,'Save'));
+    await tap(find.widgetWithText(FilledButton,'Save'));
    }
    print('TV2_UPDATE_A_UI_PASS');
   } else {
