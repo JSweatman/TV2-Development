@@ -12,7 +12,11 @@ import 'resolver_api.dart';
 import 'public_resource_launcher.dart';
 import 'saved_listing_ui.dart';
 import 'saved_collections.dart';
-import 'video_preview_placeholder.dart';
+import 'listing_video_panel.dart';
+import 'listing_availability_gate.dart';
+import 'landing_theme.dart';
+import 'device_handoff.dart';
+import 'email_handoff.dart';
 import 'tutorial_panel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,9 +26,13 @@ class HomeScreen extends StatefulWidget {
     this.initialCountry,
     this.tutorial,
     this.tutorialRoutes,
+    this.deviceHandoff,
+    this.emailHandoff,
   });
 
   final ResolverApi api;
+  final DeviceHandoff? deviceHandoff;
+  final EmailHandoff? emailHandoff;
   final String? initialCountry;
   final TutorialVideo? tutorial;
   final RouteObserver<ModalRoute<dynamic>>? tutorialRoutes;
@@ -45,7 +53,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Listing? exactListing;
   String? errorMessage;
   bool loading = false;
+  // Only the current generation owns ENTER suppression. An edit invalidates
+  // that ownership even if its obsolete network request has not completed.
+  int? _enterGeneration;
   bool hasMore = false;
+  // Selection hides suggestions until input or namespace is edited.
+  // The qualified lookup still runs, including normal error reporting.
+  bool _matchSelected = false;
   Timer? _debounce;
   int _requestGeneration = 0;
 
@@ -100,6 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
         countryLoading = false;
       });
 
+      // Digits may have been entered before the directory became available.
+      // Restoring a saved namespace must refresh that preview just as a manual
+      // namespace selection does, invalidating any obsolete lookup generation.
+      if (selected != null && input.isNotEmpty) _setInput(input);
+
       if (selected == null && widget.initialCountry == null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _editCountry(requireSelection: true);
@@ -127,9 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _setInput(String value) {
+  void _setInput(String value, {bool selectedMatch = false}) {
     setState(() {
       input = value;
+      _matchSelected = selectedMatch;
+      loading = false;
       exactListing = null;
       matches = const [];
       hasMore = false;
@@ -151,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _requestGeneration++;
     setState(() {
       input = '';
+      _matchSelected = false;
       matches = const [];
       exactListing = null;
       errorMessage = null;
@@ -167,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _scheduleLookup() {
     _debounce?.cancel();
     final generation = ++_requestGeneration;
+    setState(() => loading = input.isNotEmpty);
     if (input.isEmpty) return;
     _debounce = Timer(_debounceDuration, () => _lookup(generation));
   }
@@ -203,10 +226,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() {
-        matches = prefix.matches;
-        hasMore = prefix.hasMore;
+        matches = _matchSelected ? const [] : prefix.matches;
+        hasMore = !_matchSelected && prefix.hasMore;
         exactListing = listing;
         loading = false;
+        errorMessage = listing == null && prefix.matches.isEmpty
+            ? 'No exact match. ENTER retries.'
+            : null;
       });
     } on ResolverApiException catch (error) {
       if (!mounted || generation != _requestGeneration) return;
@@ -215,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
         exactListing = null;
         matches = const [];
         hasMore = false;
-        errorMessage = error.message;
+        errorMessage = '${error.message} ENTER retries.';
       });
     } catch (_) {
       if (!mounted || generation != _requestGeneration) return;
@@ -224,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
         exactListing = null;
         matches = const [];
         hasMore = false;
-        errorMessage = 'Unexpected resolver error.';
+        errorMessage = 'Unexpected resolver error. ENTER retries.';
       });
     }
   }
@@ -308,6 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (selected == null) return;
+    // Invalidate pending navigation before asynchronous preference storage.
+    _requestGeneration++;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tv2_selected_nid', selected.nid);
     if (selected.nid == '1') {
@@ -323,24 +351,78 @@ class _HomeScreenState extends State<HomeScreen> {
       countryCode = selected.nid;
       errorMessage = null;
     });
-    if (input.isNotEmpty) _scheduleLookup();
+    _setInput(input);
   }
 
   void _selectMatch(MatchRecord match) {
-    _setInput(match.qualifiedInput);
+    _setInput(match.qualifiedInput, selectedMatch: true);
   }
 
-  void _enter() {
-    final listing = exactListing;
-    if (listing == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This List Number does not exist.')),
+  bool get _canEnter =>
+      countryCode != null &&
+      input.isNotEmpty &&
+      _enterGeneration != _requestGeneration;
+
+  Future<void> _enter() async {
+    if (!_canEnter) return;
+    _debounce?.cancel();
+    final generation = ++_requestGeneration;
+    final requestedInput = input;
+    final requestedCountry = countryCode!;
+    setState(() {
+      _enterGeneration = generation;
+      loading = true;
+      exactListing = null;
+      errorMessage = null;
+    });
+    try {
+      // ENTER verifies availability now; preview results are not authorization
+      // to open a listing that may since have changed or expired.
+      final response = await widget.api.resolve(
+        input: requestedInput,
+        country: requestedCountry,
       );
-      return;
+      if (!mounted || generation != _requestGeneration) return;
+      final listing = response.status == 'resolved' ? response.listing : null;
+      setState(() {
+        loading = false;
+        exactListing = listing;
+        if (listing == null) {
+          matches = const [];
+          hasMore = false;
+          errorMessage = 'No exact match. ENTER retries.';
+        }
+      });
+      if (listing != null && ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+              builder: (_) => ListingAvailabilityGate(
+                  api: widget.api,
+                  listing: listing,
+                  builder: (fresh, authorize) => TemplateScreen(
+                      listing: fresh,
+                      authorizeAction: authorize,
+                      deviceHandoff: widget.deviceHandoff,
+                      emailHandoff: widget.emailHandoff,
+                      routeObserver: widget.tutorialRoutes))),
+        );
+      }
+    } catch (error) {
+      if (!mounted || generation != _requestGeneration) return;
+      setState(() {
+        loading = false;
+        exactListing = null;
+        matches = const [];
+        hasMore = false;
+        errorMessage = error is ResolverApiException
+            ? '${error.message} ENTER retries.'
+            : 'Unable to check this listing. ENTER retries.';
+      });
+    } finally {
+      if (mounted && _enterGeneration == generation) {
+        setState(() => _enterGeneration = null);
+      }
     }
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => TemplateScreen(listing: listing)));
   }
 
   Future<void> _openHome() async {
@@ -368,18 +450,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _call() {
-    final listing = exactListing;
-    final canRequestCall = listing?.hasType('call') ?? false;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          canRequestCall
-              ? 'CALL capability is configured. Communications service is not connected in this checkpoint.'
-              : 'The call cannot be completed.',
-        ),
-      ),
-    );
+  Future<void> _call() async {
+    final original = exactListing;
+    if (original == null || loading) return;
+    _debounce?.cancel();
+    final generation = ++_requestGeneration;
+    bool current() => mounted && generation == _requestGeneration;
+    setState(() { loading = true; errorMessage = null; });
+    try {
+      final response = await widget.api.resolve(
+          input: original.qualifiedIdentity, country: original.countryCode ?? '');
+      if (!current()) return;
+      final fresh = response.listing;
+      if (response.status == 'not_found') {
+        setState(() {
+          exactListing = null; matches = const []; hasMore = false;
+          errorMessage = 'This listing is no longer available.';
+        });
+        return;
+      }
+      if (response.status != 'resolved' || fresh == null ||
+          fresh.countryCode != original.countryCode ||
+          fresh.listNumber != original.listNumber || fresh.tldx != original.tldx) {
+        throw const ResolverApiException('Unable to verify this listing. Retry CALL.');
+      }
+      setState(() { exactListing = fresh; loading = false; });
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      final resources = fresh.resources.where((r) => r.type == 'call');
+      await (widget.deviceHandoff ?? DeviceHandoff()).request(
+          context, resources.isEmpty ? null : resources.first,
+          stillCurrent: current);
+    } catch (_) {
+      if (current()) setState(() {
+        errorMessage = 'Unable to verify this listing. Reconnect and retry CALL.';
+      });
+    } finally {
+      if (current()) setState(() => loading = false);
+    }
   }
 
   @override
@@ -490,7 +597,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: const Key('tv2-home-match-viewport'),
                     // Matches scroll independently; long result sets must not
                     // push the keypad arbitrarily far down the home screen.
-                    height: (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
+                    // Compact portrait results without shrinking keys or media.
+                    // Keep a complete two-line row; extra matches scroll inside.
+                    height: _matchSelected
+                        ? 0
+                        : MediaQuery.sizeOf(context).width < 600 &&
+                                MediaQuery.orientationOf(context) ==
+                                    Orientation.portrait
+                            ? ((constraints.maxHeight * 0.15)
+                                        .clamp(72.0, 160.0) /
+                                    2)
+                                .clamp(
+                                    matches.isEmpty
+                                        ? 0.0
+                                        : 64.0 *
+                                            MediaQuery.textScalerOf(context)
+                                                .scale(14) /
+                                            14,
+                                    double.infinity)
+                            : (constraints.maxHeight * 0.15).clamp(72.0, 160.0),
                     child: Material(
                       color: matches.isEmpty
                           ? Colors.transparent
@@ -510,8 +635,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onHome: _openHome,
                     onBack: _backspace,
                     onEnter: _enter,
-                    callEnabled: listing?.hasType('call') ?? false,
-                    enterEnabled: listing != null,
+                    callEnabled: !loading && (listing?.hasType('call') ?? false),
+                    enterEnabled: _canEnter,
                   ),
                 ],
               ),
@@ -741,12 +866,165 @@ class Keypad extends StatelessWidget {
       );
 }
 
-class TemplateScreen extends StatelessWidget {
-  TemplateScreen({super.key, required this.listing});
+class TemplateScreen extends StatefulWidget {
+  TemplateScreen({
+    super.key,
+    required this.listing,
+    this.authorizeAction,
+    this.deviceHandoff,
+    this.emailHandoff,
+    this.routeObserver,
+  });
+  final DeviceHandoff? deviceHandoff;
+  final EmailHandoff? emailHandoff;
+  final RouteObserver<ModalRoute<dynamic>>? routeObserver;
   final Listing listing;
+  final AuthorizeListingAction? authorizeAction;
+
+  @override
+  State<TemplateScreen> createState() => _TemplateScreenState();
+}
+
+class _TemplateScreenState extends State<TemplateScreen> {
+  final _videoKey = GlobalKey<ListingVideoPanelState>();
+  bool _videoExpanded = false;
+  Listing get listing => widget.listing;
+  DeviceHandoff? get deviceHandoff => widget.deviceHandoff;
+  EmailHandoff? get emailHandoff => widget.emailHandoff;
+  RouteObserver<ModalRoute<dynamic>>? get routeObserver => widget.routeObserver;
+
+  void _expandVideo(bool expanded) {
+    if (mounted && _videoExpanded != expanded) {
+      setState(() => _videoExpanded = expanded);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_videoExpanded) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) _expandVideo(false);
+        },
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: SafeArea(child: _media()),
+        ),
+      );
+    }
+    final spec = LandingThemeSpec.fromListing(listing);
+    if (spec != null) {
+      return Theme(
+          data: spec.theme(),
+          child: Builder(builder: (context) => _themed(context, spec)));
+    }
+    return _normal(context);
+  }
+
+  Widget _media() {
+    if (listingVideoUri(listing) == null && listing.hasType('provider_embed')) {
+      final configured = listing.resources
+          .where((r) => r.type == 'provider_embed')
+          .any((r) => ProviderVideoReference.parse(r) != null);
+      return Card(
+          child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(configured
+                  ? 'Provider video is not supported in this build.'
+                  : 'Provider video configuration is unavailable.')));
+    }
+    return ListingVideoPanel(
+        key: _videoKey,
+        listing: listing,
+        authorizeAction: widget.authorizeAction,
+        routeObserver: routeObserver,
+        expanded: _videoExpanded,
+        onExpansionChanged: _expandVideo);
+  }
+
+  bool _configured(ResourceRecord? resource) {
+    if (resource == null) return false;
+    if (resource.type == 'email') return emailDestination(resource) != null;
+    if (resource.type == 'call' || resource.type == 'text')
+      return deviceDestination(resource) != null;
+    if (resource.type == 'provider_embed' ||
+        resource.type == 'landing_theme' ||
+        resource.type == 'listing_video') return false;
+    return safePublicResourceUri(resource.uri) != null;
+  }
+
+  Widget _themed(BuildContext context, LandingThemeSpec spec) {
+    final slots = {for (final b in listing.buttons) b.slot: b};
+    return Scaffold(
+      appBar: AppBar(title: const Text('List Number'), actions: [
+        SaveListingAction(listing: listing),
+        SaveListingAction(
+            listing: listing, kind: SavedCollections.addressBookKind)
+      ]),
+      body: Center(
+          child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: ListView(padding: const EdgeInsets.all(20), children: [
+                if (spec.hero != null) ...[
+                  LandingHero(spec: spec),
+                  const SizedBox(height: 24)
+                ],
+                Text(listing.displayName,
+                    style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                Text(listing.qualifiedIdentity,
+                    style: TextStyle(color: spec.accent, fontSize: 16)),
+                const SizedBox(height: 24),
+                if (listingVideoUri(listing) != null || listing.hasType('provider_embed')) ...[
+                  _media(),
+                  const SizedBox(height: 24),
+                ],
+                LayoutBuilder(builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 300 &&
+                          MediaQuery.textScalerOf(context).scale(16) <= 24
+                      ? 2
+                      : 1;
+                  final width =
+                      (constraints.maxWidth - (columns - 1) * 12) / columns;
+                  return Wrap(spacing: 12, runSpacing: 12, children: [
+                    for (var slot = 1; slot <= 6; slot++)
+                      if (_configured(listing.resource(slots[slot]?.resourceKey ?? '')))
+                      SizedBox(
+                          width: width,
+                          child: ConstrainedBox(
+                              constraints: const BoxConstraints(minHeight: 56),
+                              child: FilledButton.tonal(
+                                key: ValueKey('landing-action-$slot'),
+                                style: FilledButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 18),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16))),
+                                onPressed: _configured(listing.resource(
+                                        slots[slot]?.resourceKey ?? ''))
+                                    ? () => _resourceAction(
+                                        context,
+                                        listing.resource(
+                                            slots[slot]!.resourceKey)!)
+                                    : null,
+                                child: Text(
+                                    slots[slot]?.label ??
+                                        slots[slot]
+                                            ?.resourceKey
+                                            .toUpperCase() ??
+                                        'Not configured',
+                                    textAlign: TextAlign.center),
+                              ))),
+                  ]);
+                }),
+                const SizedBox(height: 20),
+              ]))),
+    );
+  }
+
+  Widget _normal(BuildContext context) {
     final resources = {for (final item in listing.resources) item.key: item};
     return Scaffold(
       appBar: AppBar(
@@ -769,10 +1047,7 @@ class TemplateScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text('${listing.entityType} • template: ${listing.templateKey}'),
           const SizedBox(height: 16),
-          const AspectRatio(
-            aspectRatio: 16 / 9,
-            child: VideoPreviewPlaceholder(),
-          ),
+          _media(),
           const SizedBox(height: 16),
           if (listing.resources.isEmpty)
             const Text('This identity has no configured public resources.'),
@@ -790,7 +1065,12 @@ class TemplateScreen extends StatelessWidget {
               ),
             ),
           const Divider(height: 32),
-          for (final resource in listing.resources)
+          for (final resource in listing.resources.where((r) => !{
+                'listing_video',
+                'landing_theme',
+                'provider_embed'
+              }.contains(r.type)))
+
             ListTile(
               title: Text(resource.type),
               subtitle: resource.uri == null ? null : Text(resource.uri!),
@@ -806,7 +1086,44 @@ class TemplateScreen extends StatelessWidget {
     BuildContext context,
     ResourceRecord resource,
   ) async {
+    final authorize = widget.authorizeAction;
+    if (authorize != null) {
+      _videoKey.currentState?.pauseForExternalHandoff();
+      await authorize(() {
+        final fresh = listing.resource(resource.key);
+        if (fresh != null) _performResourceAction(context, fresh);
+      });
+    } else {
+      await _performResourceAction(context, resource);
+    }
+  }
+
+  Future<void> _performResourceAction(
+      BuildContext context, ResourceRecord resource) async {
+    if (resource.type == 'provider_embed' || resource.type == 'landing_theme') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('This resource is unavailable in this build.')));
+      return;
+    }
+    if (resource.type == 'email') {
+      await (emailHandoff ?? EmailHandoff()).request(context, resource);
+      return;
+    }
+    if (resource.type == 'call' || resource.type == 'text') {
+      await (deviceHandoff ?? DeviceHandoff()).request(context, resource);
+      return;
+    }
+    if (resource.type == 'listing_video') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Use the listing video controls above.')),
+      );
+      return;
+    }
     if (resource.uri != null) {
+      if (safePublicResourceUri(resource.uri) != null) {
+        _videoKey.currentState?.pauseForExternalHandoff();
+      }
+      // Do not await the pause: launch must retain the user's browser gesture.
       final opened = await PublicResourceLauncher().open(resource.uri);
       if (!context.mounted) return;
       if (!opened) {

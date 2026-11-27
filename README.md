@@ -5,7 +5,7 @@ TV2 is a Flutter mobile client connected to the FastAPI List Number resolver on 
 ## Resolver and country context
 
 - API base URL defaults to `https://tv2-development.onrender.com` in `TV2_flutter/lib/main.dart`.
-- Set another endpoint at build/run time using `--dart-define=TV2_API_BASE_URL=...`.
+- Normal Android/iOS/PWA builds share that resolver. Deliberate local fixtures require both `--dart-define=TV2_LOCAL_FIXTURE=true` and a loopback `--dart-define=TV2_API_BASE_URL=http://127.0.0.1:8000`. See [shared resolver contract](docs/SHARED_RESOLVER_CONTRACT.md).
 - The client loads available country codes/NIDs from `GET /v1/countries`.
 - **There is no automatic country code 1.** Users must select a country; that NID is stored on the device and remains selected until changed.
 - Prefix search and exact resolution use the selected NID, except when a separately qualified/global List Number is supplied.

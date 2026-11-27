@@ -1,0 +1,51 @@
+{
+  "browser": "156.0.8078.79",
+  "resolver": "production /v1/prefix and /v1/resolve via HttpResolverApi",
+  "tls": "TLS 1.3",
+  "server_ip": "127.0.0.1",
+  "request_interception": false,
+  "separate_owner_visitor_contexts": true,
+  "visitor_write_rejected": true,
+  "uploaded_sha256": "af368f15cc8b75c0fcc0cf88f3f7ab0b6aaa188464dea0c8ec151788a0f57ef1",
+  "playback": {
+    "time": 0.3878,
+    "paused": false,
+    "width": 160,
+    "height": 90
+  },
+  "range": {
+    "status": 206,
+    "range": "bytes 0-31/93094",
+    "bytes": 32
+  },
+  "load_seconds": 4.568,
+  "network": {
+    "latency_ms": 150,
+    "bytes_per_second": 8192
+  },
+  "no_media_before_opt_in": true,
+  "no_autoplay": true,
+  "rotation": {
+    "landscape": {
+      "same": true,
+      "time": 0.5052,
+      "paused": false,
+      "width": 608,
+      "height": 342,
+      "sourceWidth": 160,
+      "sourceHeight": 90
+    },
+    "paused_rotation_stays_inline": true,
+    "portrait_return_same_element": true,
+    "explicit_exit": true,
+    "browser_fullscreen_not_requested": true
+  },
+  "visitor_flow": {
+    "immediate_enter": true,
+    "qualified_selection": true,
+    "website_popup_return": true,
+    "personal_account_free": true,
+    "unavailable_retry": true
+  },
+  "scope": "local synthetic ownership; real TLS with ephemeral test pin and local DNS mapping; no hosted auth/storage"
+}

@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
+import 'device_handoff.dart';
+import 'email_handoff.dart';
 import 'resolver_api.dart';
+import 'saved_title_resolver.dart';
+import 'resolver_config.dart';
 import 'tutorial_panel.dart';
-
-const _apiBase = String.fromEnvironment(
-  'TV2_API_BASE_URL',
-  defaultValue: 'https://tv2-development.onrender.com',
-);
+import 'tutorial_caption_config.dart';
 
 void main() {
-  final api = HttpResolverApi(baseUri: Uri.parse(_apiBase));
+  final api = HttpResolverApi(baseUri: configuredResolverOrigin());
   runApp(TV2App(
       api: api,
       tutorial: TutorialVideo.fromUrl(
         const String.fromEnvironment('TV2_TUTORIAL_URL'),
+        captionsVtt: tutorialCaptionText(
+          raw: const String.fromEnvironment('TV2_TUTORIAL_CAPTIONS_VTT'),
+          base64Text:
+              const String.fromEnvironment('TV2_TUTORIAL_CAPTIONS_VTT_BASE64'),
+        ),
       )));
 }
 
@@ -24,9 +29,13 @@ class TV2App extends StatefulWidget {
     required this.api,
     this.initialCountry,
     this.tutorial,
+    this.deviceHandoff,
+    this.emailHandoff,
   });
 
   final ResolverApi api;
+  final DeviceHandoff? deviceHandoff;
+  final EmailHandoff? emailHandoff;
   final String? initialCountry;
   final TutorialVideo? tutorial;
 
@@ -35,6 +44,14 @@ class TV2App extends StatefulWidget {
 }
 
 class _TV2AppState extends State<TV2App> {
+  late ResolverApi _savedTitleApi = SavedTitleResolver(widget.api);
+
+  @override
+  void didUpdateWidget(covariant TV2App oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.api != widget.api) _savedTitleApi = SavedTitleResolver(widget.api);
+  }
+
   final _tutorialRoutes = RouteObserver<ModalRoute<dynamic>>();
 
   @override
@@ -44,7 +61,9 @@ class _TV2AppState extends State<TV2App> {
         theme: ThemeData(useMaterial3: true),
         navigatorObservers: [_tutorialRoutes],
         home: HomeScreen(
-            api: widget.api,
+            api: _savedTitleApi,
+            deviceHandoff: widget.deviceHandoff,
+            emailHandoff: widget.emailHandoff,
             initialCountry: widget.initialCountry,
             tutorial: widget.tutorial,
             tutorialRoutes: _tutorialRoutes),
