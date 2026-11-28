@@ -1,0 +1,88 @@
+name: safari-synthetic-oneoff
+on:
+  push:
+    branches: [qa/safari-synthetic-b42077a-20261128]
+    paths: ['scripts/safari_xcui/**', '.github/workflows/safari-synthetic-oneoff.yml']
+permissions:
+  contents: read
+jobs:
+  safari:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          path: frozen
+          ref: b42077adb9e1f473f1b1494c241571d104cefc04
+          persist-credentials: false
+      - name: Verify sources and build normal entry with explicit local fixture
+        run: |
+          set -eu
+          test "$(git -C frozen rev-parse HEAD)" = b42077adb9e1f473f1b1494c241571d104cefc04
+          test "$(git -C frozen rev-parse HEAD^{tree})" = 1a0bca21b23e1b6c1c4a951e46ba8b6438474077
+          git -C frozen rev-parse HEAD HEAD^{tree}
+          git -C harness rev-parse HEAD HEAD^{tree}
+          git clone --depth 1 --branch 3.50.0 https://github.com/flutter/flutter.git /tmp/tv2-flutter-sdk
+          export PATH="/tmp/tv2-flutter-sdk/bin:$PATH"
+          flutter --version
+          cd frozen/TV2_flutter
+          flutter create --platforms=web --project-name tv2 .
+          flutter pub get
+          flutter build web --release --dart-define=TV2_LOCAL_FIXTURE=true --dart-define=TV2_API_BASE_URL=http://127.0.0.1:8765
+          shasum -a 256 build/web/main.dart.js
+      - name: Select preinstalled Xcode and available iPhone
+        run: |
+          set -eu
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+          xcrun simctl list devices available --json > /tmp/sims.json
+          python3 - <<'PY'
+          import json,os
+          choices=[(runtime,d['name'],d['udid']) for runtime,ds in json.load(open('/tmp/sims.json'))['devices'].items() if 'iOS' in runtime for d in ds if d.get('isAvailable') and d['name'].startswith('iPhone')]
+          if not choices:raise SystemExit('No preinstalled iPhone runtime; stopping')
+          runtime,name,udid=sorted(choices,reverse=True)[0]
+          print('Actual simulator:',runtime,name,udid)
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write('TV2_SIM_UDID='+udid+'\n')
+          PY
+      - name: Start loopback and boot selected simulator
+        run: |
+          set -eu
+          xcrun simctl boot "$TV2_SIM_UDID" || true
+          xcrun simctl bootstatus "$TV2_SIM_UDID" -b
+          python3 harness/scripts/safari_xcui/server.py frozen/TV2_flutter/build/web > /tmp/tv2-fixture.log 2>&1 &
+          cd harness
+          ruby scripts/safari_xcui/project.rb
+      - name: One bounded health launch and XCUI attempt
+        timeout-minutes: 10
+        run: |
+          python3 - <<'PY'
+          import subprocess,os
+          try:
+              r=subprocess.run(['xcrun','simctl','openurl',os.environ['TV2_SIM_UDID'],'http://127.0.0.1:8765/health'],timeout=35)
+              print('TV2_STAGE: simctl_health_openurl_exit',r.returncode)
+          except subprocess.TimeoutExpired:
+              print('TV2_STAGE: simctl_health_openurl_timeout; one XCUI address fallback allowed')
+              from pathlib import Path
+              p=Path('harness/scripts/safari_xcui/TV2SafariTests.swift')
+              p.write_text(p.read_text().replace('let allowAddressFallback = false','let allowAddressFallback = true'))
+          PY
+          cd harness
+          set -o pipefail
+          xcodebuild test -project TV2Safari.xcodeproj -scheme TV2Safari -destination "platform=iOS Simulator,id=$TV2_SIM_UDID" -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 -derivedDataPath "$RUNNER_TEMP/tv2-xcui-build" CODE_SIGNING_ALLOWED=NO 2>&1 | tee /tmp/tv2-xcui.log
+      - name: Preserve bounded synthetic screenshot evidence in logs
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,pathlib,base64,hashlib
+          root=pathlib.Path.home()/'Library/Developer/CoreSimulator/Devices'/os.environ.get('TV2_SIM_UDID','absent')/'data/Containers'
+          for p in sorted(root.glob('**/tmp/tv2-evidence/*.png')):
+              b=p.read_bytes();print('PNG_BEGIN',p.name,hashlib.sha256(b).hexdigest())
+              s=base64.b64encode(b).decode()
+              for i in range(0,len(s),2000):print('PNG_DATA',s[i:i+2000])
+              print('PNG_END',p.name)
+          PY
+          cat /tmp/tv2-fixture.log || true
