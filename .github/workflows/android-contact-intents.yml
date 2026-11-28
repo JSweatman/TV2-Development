@@ -1,0 +1,113 @@
+name: android-contact-intents
+on:
+  push:
+    branches: [qa/android-contact-intents-20261128]
+    paths: ['qa/android_contacts/**', '.github/workflows/android-contact-intents.yml']
+permissions:
+  contents: read
+jobs:
+  contacts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Exact source and fixture-only build
+        run: |
+          set -eu
+          git rev-parse HEAD HEAD^{tree}
+          git diff --exit-code d001a4d8d1ed8ebdfa1b64de485cf57f275c37b4 -- TV2_flutter
+          git rev-parse d001a4d8d1ed8ebdfa1b64de485cf57f275c37b4:TV2_flutter
+          git clone --depth 1 --branch 3.50.0 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          export PATH="$RUNNER_TEMP/flutter/bin:$PATH"
+          cd TV2_flutter
+          flutter create --platforms=android --project-name tv2 --org com.sundara.preview .
+          python3 ../qa/android_contacts/prepare.py
+          flutter pub get
+          flutter build apk --debug --target-platform android-x64 -t integration_test/contact_test.dart --dart-define=TV2_LOCAL_FIXTURE=true --dart-define=TV2_API_BASE_URL=http://127.0.0.1:54335
+          cp build/app/outputs/flutter-apk/app-debug.apk "$RUNNER_TEMP/contact-fixture.apk"
+          cd android
+          ./gradlew app:assembleDebugAndroidTest
+          ./gradlew --stop
+      - name: Fresh API 35 emulator with zero accounts and no snapshots
+        run: |
+          set -euo pipefail
+          sdkbin=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -1)
+          export PATH="$(dirname "$sdkbin"):$ANDROID_HOME/platform-tools:$PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          sdkmanager 'platform-tools' 'emulator' 'system-images;android-35;google_apis;x86_64' > sdk.log 2>&1 || { tail -30 sdk.log; exit 1; }
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+          "$ANDROID_HOME/emulator/emulator" -accel-check
+          export ANDROID_USER_HOME="$RUNNER_TEMP/tv2-contact-avd"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          test ! -e "$ANDROID_AVD_HOME/contactproof.avd"
+          echo no | avdmanager create avd -n contactproof --device pixel_2 -k 'system-images;android-35;google_apis;x86_64' -p "$ANDROID_AVD_HOME/contactproof.avd" --force
+          "$ANDROID_HOME/emulator/emulator" -avd contactproof -memory 2048 -cores 2 -no-window -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect > emulator.log 2>&1 &
+          timeout 240 adb wait-for-device
+          for i in $(seq 1 120); do
+            if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
+            sleep 2
+          done
+          test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1
+          adb shell input keyevent 82
+          adb shell dumpsys account > accounts.txt
+          grep 'Accounts: 0' accounts.txt
+          echo "Google services inventory (not an account):"
+          adb shell pm list packages com.google.android.gms
+          adb shell dumpsys backup > backup.txt 2>&1 || true
+          cat backup.txt
+          # Fresh, newly created and wiped AVD, no snapshots and zero accounts.
+          # Record token evidence where this image exposes its backup service.
+          python3 - <<'PY2'
+          import re
+          from pathlib import Path
+          s=Path('backup.txt').read_text()
+          tokens=re.findall(r'(?:Ancestral|Current)(?: token)?[:=]\s*(?:0x)?([0-9a-fA-F]+)',s)
+          if tokens:
+              assert all(int(t,16)==0 for t in tokens), 'Unexpected existing restore token'
+              print('Observed restore tokens all zero:', len(tokens))
+          else:
+              print('Backup tokens not exposed by this fresh image; no token-based restore assertion.')
+          PY2
+          if adb shell pm list packages | grep -qx 'package:com.example.tv2'; then echo "Original TV2 unexpectedly present"; exit 1; fi
+      - name: Intercept native intents before UI contact gestures
+        run: |
+          set -euo pipefail
+          python3 qa/android_contacts/resolver.py > resolver.log 2>&1 &
+          adb reverse tcp:54335 tcp:54335
+          adb install "$RUNNER_TEMP/contact-fixture.apk"
+          adb install TV2_flutter/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          adb shell dumpsys package com.sundara.preview.tv2 | grep -E 'versionCode=|versionName='
+          adb logcat -c
+          timeout 240 adb shell am instrument -w com.sundara.preview.tv2.test/com.sundara.preview.tv2.ContactInstrumentation | tee instrumentation.log
+          adb logcat -d -s flutter:I TV2_INTENT:I > contact-ui.log
+          cat contact-ui.log
+          cat resolver.log
+          grep 'TV2_NATIVE_INTENTS_PASS' instrumentation.log
+          grep 'TV2_CONTACT_UI_PASS' contact-ui.log
+          grep 'MONITOR_ARMED_BEFORE_LAUNCH' contact-ui.log
+          grep '/v1/countries' resolver.log
+          grep 'country=81' resolver.log
+          test "$(grep -c 'TV2_INTENT.*BLOCKED' contact-ui.log)" = 3
+          if adb shell pm list packages | grep -qx 'package:com.example.tv2'; then exit 1; fi
+      - name: Diagnostics
+        if: failure() || cancelled()
+        run: |
+          tail -60 emulator.log 2>/dev/null || true
+          cat instrumentation.log resolver.log 2>/dev/null || true
+          timeout 10 adb logcat -d -s flutter:I TV2_INTENT:I AndroidRuntime:E | tail -100 || true
+      - name: Remove disposable emulator and APKs
+        if: always()
+        run: |
+          timeout 10 adb emu kill || true
+          rm -f "$RUNNER_TEMP/contact-fixture.apk"
+          rm -rf TV2_flutter/build
+          rm -f "$HOME/.android/debug.keystore"
