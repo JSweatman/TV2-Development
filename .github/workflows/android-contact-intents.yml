@@ -13,12 +13,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
       - name: Exact source and fixture-only build
+        env:
+          TV2_CONTACT_KEYSTORE: ${{ runner.temp }}/contact-test-only.keystore
         run: |
           set -eu
           git rev-parse HEAD HEAD^{tree}
@@ -28,6 +30,7 @@ jobs:
           export PATH="$RUNNER_TEMP/flutter/bin:$PATH"
           cd TV2_flutter
           flutter create --platforms=android --project-name tv2 --org com.sundara.preview .
+          keytool -genkeypair -keystore "$TV2_CONTACT_KEYSTORE" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -validity 1 -dname "CN=TV2 DISPOSABLE TEST ONLY" >/dev/null 2>&1
           python3 ../qa/android_contacts/prepare.py
           flutter pub get
           flutter build apk --debug --target-platform android-x64 -t integration_test/contact_test.dart --dart-define=TV2_LOCAL_FIXTURE=true --dart-define=TV2_API_BASE_URL=http://127.0.0.1:54335
@@ -83,6 +86,11 @@ jobs:
           set -euo pipefail
           python3 qa/android_contacts/resolver.py > resolver.log 2>&1 &
           adb reverse tcp:54335 tcp:54335
+          tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$tools/apksigner" verify --print-certs "$RUNNER_TEMP/contact-fixture.apk" | grep 'certificate SHA-256 digest' > "$RUNNER_TEMP/app.cert"
+          "$tools/apksigner" verify --print-certs TV2_flutter/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk | grep 'certificate SHA-256 digest' > "$RUNNER_TEMP/test.cert"
+          cmp "$RUNNER_TEMP/app.cert" "$RUNNER_TEMP/test.cert"
+          echo 'App and instrumentation test-only signer verified equal'
           adb install "$RUNNER_TEMP/contact-fixture.apk"
           adb install TV2_flutter/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
           adb shell dumpsys package com.sundara.preview.tv2 | grep -E 'versionCode=|versionName='
@@ -110,4 +118,4 @@ jobs:
           timeout 10 adb emu kill || true
           rm -f "$RUNNER_TEMP/contact-fixture.apk"
           rm -rf TV2_flutter/build
-          rm -f "$HOME/.android/debug.keystore"
+          rm -f "$HOME/.android/debug.keystore" "$RUNNER_TEMP/contact-test-only.keystore"

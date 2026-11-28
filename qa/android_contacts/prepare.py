@@ -7,3 +7,5 @@ for path,src in [('android/app/src/main/kotlin/com/sundara/preview/tv2/MainActiv
 p=Path('android/app/src/main/AndroidManifest.xml');p.write_text(p.read_text().replace('android:label="tv2"','android:label="TV2 Contacts TEST ONLY"'))
 # Debug-only emulator network allowance, not a released policy change.
 p=Path('android/app/src/debug/AndroidManifest.xml');s=p.read_text();s=s.replace('</manifest>','<application android:usesCleartextTraffic="true" /></manifest>');p.write_text(s)
+
+p=Path('android/app/build.gradle.kts');p.write_text(p.read_text().replace('android {', 'android {\n    signingConfigs.getByName("debug") {\n        storeFile = file(System.getenv("TV2_CONTACT_KEYSTORE"))\n        storePassword = "android"\n        keyAlias = "androiddebugkey"\n        keyPassword = "android"\n    }\n',1))
