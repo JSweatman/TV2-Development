@@ -1,0 +1,118 @@
+name: android-release-rehearsal
+on:
+  push:
+    branches: [qa/android-release-rehearsal-20261128]
+    paths: ['qa/android_release/**', '.github/workflows/android-release-rehearsal.yml']
+permissions:
+  contents: read
+jobs:
+  release-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build one disposable release QA APK
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD HEAD^{tree}
+          git diff --exit-code d001a4d8d1ed8ebdfa1b64de485cf57f275c37b4 -- TV2_flutter
+          git rev-parse d001a4d8d1ed8ebdfa1b64de485cf57f275c37b4:TV2_flutter
+          git clone --depth 1 --branch 3.50.1 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          export PATH="$RUNNER_TEMP/flutter/bin:$PATH"
+          export TV2_QA_KEYSTORE="$RUNNER_TEMP/release-qa.keystore"
+          export TV2_QA_PASSWORD=$(python3 -c 'import secrets;print(secrets.token_hex(24))')
+          cd TV2_flutter
+          flutter --version
+          flutter create --platforms=android --project-name tv2 --org com.sundara.qa.release .
+          keytool -genkeypair -keystore "$TV2_QA_KEYSTORE" -storepass:env TV2_QA_PASSWORD -keypass:env TV2_QA_PASSWORD -alias qaonly -keyalg RSA -validity 1 -dname 'CN=TV2 DISPOSABLE RELEASE QA ONLY' >/dev/null 2>&1
+          python3 ../qa/android_release/prepare.py
+          flutter pub get
+          flutter build apk --release --target-platform android-x64 --dart-define=TV2_LOCAL_FIXTURE=true --dart-define=TV2_API_BASE_URL=http://127.0.0.1:54335
+          cd android
+          ./gradlew --stop
+      - name: Assert final merged release package
+        run: |
+          set -euo pipefail
+          apk=TV2_flutter/build/app/outputs/flutter-apk/app-release.apk
+          analyzer=$(find "$ANDROID_HOME/cmdline-tools" -type f -name apkanalyzer | sort -V | tail -1)
+          tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$analyzer" manifest print "$apk" > merged-release.xml
+          python3 - <<'PY'
+          import xml.etree.ElementTree as E,zipfile
+          ns='{http://schemas.android.com/apk/res/android}'
+          r=E.parse('merged-release.xml').getroot();app=r.find('application')
+          assert r.get('package')=='com.sundara.qa.release.tv2'
+          assert r.get('package') not in ['com.example.tv2','com.sundara.preview.tv2']
+          assert any(x.get(ns+'name')=='android.permission.INTERNET' for x in r.findall('uses-permission'))
+          assert app.get(ns+'debuggable','false')=='false'
+          assert app.get(ns+'usesCleartextTraffic')=='false'
+          assert app.get(ns+'networkSecurityConfig') is not None
+          n=E.parse('TV2_flutter/android/app/src/main/res/xml/qa_loopback.xml').getroot()
+          assert n.find('base-config').get('cleartextTrafficPermitted')=='false'
+          domains=n.findall('.//domain');assert len(domains)==1 and domains[0].text=='127.0.0.1'
+          z=zipfile.ZipFile('TV2_flutter/build/app/outputs/flutter-apk/app-release.apk')
+          assert 'lib/x86_64/libapp.so' in z.namelist()
+          assert not any('kernel_blob.bin' in f for f in z.namelist())
+          print('FINAL_RELEASE_MANIFEST_PASS',r.get('package'),'INTERNET=true debuggable=false default-cleartext=false QA-loopback-only')
+          print('VERSION',r.get(ns+'versionName'),r.get(ns+'versionCode'))
+          print('RELEASE_AOT_X86_64_PRESENT')
+          PY
+          "$tools/apksigner" verify --print-certs "$apk" | grep -E 'certificate (DN|SHA-256 digest)'
+          sha256sum "$apk"
+      - name: Fresh disposable emulator
+        run: |
+          set -euo pipefail
+          sdkbin=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -1)
+          export PATH="$(dirname "$sdkbin"):$ANDROID_HOME/platform-tools:$PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          sdkmanager 'platform-tools' 'emulator' 'system-images;android-35;google_apis;x86_64' > sdk.log 2>&1 || { tail -30 sdk.log; exit 1; }
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+          "$ANDROID_HOME/emulator/emulator" -accel-check
+          export ANDROID_USER_HOME="$RUNNER_TEMP/tv2-release-avd"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager create avd -n releaseqa --device pixel_2 -k 'system-images;android-35;google_apis;x86_64' -p "$ANDROID_AVD_HOME/releaseqa.avd" --force
+          python3 qa/android_release/supervise.py "$ANDROID_HOME/emulator/emulator" -avd releaseqa -memory 2048 -cores 2 -no-window -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect > supervisor.log 2>&1 &
+          timeout 240 adb wait-for-device
+          for i in $(seq 1 120); do
+            if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
+            sleep 2
+          done
+          test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1
+          adb shell input keyevent 82
+          adb shell dumpsys account | grep 'Accounts: 0'
+          adb shell getprop ro.build.version.release
+          adb shell getprop ro.build.version.sdk
+          if adb shell pm list packages | grep -E '^package:(com.example.tv2|com.sundara.preview.tv2)$'; then exit 1; fi
+      - name: Normal release UI against synthetic loopback
+        run: |
+          set -euo pipefail
+          python3 qa/android_release/resolver.py > resolver.log 2>&1 &
+          adb reverse tcp:54335 tcp:54335
+          adb install TV2_flutter/build/app/outputs/flutter-apk/app-release.apk
+          timeout 180 python3 qa/android_release/ui.py | tee ui.log
+          cat resolver.log
+          grep '/v1/countries' resolver.log
+          grep '/v1/resolve.*country=81' resolver.log
+          grep 'TV2_RELEASE_QA_UI_PASS' ui.log
+      - name: Bounded diagnostics
+        if: failure() || cancelled()
+        run: |
+          cat ui.log resolver.log supervisor.log 2>/dev/null || true
+          tail -3 emulator-status.jsonl 2>/dev/null || true
+          free -m
+          timeout 10 adb logcat -d -s flutter:I AndroidRuntime:E | tail -80 || true
+      - name: Dispose APK signer and emulator; no artifact upload
+        if: always()
+        run: |
+          timeout 10 adb emu kill || true
+          rm -f "$RUNNER_TEMP/release-qa.keystore"
+          rm -rf TV2_flutter/build
