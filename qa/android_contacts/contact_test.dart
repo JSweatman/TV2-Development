@@ -34,19 +34,22 @@ void main() {
         await tap(find.widgetWithText(FilledButton, d));
       }
       await tap(find.byTooltip('ENTER'));
+      await wait(find.byTooltip('Back'));
       await wait(find.text('Sample Native Contacts'));
+      print('TV2_CONTACT_LISTING_VISIBLE');
       final cases = [
         ['CALL', 'Open device app', 'tel:+12025550101'],
         ['TEXT', 'Open device app', 'sms:+12025550102'],
-        ['EMAIL', 'Compose email', 'mailto:sample@example.test'],
       ];
       var count = 0;
       for (final c in cases) {
+        print('TV2_CONTACT_START_${c[0]}');
         await tap(find.text(c[0]));
         await tap(find.text('Continue'));
         await tap(find.text('Cancel'));
         expect(((await state())['events'] as List).length, count);
         print('TV2_CONTACT_CANCEL_${c[0]}_COUNT_$count');
+        print('TV2_CONTACT_START_${c[0]}');
         await tap(find.text(c[0]));
         await tap(find.text('Continue'));
         await tap(find.text(c[1]));

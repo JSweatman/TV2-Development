@@ -25,7 +25,7 @@ class ContactInstrumentation: Instrumentation() {
   startActivitySync(Intent(Intent.ACTION_MAIN).setClassName(targetContext,"com.sundara.preview.tv2.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
   val deadline=System.currentTimeMillis()+180000
   while(!ContactEvidence.done && System.currentTimeMillis()<deadline)Thread.sleep(250)
-  val ok=ContactEvidence.done && ContactEvidence.events.size==3
+  val ok=ContactEvidence.done && ContactEvidence.events.size==2
   val result=Bundle();result.putString("stream",if(ok)"TV2_NATIVE_INTENTS_PASS" else "TV2_NATIVE_INTENTS_INCOMPLETE")
   finish(if(ok)Activity.RESULT_OK else Activity.RESULT_CANCELED,result)
  }

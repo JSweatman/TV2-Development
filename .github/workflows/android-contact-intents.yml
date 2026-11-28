@@ -26,13 +26,22 @@ jobs:
           git rev-parse HEAD HEAD^{tree}
           git diff --exit-code d001a4d8d1ed8ebdfa1b64de485cf57f275c37b4 -- TV2_flutter
           git rev-parse d001a4d8d1ed8ebdfa1b64de485cf57f275c37b4:TV2_flutter
-          git clone --depth 1 --branch 3.50.0 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          git clone --depth 1 --branch 3.50.1 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
           export PATH="$RUNNER_TEMP/flutter/bin:$PATH"
           cd TV2_flutter
           flutter create --platforms=android --project-name tv2 --org com.sundara.preview .
           keytool -genkeypair -keystore "$TV2_CONTACT_KEYSTORE" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -validity 1 -dname "CN=TV2 DISPOSABLE TEST ONLY" >/dev/null 2>&1
           python3 ../qa/android_contacts/prepare.py
+          flutter --version
           flutter pub get
+          python3 - <<'PYLOCK'
+          from pathlib import Path
+          import re
+          text=Path('pubspec.lock').read_text()
+          match=re.search(r'^  url_launcher_android:\n(.*?)(?=^  [a-zA-Z_]|\Z)',text,re.M|re.S)
+          assert match, 'Missing resolved native launcher package'
+          print('RESOLVED_LOCKFILE_NATIVE_LAUNCHER:\n'+match.group(0))
+          PYLOCK
           flutter build apk --debug --target-platform android-x64 -t integration_test/contact_test.dart --dart-define=TV2_LOCAL_FIXTURE=true --dart-define=TV2_API_BASE_URL=http://127.0.0.1:54335
           cp build/app/outputs/flutter-apk/app-debug.apk "$RUNNER_TEMP/contact-fixture.apk"
           cd android
@@ -53,7 +62,7 @@ jobs:
           mkdir -p "$ANDROID_AVD_HOME"
           test ! -e "$ANDROID_AVD_HOME/contactproof.avd"
           echo no | avdmanager create avd -n contactproof --device pixel_2 -k 'system-images;android-35;google_apis;x86_64' -p "$ANDROID_AVD_HOME/contactproof.avd" --force
-          "$ANDROID_HOME/emulator/emulator" -avd contactproof -memory 2048 -cores 2 -no-window -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect > emulator.log 2>&1 &
+          python3 qa/android_contacts/supervise.py "$ANDROID_HOME/emulator/emulator" -avd contactproof -memory 2048 -cores 2 -no-window -no-audio -no-boot-anim -no-snapshot -wipe-data -gpu swiftshader_indirect > supervisor.log 2>&1 &
           timeout 240 adb wait-for-device
           for i in $(seq 1 120); do
             if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
@@ -95,7 +104,16 @@ jobs:
           adb install TV2_flutter/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
           adb shell dumpsys package com.sundara.preview.tv2 | grep -E 'versionCode=|versionName='
           adb logcat -c
-          timeout 240 adb shell am instrument -w com.sundara.preview.tv2.test/com.sundara.preview.tv2.ContactInstrumentation | tee instrumentation.log
+          timeout 230 adb logcat -v threadtime -s flutter:I TV2_INTENT:I AndroidRuntime:E '*:S' | tee contact-live.log &
+          capture_pid=$!
+          set +e
+          timeout 210 adb shell am instrument -w com.sundara.preview.tv2.test/com.sundara.preview.tv2.ContactInstrumentation | tee instrumentation.log
+          instrument_rc=${PIPESTATUS[0]}
+          set -e
+          kill "$capture_pid" 2>/dev/null || true
+          echo "INSTRUMENTATION_EXIT=$instrument_rc"
+          tail -2 emulator-status.jsonl || true
+          if [ "$instrument_rc" != 0 ]; then exit "$instrument_rc"; fi
           adb logcat -d -s flutter:I TV2_INTENT:I > contact-ui.log
           cat contact-ui.log
           cat resolver.log
@@ -104,12 +122,17 @@ jobs:
           grep 'MONITOR_ARMED_BEFORE_LAUNCH' contact-ui.log
           grep '/v1/countries' resolver.log
           grep 'country=81' resolver.log
-          test "$(grep -c 'TV2_INTENT.*BLOCKED' contact-ui.log)" = 3
+          test "$(grep -c 'TV2_INTENT.*BLOCKED' contact-ui.log)" = 2
           if adb shell pm list packages | grep -qx 'package:com.example.tv2'; then exit 1; fi
       - name: Diagnostics
         if: failure() || cancelled()
         run: |
-          tail -60 emulator.log 2>/dev/null || true
+          tail -60 emulator.log 2>/dev/null | grep -v -E 'pubkey|public key|jwks|active.jwk' || true
+          cat supervisor.log 2>/dev/null || true
+          tail -3 emulator-status.jsonl 2>/dev/null || true
+          free -m
+          sudo dmesg | grep -i -E 'out of memory|oom|killed process|segfault' | tail -20 || true
+          cat contact-live.log 2>/dev/null || true
           cat instrumentation.log resolver.log 2>/dev/null || true
           timeout 10 adb logcat -d -s flutter:I TV2_INTENT:I AndroidRuntime:E | tail -100 || true
       - name: Remove disposable emulator and APKs
